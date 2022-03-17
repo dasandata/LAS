@@ -77,7 +77,7 @@ then
     centos )
       ## centos는 이미 rc.local이 존재하여 실행될 파일값만 넣어준다.
       chmod +x /etc/rc.d/rc.local
-      sed -i '12a bash /root/LISR/LISR_LAS/Linux_Auto_Script.sh' /etc/rc.d/rc.local
+      sed -i '12a bash /root/LAS/Linux_Auto_Script.sh' /etc/rc.d/rc.local
       echo "rc.local setting complete" | tee -a /root/install_log.txt
     ;;
     ubuntu )
@@ -86,13 +86,13 @@ then
       ## Ubuntu16만 이미 rc.local이 존재하여 나눠서 작업
       if [ $OS = "ubuntu1604" ]
       then
-        sed -i '13a bash /root/LISR/LISR_LAS/Linux_Auto_Script.sh' /etc/rc.local
+        sed -i '13a bash /root/LAS/Linux_Auto_Script.sh' /etc/rc.local
       else
         echo -e  '#!/bin/sh -e \nexit 0' | tee -a /etc/rc.local
         chmod +x /etc/rc.local
         systemctl restart rc-local.service >> /root/install_log.txt 2>> /root/log_err.txt
         systemctl status rc-local.service >> /root/install_log.txt 2>> /root/log_err.txt
-        sed -i '1a bash /root/LISR/LISR_LAS/Linux_Auto_Script.sh' /etc/rc.local
+        sed -i '1a bash /root/LAS/Linux_Auto_Script.sh' /etc/rc.local
         echo "" | tee -a /root/install_log.txt
         echo "rc.local setting complete" | tee -a /root/install_log.txt
       fi
@@ -661,7 +661,7 @@ then
       then
         echo "" | tee -a /root/install_log.txt
         echo "End of CPU version LAS" | tee -a /root/install_log.txt
-        sed -i '12a bash /root/LISR/LISR_LAS/Check_List.sh' /etc/rc.d/rc.local
+        sed -i '12a bash /root/LAS/Check_List.sh' /etc/rc.d/rc.local
         systemctl set-default graphical.target >> /root/install_log.txt 2>> /root/log_err.txt
         reboot
       else
@@ -685,9 +685,9 @@ then
         echo "End of CPU version LAS" | tee -a /root/install_log.txt
         if [ $OS = "ubuntu1604" ]
         then
-          sed -i '13a bash /root/LISR/LISR_LAS/Check_List.sh' /etc/rc.local
+          sed -i '13a bash /root/LAS/Check_List.sh' /etc/rc.local
         else
-          sed -i '1a bash /root/LISR/LISR_LAS/Check_List.sh' /etc/rc.local
+          sed -i '1a bash /root/LAS/Check_List.sh' /etc/rc.local
         fi
         systemctl set-default graphical.target >> /root/install_log.txt 2>> /root/log_err.txt
         reboot
@@ -1043,14 +1043,14 @@ then
     sed -i '824a c.Authenticator.admin_users = {"sonic"}' /etc/jupyterhub/jupyterhub_config.py
     sed -i '929a c.Spawner.default_url = '/lab'' /etc/jupyterhub/jupyterhub_config.py
     ## jupyterhub service 설정 파일 복사
-    mv /root/LISR/LISR_LAS/jupyterhub.service /lib/systemd/system/
-    mv /root/LISR/LISR_LAS/jupyterhub /etc/init.d/
+    mv /root/LAS/jupyterhub.service /lib/systemd/system/
+    mv /root/LAS/jupyterhub /etc/init.d/
     chmod 777 /lib/systemd/system/jupyterhub.service >> /root/install_log.txt 2>> /root/log_err.txt
     chmod 755 /etc/init.d/jupyterhub >> /root/install_log.txt 2>> /root/log_err.txt
     systemctl daemon-reload >> /root/install_log.txt 2>> /root/log_err.txt
     systemctl enable jupyterhub.service >> /root/install_log.txt 2>> /root/log_err.txt
     systemctl restart jupyterhub.service >> /root/install_log.txt 2>> /root/log_err.txt
-    R CMD BATCH /root/LISR/LISR_LAS/r_jupyterhub.R >> /root/install_log.txt 2>> /root/log_err.txt
+    R CMD BATCH /root/LAS/r_jupyterhub.R >> /root/install_log.txt 2>> /root/log_err.txt
     echo "" | tee -a /root/install_log.txt
     echo "JupyterHub Setting Files Copy Complete" | tee -a /root/install_log.txt
   else
@@ -1073,17 +1073,17 @@ then
   echo "LAS install complete" | tee -a /root/install_log.txt
   case $OSCHECK in
     centos )
-      sed -i '12a bash /root/LISR/LISR_LAS/Check_List.sh' /etc/rc.d/rc.local
+      sed -i '12a bash /root/LAS/Check_List.sh' /etc/rc.d/rc.local
       systemctl set-default graphical.target >> /root/install_log.txt 2>> /root/log_err.txt
     ;;
     ubuntu )
       OS=$(lsb_release -isr |  tr -d "." | sed -e '{N;s/\n//}' | tr '[A-Z]' '[a-z]')
       if [ $OS = "ubuntu1604" ]
       then
-        sed -i '13a bash /root/LISR/LISR_LAS/Check_List.sh' /etc/rc.local
+        sed -i '13a bash /root/LAS/Check_List.sh' /etc/rc.local
         systemctl set-default graphical.target >> /root/install_log.txt 2>> /root/log_err.txt
       else
-        sed -i '1a bash /root/LISR/LISR_LAS/Check_List.sh' /etc/rc.local
+        sed -i '1a bash /root/LAS/Check_List.sh' /etc/rc.local
         systemctl set-default graphical.target >> /root/install_log.txt 2>> /root/log_err.txt
       fi
     ;;
@@ -1169,17 +1169,17 @@ then
   echo "LAS install complete" | tee -a /root/install_log.txt
     case $OS in
       centos7 )
-        sed -i '12a bash /root/LISR/LISR_LAS/Check_List.sh' /etc/rc.d/rc.local
+        sed -i '12a bash /root/LAS/Check_List.sh' /etc/rc.d/rc.local
         sleep 2
         systemctl set-default  multi-user.target
       ;;
       ubuntu1604 )
-        sed -i '13a bash /root/LISR/LISR_LAS/Check_List.sh' /etc/rc.local
+        sed -i '13a bash /root/LAS/Check_List.sh' /etc/rc.local
         sleep 2
         systemctl set-default  multi-user.target
       ;;
       ubuntu1804 | ubuntu2004 )
-        sed -i '1a bash /root/LISR/LISR_LAS/Check_List.sh' /etc/rc.local
+        sed -i '1a bash /root/LAS/Check_List.sh' /etc/rc.local
         sleep 2
         systemctl set-default  multi-user.target
       ;;
@@ -1296,15 +1296,15 @@ echo "" | tee -a /root/install_log.txt
 echo "LAS install complete" | tee -a /root/install_log.txt
 case $OS in
   centos7 )
-    sed -i '12a bash /root/LISR/LISR_LAS/Check_List.sh' /etc/rc.d/rc.local
+    sed -i '12a bash /root/LAS/Check_List.sh' /etc/rc.d/rc.local
     systemctl set-default  multi-user.target | tee -a /root/install_log.txt
   ;;
   ubuntu1604 )
-    sed -i '13a bash /root/LISR/LISR_LAS/Check_List.sh' /etc/rc.local
+    sed -i '13a bash /root/LAS/Check_List.sh' /etc/rc.local
     systemctl set-default  multi-user.target | tee -a /root/install_log.txt
   ;;
   ubuntu1804 | ubuntu2004 )
-    sed -i '1a bash /root/LISR/LISR_LAS/Check_List.sh' /etc/rc.local
+    sed -i '1a bash /root/LAS/Check_List.sh' /etc/rc.local
     systemctl set-default  multi-user.target | tee -a /root/install_log.txt
   ;;
   *)
