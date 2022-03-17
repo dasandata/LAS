@@ -12,13 +12,13 @@
 ## 목차
 - [1. 리눅스 설치 표준안 - Centos 7.9, Ubuntu 20.04 (2022.03)](https://github.com/dasandata/LAS/blob/88da18550bf95d744024adf16aab93a0fcb59005/Installing_LISR_Manually.md)  
 
-- [2. 리눅스 자동설치 스크립트. ][Linux Auto Script](https://github.com/dasandata/LAS/blob/88da18550bf95d744024adf16aab93a0fcb59005/Linux_Auto_Script.sh)
+- [2. 리눅스 자동설치 스크립트. ](https://github.com/dasandata/LAS/blob/88da18550bf95d744024adf16aab93a0fcb59005/Linux_Auto_Script.sh)
   - 운영체제 통합 스크립트
       - centos 7.9
       - ubuntu 16.04
       - ubuntu 18.04
       - ubuntu 20.04
-- [4. 자동 스크립트 Release Note ][Release Note](https://github.com/dasandata/LAS/blob/88da18550bf95d744024adf16aab93a0fcb59005/Release%20Note/LAS_Release_Note.md)
+- [4. 자동 스크립트 Release Note ](https://github.com/dasandata/LAS/blob/88da18550bf95d744024adf16aab93a0fcb59005/Release%20Note/LAS_Release_Note.md)
 
 
 [root@dasandata-script-test:~]#  yum install -y git  # Centos
@@ -33,7 +33,7 @@
 
 [root@dasandata-script-test:~]#
 
-[root@dasandata-script-test:~]# bash /root/LISR/LISR_LAS/Linux_Auto_Script.sh
+[root@dasandata-script-test:~]# bash /root/LAS/Linux_Auto_Script.sh
 
       You have run Linux_Automatic_Script
       Copyright by Dasandata.co.ltd
