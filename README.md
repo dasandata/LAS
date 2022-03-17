@@ -29,7 +29,7 @@
 
 [root@dasandata-script-test:~]#
 
-[root@dasandata-script-test:~]# git clone https://github.com/dasandata/LISR
+[root@dasandata-script-test:~]# git clone https://github.com/dasandata/LAS
 
 [root@dasandata-script-test:~]#
 
