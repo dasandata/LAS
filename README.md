@@ -10,15 +10,15 @@
 
 
 ## 목차
-- [1. 리눅스 설치 표준안 - Centos 7.9, Ubuntu 20.04 (2022.03)][Manually Install](https://github.com/dasandata/LISR/blob/9a092efb64e1738db5c506dd0107cb1b80150fe5/Installing_LISR_Manually.md)  
+- [1. 리눅스 설치 표준안 - Centos 7.9, Ubuntu 20.04 (2022.03)][Manually Install](https://github.com/dasandata/LAS/blob/88da18550bf95d744024adf16aab93a0fcb59005/Installing_LISR_Manually.md)  
 
-- [2. 리눅스 자동설치 스크립트. ][Linux Auto Script](https://github.com/dasandata/LISR/blob/dc2e0fac2364f203528f6a69e8915a1b8a7aaa6e/LISR_LAS/Linux_Auto_Script.sh)
+- [2. 리눅스 자동설치 스크립트. ][Linux Auto Script](https://github.com/dasandata/LAS/blob/88da18550bf95d744024adf16aab93a0fcb59005/Linux_Auto_Script.sh)
   - 운영체제 통합 스크립트
       - centos 7.9
       - ubuntu 16.04
       - ubuntu 18.04
       - ubuntu 20.04
-- [4. 자동 스크립트 Release Note ][Release Note](https://github.com/dasandata/LISR/blob/81b5b3391e63753433f7522578954a9fba64b7ec/LISR_LAS/Release%20Note/LAS_Release_Note.md)
+- [4. 자동 스크립트 Release Note ][Release Note](https://github.com/dasandata/LAS/blob/88da18550bf95d744024adf16aab93a0fcb59005/Release%20Note/LAS_Release_Note.md)
 
 
 [root@dasandata-script-test:~]#  yum install -y git  # Centos
