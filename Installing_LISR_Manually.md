@@ -347,7 +347,7 @@ pip3 install --upgrade torch torchvision
 firewall-cmd --get-zones
 firewall-cmd --list-all
 firewall-cmd --get-default-zone
-firewall-cmd --change-interface=${NIC} --zone=external --permanent
+firewall-cmd --change-interface='NIC 이름' --zone=external --permanent
 firewall-cmd --set-default-zone=external
 firewall-cmd --reload
 # ssh 변경될 포트 추가
