@@ -532,7 +532,7 @@ npm install -g configurable-http-proxy
 # 딥러닝 패키지 (R, R-Server, JupyterHub) 를 설치 합니다.
 # JupyterHub에 작업 중 사용되는 파일들은 LISR에 존재하므로 git을 통해 Pull 하고 사용해야 합니다.
 
-## R,R-studio Install
+## R,R-studio install
 apt-get -y install r-base 
 apt-get -y install gdebi-core 
 wget https://download2.rstudio.org/server/bionic/amd64/rstudio-server-2022.02.0-443-amd64.deb 
@@ -543,6 +543,9 @@ pip3 install --upgrade jupyterhub jupyterlab notebook
 curl -fsSL https://deb.nodesource.com/setup_16.x | bash - 
 apt-get -y install nodejs default-jre 
 npm install -g configurable-http-proxy 
+
+## Pycharm install
+snap install pycharm-community --classic
 ```
 
 ```bash
