@@ -321,10 +321,10 @@ yum erase -y python-ldap pyparsing
 pip3 install  numpy   scipy  nose  matplotlib  pandas  keras
 rm -rf /usr/share/doc/python-enum34-1.0.4*
 rm -rf /usr/lib/python2.7/site-packages/enum34-1.0.4-py2.7.egg-info
-## python2.7에서 setuptools 지원 종료로 인해 44 버전까지 지원
+## python2.7에서 setuptools 지원 종료로 인해 44 버전까지 지원 (torch 설치는 40 버전에서 가능)
 ## tensorflow-gpu 1.13.1 설치시 grpcio 설치에 필요한 setuptools 버전이 49 이상이 필요로 설치 불가
 #pip install   --upgrade tensorflow-gpu==1.13.1
-pip install   --upgrade setuptools
+pip install   --upgrade setuptools==40
 pip3 install  --upgrade setuptools
 pip3 install  --upgrade tensorflow-gpu==1.13.1
 pip install   torch torchvision
