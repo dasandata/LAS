@@ -88,7 +88,6 @@ ssh <사용자 계정>@<IP 주소>
 ***
 
 ### # [1. 변수 선언](#목차)
-### ## 여기서는 사용하지 않습니다.
 ```bash
 # 설치하려는 서버의 종류를 확인 후 변수로 선언합니다.
 VENDOR=$(dmidecode | grep -i manufacturer | awk '{print$2}' | head -1)
@@ -108,7 +107,6 @@ select CUDAV in 10-0 10-1 10-2 11-0 11-1 No-GPU; do echo "Select CUDA Version : 
 ```bash
 ===== CentOS 7.9 =====
 # rc.local에 파일명을 입력하여 재부팅 후에도 다시 실행될 수 있게 변경 합니다.
-NIC=$(ip a | grep 'state UP' | cut -d ":" -f 2 | tr -d ' ')
 chmod +x /etc/rc.d/rc.local
 sed -i '12a bash /root/LAS/Linux_Auto_Script.sh' /etc/rc.d/rc.local
 ```
@@ -125,6 +123,7 @@ sed -i '1a bash /root/LAS/Linux_Auto_Script.sh' /etc/rc.local
 ### ## 부팅시 화면에 부팅 기록 출력, IPv6 비활성화, nouveau 비활성화를 위해 진행 합니다.
 ```bash
 ===== CentOS 7.9 =====
+NIC=$(ip a | grep 'state UP' | cut -d ":" -f 2 | tr -d ' ')
 # 부팅시 화면에 부팅 기록을 출력 및 IPv6 비활성화를 위해 설정 변경.
 sed -i  's/rhgb//'   /etc/default/grub
 sed -i  's/quiet//'  /etc/default/grub
@@ -455,6 +454,7 @@ yum -y install openmotif*
 ```bash
 # Nvidia 저장소 생성 (Cuda,cudnn 설치를 위해)
 ===== Ubuntu 20.04 =====
+OS=$(lsb_release -isr |  tr -d "." | sed -e '{N;s/\n//}' | tr '[A-Z]' '[a-z]')
 apt-get -y install sudo gnupg
 apt-key adv --fetch-keys "https://developer.download.nvidia.com/compute/cuda/repos/"$OS"/x86_64/7fa2af80.pub"
 sh -c 'echo "deb https://developer.download.nvidia.com/compute/cuda/repos/'$OS'/x86_64 /" > /etc/apt/sources.list.d/nvidia-cuda.list'
