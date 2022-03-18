@@ -88,7 +88,7 @@ ssh <사용자 계정>@<IP 주소>
 ***
 
 ### # [1. 변수 선언](#목차)
-### ## 직접 입력시에는 사용하지 않습니다.
+### ## 여기서는 사용하지 않습니다.
 ```bash
 # 설치하려는 서버의 종류를 확인 후 변수로 선언합니다.
 VENDOR=$(dmidecode | grep -i manufacturer | awk '{print$2}' | head -1)
@@ -104,12 +104,12 @@ select CUDAV in 10-0 10-1 10-2 11-0 11-1 No-GPU; do echo "Select CUDA Version : 
 ```
 
 ### # [2. rc.local 생성 및 변경](#목차) 
-### ## 직접 입력시에는 사용하지 않습니다.
+### ## 여기서는 사용하지 않습니다.
 ```bash
 ===== CentOS 7.9 =====
 # rc.local에 파일명을 입력하여 재부팅 후에도 다시 실행될 수 있게 변경 합니다.
 chmod +x /etc/rc.d/rc.local
-sed -i '12a bash /root/LISR/LISR_LAS/Linux_Auto_Script.sh' /etc/rc.d/rc.local
+sed -i '12a bash /root/LAS/Linux_Auto_Script.sh' /etc/rc.d/rc.local
 ```
 ```
 ===== Ubuntu 20.04 =====
@@ -117,7 +117,7 @@ sed -i '12a bash /root/LISR/LISR_LAS/Linux_Auto_Script.sh' /etc/rc.d/rc.local
 chmod +x /etc/rc.local
 systemctl restart rc-local.service
 systemctl status rc-local.service
-sed -i '1a bash /root/LISR/LISR_LAS/Linux_Auto_Script.sh' /etc/rc.local
+sed -i '1a bash /root/LAS/Linux_Auto_Script.sh' /etc/rc.local
 ```
 
 ### # [3. nouveau 끄기 및 grub 설정](#목차)
@@ -128,9 +128,9 @@ sed -i '1a bash /root/LISR/LISR_LAS/Linux_Auto_Script.sh' /etc/rc.local
 sed -i  's/rhgb//'   /etc/default/grub
 sed -i  's/quiet//'  /etc/default/grub
 sed -i  's/GRUB_CMDLINE_LINUX="/GRUB_CMDLINE_LINUX="ipv6.disable=1 /' /etc/default/grub
-sed -i  '/IPV6/d' /etc/sysconfig/network-scripts/ifcfg-${NIC}
+sed -i  '/IPV6/d' /etc/sysconfig/network-scripts/ifcfg-'네트워크 인터페이스명'
 
-# Nvidia와 호환이 좋지 않은 누보 제거
+# Nvidia Driver 설치시 nouveau 제거
 echo "blacklist nouveau" >> /etc/modprobe.d/blacklist.conf
 echo "options nouveau modeset=0" >> /etc/modprobe.d/blacklist.conf
 
@@ -183,8 +183,8 @@ cat /etc/apt/sources.list | grep -v "#\|^$"
 yum -y update
 yum install -y epel-release
 yum install -y ethtool pciutils openssh mlocate nfs-utils rdate xauth firefox nautilus wget bind-utils
-yum install -y tcsh tree lshw tmux git kernel-headers kernel-devel gcc make gcc-c++ snapd vim cmake
-yum install -y python-devel ntfs-3g dstat perl perl-CPAN perl-core net-tools openssl-devel git-lfs
+yum install -y tcsh tree lshw tmux git kernel-headers kernel-devel gcc make gcc-c++ snapd
+yum install -y cmake python-devel ntfs-3g dstat perl perl-CPAN perl-core net-tools openssl-devel git-lfs vim
 yum -y groups install "Development Tools"
 yum install -y glibc-static glibc-devel libstdc++ libstdc++-devel
 sed -i -e "s/\]$/\]\npriority=5/g" /etc/yum.repos.d/epel.repo
@@ -220,9 +220,6 @@ apt-get -y install dconf-editor gnome-panel gnome-settings-daemon metacity nauti
 apt-get -y install libzmq3-dev libcurl4-openssl-dev libxml2-dev snapd ethtool htop dnsutils
 DEBIAN_FRONTEND=noninteractive apt-get install -y smartmontools
 
-# IPMI가 있는 장치의 경우 ipmitool을 설치 합니다.
-apt-get install -y ipmitool
-
 # 불필요한 서비스 disable
 systemctl disable bluetooth.service
 systemctl disable iscsi.service
@@ -239,6 +236,9 @@ systemctl disable cups-browsed.service
 # Ubuntu Desktop (GUI) 환경을 사용할 경우 disable 하지 않습니다.
 systemctl disable NetworkManager.service
 systemctl stop    NetworkManager.service
+
+# IPMI가 있는 장치의 경우 ipmitool을 설치 합니다.
+# apt-get install -y ipmitool
 ```
 
 ### # [6. 프로필 설정](#목차)
@@ -299,6 +299,7 @@ perl -pi -e 's/python3/python/'   /usr/local/bin/pip
 # Python 2.7 , 3.6 버전 설치
 apt-get -y install python3-pip
 add-apt-repository universeapt update
+apt update
 apt list --upgradeable
 apt install -y python2
 curl https://bootstrap.pypa.io/pip/2.7/get-pip.py -o get-pip.py
@@ -326,7 +327,6 @@ pip3 install  --upgrade setuptools
 pip install   torch torchvision
 pip3 install  torch torchvision
 pip3 install  --upgrade optimuspyspark
-pip3 uninstall --yes tensorflow
 ```
 ```bash
 ===== Ubuntu 20.04 =====
@@ -506,10 +506,10 @@ apt-get -y install libcudnn8*
 
 ### # [16. 딥러닝 패키지 설치(R,R Server, JupyterHub, Pycharm](#목차)
 ### ## JupyterHub는 마지막 설정이 동일하여 마지막에 같이 서술하였습니다.
-### ## 마지막 설정에 사용되는 파일은 Git에 LISR/LISR_LAS/ 밑에 존재합니다.
+### ## 마지막 설정에 사용되는 파일은 Git에 LAS 밑에 존재합니다.
 ```bash
 # 딥러닝 패키지 (R, R-Server, JupyterHub) 를 설치 합니다.
-# JupyterHub에 작업 중 사용되는 파일들은 LISR에 존재하므로 git을 통해 Pull 하고 사용해야 합니다.
+# JupyterHub에 작업 중 사용되는 파일들은 LAS에 존재하므로 git을 통해 Pull 하고 사용해야 합니다.
 ===== CentOS 7.9 =====
 ## R,R-sutdio install
 yum -y install R 
@@ -554,14 +554,14 @@ sed -i '824a c.Authenticator.admin_users = {"sonic"}' /etc/jupyterhub/jupyterhub
 sed -i '929a c.Spawner.default_url = '/lab'' /etc/jupyterhub/jupyterhub_config.py
 
 ## jupyterhub service 설정 파일 복사
-mv /root/LISR/LISR_LAS/jupyterhub.service /lib/systemd/system/
-mv /root/LISR/LISR_LAS/jupyterhub /etc/init.d/
+mv /root/LAS/jupyterhub.service /lib/systemd/system/
+mv /root/LAS/jupyterhub /etc/init.d/
 chmod 777 /lib/systemd/system/jupyterhub.service 
 chmod 755 /etc/init.d/jupyterhub 
 systemctl daemon-reload 
 systemctl enable jupyterhub.service 
 systemctl restart jupyterhub.service 
-R CMD BATCH /root/LISR/LISR_LAS/r_jupyterhub.R 
+R CMD BATCH /root/LAS/r_jupyterhub.R 
 ```
 
 ### ===== 서버 전용 설치 진행 순서 ===== 
