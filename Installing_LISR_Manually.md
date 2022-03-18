@@ -163,10 +163,13 @@ update-initramfs -u && update-grub2
 ===== CentOS 7.9 =====
 # 기존의 SELINUX 상태 확인 후 disable로 변경 (재부팅 후 적용 됩니다.)
 getenforce
-# 변경 전 : enforcing / 변경 후 : disabled
 
+# 변경 전 : enforcing / 변경 후 : disabled
 setenforce 0
 sed -i 's/SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config
+
+# 적용되었는지 확인
+getenforce
 ```
 ```bash
 ===== Ubuntu 20.04 =====
