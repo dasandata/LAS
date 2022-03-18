@@ -321,8 +321,8 @@ yum erase -y python-ldap pyparsing
 pip3 install  numpy   scipy  nose  matplotlib  pandas  keras
 rm -rf /usr/share/doc/python-enum34-1.0.4*
 rm -rf /usr/lib/python2.7/site-packages/enum34-1.0.4-py2.7.egg-info
-# python2.7에서 setuptools 지원 종료로 인해 44 버전까지 지원
-# tensorflow-gpu 1.13.1 설치시 grpcio 설치에 필요한 setuptools 버전이 49 이상이 필요로 설치 불가
+## python2.7에서 setuptools 지원 종료로 인해 44 버전까지 지원
+## tensorflow-gpu 1.13.1 설치시 grpcio 설치에 필요한 setuptools 버전이 49 이상이 필요로 설치 불가
 #pip install   --upgrade tensorflow-gpu==1.13.1
 pip install   --upgrade setuptools
 pip3 install  --upgrade setuptools
@@ -623,19 +623,6 @@ systemctl enable dataeng
 systemctl enable dsm_om_connsvc
 systemctl start dataeng
 systemctl start dsm_om_connsvc
-      perl -p -i -e '$.==20 and print "exclude = libsmbios smbios-utils-bin\n"' /etc/yum.repos.d/CentOS-Base.repo
-      wget http://linux.dell.com/repo/hardware/dsu/bootstrap.cgi -O  ./dellomsainstall.sh >> /root/install_log.txt 2>> /root/log_err.txt
-      sed -i -e "s/enabled=1/enabled=0/g" ./dellomsainstall.sh 
-      yes | bash ./dellomsainstall.sh >> /root/install_log.txt 2>> /root/log_err.txt
-      sleep 3
-      rm -f ./dellomsainstall.sh >> /root/install_log.txt 2>> /root/log_err.txt
-      yum -y erase  tog-pegasus-libs >> /root/install_log.txt 2>> /root/log_err.txt
-      yum -y install --enablerepo=dell-system-update_dependent -y srvadmin-all openssl-devel >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl daemon-reload >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl enable dataeng >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl enable dsm_om_connsvc >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl start dataeng >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl start dsm_om_connsvc >> /root/install_log.txt 2>> /root/log_err.txt
 ```
 ```bash
 ===== Ubuntu 20.04 =====
