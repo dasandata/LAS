@@ -108,6 +108,7 @@ select CUDAV in 10-0 10-1 10-2 11-0 11-1 No-GPU; do echo "Select CUDA Version : 
 ```bash
 ===== CentOS 7.9 =====
 # rc.local에 파일명을 입력하여 재부팅 후에도 다시 실행될 수 있게 변경 합니다.
+NIC=$(ip a | grep 'state UP' | cut -d ":" -f 2 | tr -d ' ')
 chmod +x /etc/rc.d/rc.local
 sed -i '12a bash /root/LAS/Linux_Auto_Script.sh' /etc/rc.d/rc.local
 ```
@@ -128,7 +129,7 @@ sed -i '1a bash /root/LAS/Linux_Auto_Script.sh' /etc/rc.local
 sed -i  's/rhgb//'   /etc/default/grub
 sed -i  's/quiet//'  /etc/default/grub
 sed -i  's/GRUB_CMDLINE_LINUX="/GRUB_CMDLINE_LINUX="ipv6.disable=1 /' /etc/default/grub
-sed -i  '/IPV6/d' /etc/sysconfig/network-scripts/ifcfg-'네트워크 인터페이스명'
+sed -i  '/IPV6/d' /etc/sysconfig/network-scripts/ifcfg-${NIC}
 
 # Nvidia Driver 설치시 nouveau 제거
 echo "blacklist nouveau" >> /etc/modprobe.d/blacklist.conf
@@ -347,7 +348,7 @@ pip3 install --upgrade torch torchvision
 firewall-cmd --get-zones
 firewall-cmd --list-all
 firewall-cmd --get-default-zone
-firewall-cmd --change-interface='NIC 이름' --zone=external --permanent
+firewall-cmd --change-interface=${NIC} --zone=external --permanent
 firewall-cmd --set-default-zone=external
 firewall-cmd --reload
 # ssh 변경될 포트 추가
