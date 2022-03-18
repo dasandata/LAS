@@ -122,6 +122,7 @@ then
       sed -i  's/rhgb//'   /etc/default/grub
       sed -i  's/quiet//'  /etc/default/grub
       sed -i  's/GRUB_CMDLINE_LINUX="/GRUB_CMDLINE_LINUX="ipv6.disable=1 /' /etc/default/grub
+      sed -i  '/IPV6/d' /etc/sysconfig/network-scripts/ifcfg-${NIC}
       echo "blacklist nouveau" >> /etc/modprobe.d/blacklist.conf
       echo "options nouveau modeset=0" >> /etc/modprobe.d/blacklist.conf
       dracut  -f >> /root/install_log.txt 2>> /root/log_err.txt
@@ -175,7 +176,6 @@ case $OSCHECK in
       echo "Changed SELINUX to disabled." | tee -a /root/install_log.txt
       setenforce 0
       sed -i 's/SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config
-      sed -i '/IPV6/d' /etc/sysconfig/network-scripts/ifcfg-${NIC}
     fi
   ;;
   ubuntu )
@@ -374,7 +374,7 @@ then
       yum -y install openblas* >> /root/install_log.txt 2>> /root/log_err.txt
       pip   install --upgrade pip >> /root/install_log.txt 2>> /root/log_err.txt
       pip3   install --upgrade pip >> /root/install_log.txt 2>> /root/log_err.txt
-      perl -pi -e 's/python3/python/'   /usr/local/bin/pip
+      perl -pi -e 's/python3/python/'   /usr/local/bin/pip >> /root/install_log.txt 2>> /root/log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "Python Install complete" | tee -a /root/install_log.txt
     ;;
@@ -386,7 +386,7 @@ then
       curl -fsSL -o- https://bootstrap.pypa.io/pip/3.5/get-pip.py | python3.5 >> /root/install_log.txt 2>> /root/log_err.txt
       pip   install --upgrade pip >> /root/install_log.txt 2>> /root/log_err.txt
       pip3   install --upgrade pip >> /root/install_log.txt 2>> /root/log_err.txt
-      perl -pi -e 's/python3/python/'   /usr/local/bin/pip
+      perl -pi -e 's/python3/python/'   /usr/local/bin/pip >> /root/install_log.txt 2>> /root/log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "Python Install complete" | tee -a /root/install_log.txt
     ;;
@@ -396,7 +396,7 @@ then
       apt-get -y install  python-pip python3-pip python-tk python3-tk >> /root/install_log.txt 2>> /root/log_err.txt
       pip install --upgrade pip >> /root/install_log.txt 2>> /root/log_err.txt
       pip3 install --upgrade pip >> /root/install_log.txt 2>> /root/log_err.txt
-      perl -pi -e 's/python3/python/'   /usr/local/bin/pip
+      perl -pi -e 's/python3/python/'   /usr/local/bin/pip >> /root/install_log.txt 2>> /root/log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "Python Install complete" | tee -a /root/install_log.txt
     ;;
@@ -449,7 +449,6 @@ then
       pip install torch torchvision >> /root/install_log.txt 2>> /root/log_err.txt
       pip3 install torch torchvision >> /root/install_log.txt 2>> /root/log_err.txt
       pip3 install --upgrade optimuspyspark >> /root/install_log.txt 2>> /root/log_err.txt
-      pip3 uninstall --yes tensorflow >> /root/install_log.txt 2>> /root/log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "Python Package Install complete" | tee -a /root/install_log.txt
     ;;
