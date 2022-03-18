@@ -166,10 +166,10 @@ getenforce
 
 # 변경 전 : enforcing / 변경 후 : disabled
 setenforce 0
-sed -i 's/SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config
+sed -i 's/SELINUX=Enforcing/SELINUX=disabled/' /etc/selinux/config
 
 # 적용되었는지 확인
-getenforce
+cat /etc/selinux/config | grep "SELINUX=disabled"
 ```
 ```bash
 ===== Ubuntu 20.04 =====
@@ -318,16 +318,16 @@ perl -pi -e 's/python3/python/'   /usr/local/bin/pip
 # Python 2.7 , 3.6에 사용할 패키지 설치
 # Python 2.7 의 경우 지원이 종료된다는 경고 문구가 표시됩니다.
 pip install numpy  scipy  nose  matplotlib  pandas  keras
-pip uninstall --yes dnspython
 yum erase -y python-ldap pyparsing
 pip3 install  numpy   scipy  nose  matplotlib  pandas  keras
-pip install --upgrade setuptools
 rm -rf /usr/share/doc/python-enum34-1.0.4*
 rm -rf /usr/lib/python2.7/site-packages/enum34-1.0.4-py2.7.egg-info
-pip install   --upgrade tensorflow-gpu==1.13.1
-pip install   --upgrade setuptools
-pip3 install  --upgrade tensorflow-gpu==1.13.1
+# python2.7에서 setuptools 지원 종료로 인해 44 버전까지 지원
+# tensorflow-gpu 1.13.1 설치시 grpcio 설치에 필요한 setuptools 버전이 49 이상이 필요로 설치 불가
+#pip install   --upgrade setuptools
+#pip install   --upgrade tensorflow-gpu==1.13.1
 pip3 install  --upgrade setuptools
+pip3 install  --upgrade tensorflow-gpu==1.13.1
 pip install   torch torchvision
 pip3 install  torch torchvision
 pip3 install  --upgrade optimuspyspark

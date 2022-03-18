@@ -442,8 +442,6 @@ then
       pip install --upgrade setuptools >> /root/install_log.txt 2>> /root/log_err.txt
       rm -rf /usr/share/doc/python-enum34-1.0.4* >> /root/install_log.txt 2>> /root/log_err.txt
       rm -rf /usr/lib/python2.7/site-packages/enum34-1.0.4-py2.7.egg-info >> /root/install_log.txt 2>> /root/log_err.txt
-      pip  install --upgrade tensorflow-gpu==1.13.1 >> /root/install_log.txt 2>> /root/log_err.txt
-      pip  install --upgrade setuptools >> /root/install_log.txt 2>> /root/log_err.txt
       pip3 install --upgrade tensorflow-gpu==1.13.1 >> /root/install_log.txt 2>> /root/log_err.txt
       pip3 install --upgrade setuptools >> /root/install_log.txt 2>> /root/log_err.txt
       pip  install torch torchvision >> /root/install_log.txt 2>> /root/log_err.txt
