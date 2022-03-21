@@ -165,7 +165,7 @@ getenforce
 
 # 변경 전 : enforcing / 변경 후 : disabled
 setenforce 0
-sed -i 's/SELINUX=Enforcing/SELINUX=disabled/' /etc/selinux/config
+sed -i 's/SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config
 
 # 적용되었는지 확인
 cat /etc/selinux/config | grep "SELINUX=disabled"
