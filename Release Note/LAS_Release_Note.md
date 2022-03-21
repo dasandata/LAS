@@ -1,5 +1,33 @@
 # Linux Automatic Sript(LAS) Release Note
 
+## 2203 LAS Release Note
+
+## 수정된 사항
+```
+==== CentOS 7.9 ====
+pip(python2.7)에 setuptools의 지원 종료로 tensorflow-gpu 1.13.1 버전 설치불가로 삭제
+pip(python2.7)에 torch,torchvision 설치시 setuptools 40 버전으로 변경
+```
+
+## 2201 LAS Release Note
+
+## 수정된 사항
+```
+JupyterHub 설치시 필요한 nodejs 버전 16으로 변경
+GUI 버전에서 Network Manager 사용하도록 변경
+JupyterHub 설치시 첫 화면 jupyterlab으로 변경
+```
+
+## 2112 LAS Release Note
+
+## 수정된 사항
+```
+설치 표준안 작성 (Installing LISR Manually)
+스크립트 완료 후 재부팅 방법 변경
+CentOS X11 관련 패키지 추가 설치
+CUDA 저장소에 맞게 버전 추가 및 삭제 작업 진행
+```
+
 ## 2111 LAS Release Note
 
 ## 수정된 사항
