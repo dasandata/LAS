@@ -77,7 +77,8 @@ then
     centos )
       ## centos는 이미 rc.local이 존재하여 실행될 파일값만 넣어준다.
       chmod +x /etc/rc.d/rc.local
-      sed -i '12a bash /root/LAS/Linux_Auto_Script.sh' /etc/rc.d/rc.local
+      sed -i '13a systemctl restart rc-local.service' /etc/rc.d/rc.local
+      sed -i '14a bash /root/LAS/Linux_Auto_Script.sh' /etc/rc.d/rc.local
       echo "rc.local setting complete" | tee -a /root/install_log.txt
     ;;
     ubuntu )
@@ -659,7 +660,7 @@ then
       then
         echo "" | tee -a /root/install_log.txt
         echo "End of CPU version LAS" | tee -a /root/install_log.txt
-        sed -i '12a bash /root/LAS/Check_List.sh' /etc/rc.d/rc.local
+        sed -i '14a bash /root/LAS/Check_List.sh' /etc/rc.d/rc.local
         systemctl set-default graphical.target >> /root/install_log.txt 2>> /root/log_err.txt
         reboot
       else
@@ -1071,7 +1072,7 @@ then
   echo "LAS install complete" | tee -a /root/install_log.txt
   case $OSCHECK in
     centos )
-      sed -i '12a bash /root/LAS/Check_List.sh' /etc/rc.d/rc.local
+      sed -i '14a bash /root/LAS/Check_List.sh' /etc/rc.d/rc.local
       systemctl set-default graphical.target >> /root/install_log.txt 2>> /root/log_err.txt
     ;;
     ubuntu )
@@ -1166,7 +1167,7 @@ then
   echo "LAS install complete" | tee -a /root/install_log.txt
     case $OS in
       centos7 )
-        sed -i '12a bash /root/LAS/Check_List.sh' /etc/rc.d/rc.local
+        sed -i '14a bash /root/LAS/Check_List.sh' /etc/rc.d/rc.local
         sleep 2
         systemctl set-default  multi-user.target
       ;;
@@ -1293,7 +1294,7 @@ echo "" | tee -a /root/install_log.txt
 echo "LAS install complete" | tee -a /root/install_log.txt
 case $OS in
   centos7 )
-    sed -i '12a bash /root/LAS/Check_List.sh' /etc/rc.d/rc.local
+    sed -i '14a bash /root/LAS/Check_List.sh' /etc/rc.d/rc.local
     systemctl set-default  multi-user.target | tee -a /root/install_log.txt
   ;;
   ubuntu1604 )
