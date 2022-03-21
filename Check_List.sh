@@ -220,6 +220,7 @@ then
     case $OSCHECK in 
         centos )
             sed -i '/root/d' /etc/rc.d/rc.local
+            sed -i '/restart/d' /etc/rc.d/rc.local
             sleep 3
             rm -f nvidia-machine-learning-repo-rhel8-1.0.0-1.x86_64.rpm cuda-repo-rhel8-10.2.89-1.x86_64.rpm
             sleep 3
@@ -348,6 +349,7 @@ case $OSCHECK in
     centos )
         echo "##### GPU Check List Complete #####"  | tee -a /root/Auto_Install_Log.txt
         sed -i '/root/d' /etc/rc.d/rc.local
+        sed -i '/restart/d' /etc/rc.d/rc.local
         sleep 3
         rm -f nvidia-machine-learning-repo-rhel8-1.0.0-1.x86_64.rpm cuda-repo-rhel8-10.2.89-1.x86_64.rpm
         sleep 3
