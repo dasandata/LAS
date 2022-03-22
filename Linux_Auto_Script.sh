@@ -214,7 +214,7 @@ case $OS in
       yum install -y epel-release >> /root/install_log.txt 2>> /root/log_err.txt
       sleep 2
       yum install -y ethtool pciutils openssh mlocate nfs-utils rdate xauth firefox nautilus wget bind-utils >> /root/install_log.txt 2>> /root/log_err.txt
-      yum install -y tcsh tree lshw tmux git kernel-headers kernel-devel gcc make gcc-c++ snapd >> /root/install_log.txt 2>> /root/log_err.txt
+      yum install -y tcsh tree lshw tmux git kernel-headers kernel-devel gcc make gcc-c++ snapd yum-utils >> /root/install_log.txt 2>> /root/log_err.txt
       yum install -y cmake python-devel ntfs-3g dstat perl perl-CPAN perl-core net-tools openssl-devel git-lfs vim >> /root/install_log.txt 2>> /root/log_err.txt
       sleep 2
       dmidecode | grep -i ipmi &> /dev/null
@@ -737,10 +737,9 @@ then
     centos7 )
       echo "" | tee -a /root/install_log.txt
       echo "CUDA,CUDNN REPO install Start" | tee -a /root/install_log.txt
-      wget https://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/cuda-repo-rhel7-10.0.130-1.x86_64.rpm >> /root/install_log.txt 2>> /root/log_err.txt
+      yum-config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/cuda-rhel7.repo >> /root/install_log.txt 2>> /root/log_err.txt
       wget https://developer.download.nvidia.com/compute/machine-learning/repos/rhel7/x86_64/nvidia-machine-learning-repo-rhel7-1.0.0-1.x86_64.rpm >> /root/install_log.txt 2>> /root/log_err.txt
       yum -y install nvidia-machine-learning-repo-rhel7-1.0.0-1.x86_64.rpm >> /root/install_log.txt 2>> /root/log_err.txt
-      yum -y install cuda-repo-rhel7-10.0.130-1.x86_64.rpm >> /root/install_log.txt 2>> /root/log_err.txt
       yum --disablerepo="*" --enablerepo="cuda" list available >> /root/install_log.txt 2>> /root/log_err.txt
       yum -y install libXi-devel mesa-libGLU-devel libXmu-devel libX11-devel freeglut-devel libXm* >> /root/install_log.txt 2>> /root/log_err.txt
       yum -y install openmotif* >> /root/install_log.txt 2>> /root/log_err.txt
