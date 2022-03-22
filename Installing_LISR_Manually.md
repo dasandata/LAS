@@ -105,14 +105,14 @@ select CUDAV in 10-0 10-1 10-2 11-0 11-1 No-GPU; do echo "Select CUDA Version : 
 ### # [2. rc.local 생성 및 변경](#목차) 
 ### ## 여기서는 사용하지 않습니다.
 
-\ === CentOS 7.9 ===
+ === CentOS 7.9 ===
 ```bash
 # rc.local에 파일명을 입력하여 재부팅 후에도 다시 실행될 수 있게 변경 합니다.
 chmod +x /etc/rc.d/rc.local
 sed -i '12a bash /root/LAS/Linux_Auto_Script.sh' /etc/rc.d/rc.local
 ```
 
-\ === Ubuntu 20.04 ===
+ === Ubuntu 20.04 ===
 ```bash
 # rc.local에 파일명을 입력하여 재부팅 후에도 다시 실행될 수 있게 변경 합니다.
 chmod +x /etc/rc.local
@@ -123,7 +123,7 @@ sed -i '1a bash /root/LAS/Linux_Auto_Script.sh' /etc/rc.local
 
 ### # [3. nouveau 끄기 및 grub 설정](#목차)
 ### ## 부팅시 화면에 부팅 기록 출력, IPv6 비활성화, nouveau 비활성화를 위해 진행 합니다.
-\ === CentOS 7.9 ===
+ === CentOS 7.9 ===
 ```bash
 NIC=$(ip a | grep 'state UP' | cut -d ":" -f 2 | tr -d ' ')
 # 부팅시 화면에 부팅 기록을 출력 및 IPv6 비활성화를 위해 설정 변경.
@@ -142,7 +142,7 @@ grub2-mkconfig -o /boot/grub2/grub.cfg
 grub2-mkconfig -o /boot/efi/EFI/centos/grub.cfg
 ```
 
-\ === Ubuntu 20.04 ===
+ === Ubuntu 20.04 ===
 ```bash
 # 부팅시 화면에 부팅 기록을 출력 및 IPv6 비활성화를 위해 설정 변경.
 perl -pi -e 's/splash//' /etc/default/grub
@@ -161,7 +161,7 @@ update-initramfs -u && update-grub2
 ### # [4. selinux 제거 및 저장소 변경](#목차)
 ### ## CentOS는 설정이 복잡한 SELINUX를 disable 합니다.
 ### ## Ubuntu는 기존 저장소 속도 최적화를 위해 변경 합니다.
-\ === CentOS 7.9 ===
+ === CentOS 7.9 ===
 ```bash
 # 기존의 SELINUX 상태 확인 후 disable로 변경 (재부팅 후 적용 됩니다.)
 getenforce
@@ -174,7 +174,7 @@ sed -i 's/SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config
 cat /etc/selinux/config | grep "SELINUX=disabled"
 ```
 
-\ === Ubuntu 20.04 ===
+ === Ubuntu 20.04 ===
 ```bash
 # 기존 저장소 주소보다 빠른 mirror.kakao.com 으로 변경
 perl -pi -e 's/kr.archive.ubuntu.com/mirror.kakao.com/g' /etc/apt/sources.list
@@ -185,7 +185,7 @@ cat /etc/apt/sources.list | grep -v "#\|^$"
 ### # [5. 기본 패키지 설치](#목차)
 ### ## 서버 기본 설정에 필요한 패키지를 설치 합니다.
 ### ## 필요없는 서비스를 disable 합니다 (장비에 따라 존재하지 않는 서비스도 있습니다.)
-\ === CentOS 7.9 ===
+ === CentOS 7.9 ===
 ```bash
 yum -y update
 yum install -y epel-release
@@ -219,7 +219,7 @@ systemctl disable cups-browsed.service
 # yum install -y ipmitool
 ```
 
-\ === Ubuntu 20.04 ===
+ === Ubuntu 20.04 ===
 ```bash
 apt-get update
 apt-get -y install vim nfs-common rdate xauth firefox gcc make tmux wget figlet net-tools
@@ -252,7 +252,7 @@ systemctl stop    NetworkManager.service
 ### # [6. 프로필 설정](#목차)
 ### ## 사용자 편의를 위한 설정을 진행 합니다.
 ### ## alias, prompt-color, History Size, History date
-\ === CentOS 7.9, Ubuntu20.04 ===
+ === CentOS 7.9, Ubuntu20.04 ===
 ```bash
 # alias 설정
 echo " "                                >>  /etc/profile
@@ -277,7 +277,7 @@ echo $HISTSIZE
 
 ### # [7. 서버 시간 동기화](#목차)
 ### ## 서버 및 HW 시간을 동기화 합니다.
-\ === CentOS 7.9, Ubuntu 20.04===
+ === CentOS 7.9, Ubuntu 20.04===
 ```bash
 # time.bora.net 기준으로 시간 동기화
 rdate -s time.bora.net
@@ -289,7 +289,7 @@ hwclock
 ```
 
 ### # [8. 파이썬 설치](#목차)
-\ === CentOS 7.9 ===
+ === CentOS 7.9 ===
 ```bash
 # Python 2.7 , 3.6 버전 설치
 yum -y install python-devel python-setuptools python-setuptools-devel
@@ -303,7 +303,7 @@ pip3  install --upgrade pip
 perl -pi -e 's/python3/python/'   /usr/local/bin/pip
 ```
 
-\ === Ubuntu 20.04 ===
+ === Ubuntu 20.04 ===
 ```bash
 # Python 2.7 , 3.6 버전 설치
 apt-get -y install python3-pip
@@ -318,7 +318,7 @@ perl -pi -e 's/python3/python/'   /usr/local/bin/pip
 ```
 
 ### # [9. 파이썬 패키지 설치](#목차)
-\ === CentOS 7.9 ===
+ === CentOS 7.9 ===
 ```bash
 # Python 2.7 , 3.6에 사용할 패키지 설치
 # Python 2.7 의 경우 지원이 종료된다는 경고 문구가 표시됩니다.
@@ -338,7 +338,7 @@ pip3 install  torch torchvision
 pip3 install  --upgrade optimuspyspark
 ```
 
-\ === Ubuntu 20.04 ===
+ === Ubuntu 20.04 ===
 ```bash
 # Python 2.7 , 3.6에 사용할 패키지 설치
 # Python 2.7 의 경우 지원이 종료된다는 경고 문구가 표시됩니다.
@@ -351,7 +351,7 @@ pip3 install --upgrade torch torchvision
 ```
 
 ### # [10. 방화벽 설정](#목차)
-\ === CentOS 7.9 ===
+ === CentOS 7.9 ===
 ```bash
 # 기존 방화벽 Zone 변경 후 패키지 및 ssh 포트 변경 작업 진행
 ===== CentOS 7.9 =====
@@ -379,7 +379,7 @@ echo "AddressFamily inet" >> /etc/ssh/sshd_config
 systemctl restart sshd
 ```
 
-\ === Ubuntu 20.04 ===
+ === Ubuntu 20.04 ===
 ```bash
 systemctl start ufw
 systemctl enable ufw
@@ -401,7 +401,7 @@ systemctl restart sshd
 ```
 
 ### # [11. 사용자 생성 테스트](#목차)
-\ === CentOS 7.9 ===
+ === CentOS 7.9 ===
 ```bash
 #다산 계정 생성 테스트 진행
 ===== CentOS 7.9 =====
@@ -409,14 +409,14 @@ useradd dasan
 usermod -aG wheel dasan
 ```
 
-\ === Ubuntu 20.04 ===
+ === Ubuntu 20.04 ===
 ```bash
 adduser --disabled-login --gecos "" dasan
 usermod -G sudo dasan
 ```
 
 ### # [12. H/W 사양 체크](#목차)
-\ === CentOS 7.9, Ubuntu 20.04 ===
+ === CentOS 7.9, Ubuntu 20.04 ===
 ```bash
 # 기본적인 시스템 사양 체크를 진행합니다.
 dmidecode --type system | grep -v "^$\|#\|SMBIOS\|Handle\|Not"
@@ -438,7 +438,7 @@ uname -a
 <br/>
 
 ## ## 아래 부분을 진행 하기 전에 위 사항들이 적용 될 수 있게 재부팅을 진행 합니다.
-\ === CentOS 7.9, Ubuntu 20.04 ===
+ === CentOS 7.9, Ubuntu 20.04 ===
 ```bash
 reboot
 ```
@@ -450,7 +450,7 @@ reboot
 ### ### 아래 13 ~ 16 항목의 경우 Nvidia-GPU가 존재할 경우 진행 합니다.
 
 ### # [13. CUDA,CUDNN Repo 설치](#목차)
-\ === CentOS 7.9 ===
+ === CentOS 7.9 ===
 ```bash
 # Nvidia 저장소 생성 (Cuda,cudnn 설치를 위해)
 wget https://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/cuda-repo-rhel7-10.0.130-1.x86_64.rpm
@@ -463,7 +463,7 @@ yum -y install libXi-devel mesa-libGLU-devel libXmu-devel libX11-devel freeglut-
 yum -y install openmotif*
 ```
 
-\ === Ubuntu 20.04 ===
+ === Ubuntu 20.04 ===
 ```bash
 # Nvidia 저장소 생성 (Cuda,cudnn 설치를 위해)
 OS=$(lsb_release -isr |  tr -d "." | sed -e '{N;s/\n//}' | tr '[A-Z]' '[a-z]')
@@ -475,7 +475,7 @@ apt-get update
 ```
 
 ### # [14. CUDA 설치 및 PATH 설정](#목차)
-\ === CentOS 7.9 ===
+ === CentOS 7.9 ===
 ```bash
 # cuda 설치 및 설치된 cuda를 사용하기 위해 경로 설정값을 profile에 입력
 echo " "  >> /etc/profile
@@ -491,7 +491,7 @@ source /etc/profile
 source /root/.bashrc
 ```
 
-\ === Ubuntu 20.04 ===
+ === Ubuntu 20.04 ===
 ```bash
 # cuda 설치 및 설치된 cuda를 사용하기 위해 경로 설정값을 profile에 입력
 echo " "  >> /etc/profile
@@ -508,14 +508,14 @@ source /root/.bashrc
 ```
 
 ### # [15. CUDNN 설치 및 PATH 설정](#목차)
-\ === CentOS 7.9 ===
+ === CentOS 7.9 ===
 ```bash
 # cudnn 설치 진행
 yum -y install libcudnn8*
 yum -y upgrade
 ```
 
-\ === Ubuntu 20.04 ===
+ === Ubuntu 20.04 ===
 ```bash
 # cudnn 설치 진행
 apt-get -y install libcudnn8*
@@ -524,7 +524,7 @@ apt-get -y install libcudnn8*
 ### # [16. 딥러닝 패키지 설치](#목차)
 ### ## JupyterHub는 마지막 설정이 동일하여 마지막에 같이 서술하였습니다.
 ### ## 마지막 설정에 사용되는 파일은 Git에 LAS 밑에 존재합니다.
-\ === CentOS 7.9 ===
+ === CentOS 7.9 ===
 ```bash
 # 딥러닝 패키지 (R, R-Server, JupyterHub) 를 설치 합니다.
 # JupyterHub에 작업 중 사용되는 파일들은 LAS에 존재하므로 git을 통해 Pull 하고 사용해야 합니다.
@@ -541,7 +541,7 @@ rpm -ivh nodejs-16.10.0-1nodesource.x86_64.rpm nodejs-devel-16.10.0-1nodesource.
 npm install -g configurable-http-proxy 
 ```
 
-\ === Ubuntu 20.04 ===
+ === Ubuntu 20.04 ===
 ```bash
 # 딥러닝 패키지 (R, R-Server, JupyterHub) 를 설치 합니다.
 # JupyterHub에 작업 중 사용되는 파일들은 LISR에 존재하므로 git을 통해 Pull 하고 사용해야 합니다.
@@ -562,7 +562,7 @@ npm install -g configurable-http-proxy
 snap install pycharm-community --classic
 ```
 
-\ === CentOS 7.9, Ubuntu 20.04 ===
+ === CentOS 7.9, Ubuntu 20.04 ===
 ```bash
 ## CentOS , Ubuntu 동일하게 JupyterHub 마무리 작업을 진행 합니다.
 mkdir /etc/jupyterhub
@@ -589,7 +589,7 @@ R CMD BATCH /root/LAS/r_jupyterhub.R
 
 ### # [17. 서버 전용 MSM 설치](#목차)
 ### ## RAID DISK 관리 Tool인 Mega RAID Manager 를 설치 합니다. (RAID Card가 있을경우 사용 합니다.)
-\ === CentOS 7.9 ===
+ === CentOS 7.9 ===
 ```bash
 mkdir /tmp/raid_manager
 cd /tmp/raid_manager
@@ -603,7 +603,7 @@ systemctl enable vivaldiframeworkd.service
 cd
 ```
 
-\ === Ubuntu 20.04 ===
+ === Ubuntu 20.04 ===
 ```bash
 mkdir /tmp/raid_manager
 cd /tmp/raid_manager
@@ -625,7 +625,7 @@ cd
 
 ### # [18. Dell 전용 OMSA설치](#목차)
 ### ## Dell 서버의 경우 원격 제어를 위한 OMSA (OpenManage Server Administrator) 를 설치 합니다.
-\ === CentOS 7.9 ===
+ === CentOS 7.9 ===
 ```bash
 perl -p -i -e '$.==20 and print "exclude = libsmbios smbios-utils-bin\n"' /etc/yum.repos.d/CentOS-Base.repo
 wget http://linux.dell.com/repo/hardware/dsu/bootstrap.cgi -O  ./dellomsainstall.sh
@@ -640,7 +640,7 @@ systemctl start dataeng
 systemctl start dsm_om_connsvc
 ```
 
-\ === Ubuntu 20.04 ===
+ === Ubuntu 20.04 ===
 ```bash
 ufw allow 1311/tcp
 echo 'deb http://linux.dell.com/repo/community/openmanage/950/focal focal main'  > /etc/apt/sources.list.d/linux.dell.com.sources.list
