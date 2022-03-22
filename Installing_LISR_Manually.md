@@ -34,7 +34,7 @@
 
 ### ===== GPU 버전 설치 진행 순서 ===== 
 
-[13. CUDA,CUDNN Repo 설치](Installing_LISR_Manually.md#-13-CUDA,CUDNN-Repo-설치)
+[13. CUDA,CUDNN Repo 설치](Installing_LISR_Manually.md#-13-CUDACUDNN-Repo-설치)
 
 [14. CUDA 설치 및 PATH 설정](Installing_LISR_Manually.md#-14-CUDA-설치-및-PATH-설정)
 
