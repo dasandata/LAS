@@ -10,7 +10,7 @@
 
 [1. 변수 선언](Installing_LISR_Manually.md#-1-변수-선언)  
 
-[2. rc.local 생성 및 변경](Installing_LISR_Manually.md#-2-rc.local-생성-및-변경)  
+[2. rc.local 생성 및 변경](Installing_LISR_Manually.md#-2-rclocal-생성-및-변경)  
 
 [3. nouveau 끄기 및 grub 설정](Installing_LISR_Manually.md#-3-nouveau-끄기-및-grub-설정)  
 
@@ -30,7 +30,7 @@
 
 [11. 사용자 생성 테스트](Installing_LISR_Manually.md#-11-사용자-생성-테스트)  
 
-[12. H/W 사양 체크](Installing_LISR_Manually.md#-12-H-W-사양-체크)  
+[12. H/W 사양 체크](Installing_LISR_Manually.md#-12-HW-사양-체크)  
 
 ### ===== GPU 버전 설치 진행 순서 ===== 
 
