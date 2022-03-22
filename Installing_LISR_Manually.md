@@ -104,14 +104,16 @@ select CUDAV in 10-0 10-1 10-2 11-0 11-1 No-GPU; do echo "Select CUDA Version : 
 
 ### # [2. rc.local 생성 및 변경](#목차) 
 ### ## 여기서는 사용하지 않습니다.
+
+\# === CentOS 7.9 ===
 ```bash
-===== CentOS 7.9 =====
 # rc.local에 파일명을 입력하여 재부팅 후에도 다시 실행될 수 있게 변경 합니다.
 chmod +x /etc/rc.d/rc.local
 sed -i '12a bash /root/LAS/Linux_Auto_Script.sh' /etc/rc.d/rc.local
 ```
-```
-===== Ubuntu 20.04 =====
+
+\# === Ubuntu 20.04 ===
+```bash
 # rc.local에 파일명을 입력하여 재부팅 후에도 다시 실행될 수 있게 변경 합니다.
 chmod +x /etc/rc.local
 systemctl restart rc-local.service
@@ -121,8 +123,8 @@ sed -i '1a bash /root/LAS/Linux_Auto_Script.sh' /etc/rc.local
 
 ### # [3. nouveau 끄기 및 grub 설정](#목차)
 ### ## 부팅시 화면에 부팅 기록 출력, IPv6 비활성화, nouveau 비활성화를 위해 진행 합니다.
+\# === CentOS 7.9 ===
 ```bash
-===== CentOS 7.9 =====
 NIC=$(ip a | grep 'state UP' | cut -d ":" -f 2 | tr -d ' ')
 # 부팅시 화면에 부팅 기록을 출력 및 IPv6 비활성화를 위해 설정 변경.
 sed -i  's/rhgb//'   /etc/default/grub
@@ -139,8 +141,9 @@ dracut  -f
 grub2-mkconfig -o /boot/grub2/grub.cfg
 grub2-mkconfig -o /boot/efi/EFI/centos/grub.cfg
 ```
+
+\# === Ubuntu 20.04 ===
 ```bash
-===== Ubuntu 20.04 =====
 # 부팅시 화면에 부팅 기록을 출력 및 IPv6 비활성화를 위해 설정 변경.
 perl -pi -e 's/splash//' /etc/default/grub
 perl -pi -e 's/quiet//'  /etc/default/grub
@@ -158,8 +161,8 @@ update-initramfs -u && update-grub2
 ### # [4. selinux 제거 및 저장소 변경](#목차)
 ### ## CentOS는 설정이 복잡한 SELINUX를 disable 합니다.
 ### ## Ubuntu는 기존 저장소 속도 최적화를 위해 변경 합니다.
+\# === CentOS 7.9 ===
 ```bash
-===== CentOS 7.9 =====
 # 기존의 SELINUX 상태 확인 후 disable로 변경 (재부팅 후 적용 됩니다.)
 getenforce
 
@@ -170,8 +173,9 @@ sed -i 's/SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config
 # 적용되었는지 확인
 cat /etc/selinux/config | grep "SELINUX=disabled"
 ```
+
+\# === Ubuntu 20.04 ===
 ```bash
-===== Ubuntu 20.04 =====
 # 기존 저장소 주소보다 빠른 mirror.kakao.com 으로 변경
 perl -pi -e 's/kr.archive.ubuntu.com/mirror.kakao.com/g' /etc/apt/sources.list
 perl -pi -e 's/security.ubuntu.com/mirror.kakao.com/g' /etc/apt/sources.list
@@ -181,8 +185,8 @@ cat /etc/apt/sources.list | grep -v "#\|^$"
 ### # [5. 기본 패키지 설치](#목차)
 ### ## 서버 기본 설정에 필요한 패키지를 설치 합니다.
 ### ## 필요없는 서비스를 disable 합니다 (장비에 따라 존재하지 않는 서비스도 있습니다.)
+\# === CentOS 7.9 ===
 ```bash
-===== CentOS 7.9 =====
 yum -y update
 yum install -y epel-release
 yum install -y ethtool pciutils openssh mlocate nfs-utils rdate xauth firefox nautilus wget bind-utils
@@ -214,8 +218,9 @@ systemctl disable cups-browsed.service
 ## IPMI가 있는 서버의 경우 ipmitool을 설치 합니다.
 # yum install -y ipmitool
 ```
+
+\# === Ubuntu 20.04 ===
 ```bash
-===== Ubuntu 20.04 =====
 apt-get update
 apt-get -y install vim nfs-common rdate xauth firefox gcc make tmux wget figlet net-tools
 apt-get -y install xfsprogs ntfs-3g aptitude lvm2 dstat curl npm python mlocate ubuntu-desktop
@@ -247,8 +252,8 @@ systemctl stop    NetworkManager.service
 ### # [6. 프로필 설정](#목차)
 ### ## 사용자 편의를 위한 설정을 진행 합니다.
 ### ## alias, prompt-color, History Size, History date
+\# === CentOS 7.9, Ubuntu20.04 ===
 ```bash
-===== CentOS , Ubuntu =====
 # alias 설정
 echo " "                                >>  /etc/profile
 echo "# Add by Dasandata"               >>  /etc/profile
@@ -272,8 +277,8 @@ echo $HISTSIZE
 
 ### # [7. 서버 시간 동기화](#목차)
 ### ## 서버 및 HW 시간을 동기화 합니다.
+\# === CentOS 7.9, Ubuntu 20.04===
 ```bash
-===== CentOS , Ubuntu =====
 # time.bora.net 기준으로 시간 동기화
 rdate -s time.bora.net
 hwclock --systohc
@@ -284,8 +289,8 @@ hwclock
 ```
 
 ### # [8. 파이썬 설치](#목차)
+\# === CentOS 7.9 ===
 ```bash
-===== CentOS 7.9 =====
 # Python 2.7 , 3.6 버전 설치
 yum -y install python-devel python-setuptools python-setuptools-devel
 curl -O https://bootstrap.pypa.io/pip/2.7/get-pip.py
@@ -297,8 +302,9 @@ pip   install --upgrade pip
 pip3  install --upgrade pip
 perl -pi -e 's/python3/python/'   /usr/local/bin/pip
 ```
+
+\# === Ubuntu 20.04 ===
 ```bash
-===== Ubuntu 20.04 =====
 # Python 2.7 , 3.6 버전 설치
 apt-get -y install python3-pip
 add-apt-repository universeapt update
@@ -312,8 +318,8 @@ perl -pi -e 's/python3/python/'   /usr/local/bin/pip
 ```
 
 ### # [9. 파이썬 패키지 설치](#목차)
+\# === CentOS 7.9 ===
 ```bash
-===== CentOS 7.9 =====
 # Python 2.7 , 3.6에 사용할 패키지 설치
 # Python 2.7 의 경우 지원이 종료된다는 경고 문구가 표시됩니다.
 pip install numpy  scipy  nose  matplotlib  pandas  keras
@@ -331,8 +337,9 @@ pip install   torch torchvision
 pip3 install  torch torchvision
 pip3 install  --upgrade optimuspyspark
 ```
+
+\# === Ubuntu 20.04 ===
 ```bash
-===== Ubuntu 20.04 =====
 # Python 2.7 , 3.6에 사용할 패키지 설치
 # Python 2.7 의 경우 지원이 종료된다는 경고 문구가 표시됩니다.
 pip install --upgrade numpy scipy  nose  matplotlib  pandas  keras tensorflow-gpu
@@ -344,6 +351,7 @@ pip3 install --upgrade torch torchvision
 ```
 
 ### # [10. 방화벽 설정](#목차)
+\# === CentOS 7.9 ===
 ```bash
 # 기존 방화벽 Zone 변경 후 패키지 및 ssh 포트 변경 작업 진행
 ===== CentOS 7.9 =====
@@ -371,8 +379,8 @@ echo "AddressFamily inet" >> /etc/ssh/sshd_config
 systemctl restart sshd
 ```
 
+\# === Ubuntu 20.04 ===
 ```bash
-===== Ubuntu 20.04 =====
 systemctl start ufw
 systemctl enable ufw
 yes | ufw enable
@@ -393,21 +401,24 @@ systemctl restart sshd
 ```
 
 ### # [11. 사용자 생성 테스트](#목차)
+\# === CentOS 7.9 ===
 ```bash
 #다산 계정 생성 테스트 진행
 ===== CentOS 7.9 =====
 useradd dasan
 usermod -aG wheel dasan
+```
 
-===== Ubuntu 20.04 =====
+\# === Ubuntu 20.04 ===
+```bash
 adduser --disabled-login --gecos "" dasan
 usermod -G sudo dasan
 ```
 
 ### # [12. H/W 사양 체크](#목차)
+\# === CentOS 7.9, Ubuntu 20.04 ===
 ```bash
 # 기본적인 시스템 사양 체크를 진행합니다.
-===== CentOS , Ubuntu =====
 dmidecode --type system | grep -v "^$\|#\|SMBIOS\|Handle\|Not"
 lscpu | grep -v "Flags\|NUMA"
 dmidecode --type 16 | grep -v "dmidecode\|SMBIOS\|Handle"
@@ -427,8 +438,8 @@ uname -a
 <br/>
 
 ## ## 아래 부분을 진행 하기 전에 위 사항들이 적용 될 수 있게 재부팅을 진행 합니다.
+\# === CentOS 7.9, Ubuntu 20.04 ===
 ```bash
-===== CentOS , Ubuntu =====
 reboot
 ```
 <br/>
@@ -439,9 +450,9 @@ reboot
 ### ### 아래 13 ~ 16 항목의 경우 Nvidia-GPU가 존재할 경우 진행 합니다.
 
 ### # [13. CUDA,CUDNN Repo 설치](#목차)
+\# === CentOS 7.9 ===
 ```bash
 # Nvidia 저장소 생성 (Cuda,cudnn 설치를 위해)
-===== CentOS 7.9 =====
 wget https://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/cuda-repo-rhel7-10.0.130-1.x86_64.rpm
 wget https://developer.download.nvidia.com/compute/machine-learning/repos/rhel7/x86_64/nvidia-machine-learning-repo-rhel7-1.0.0-1.x86_64.rpm
 
@@ -451,9 +462,10 @@ yum --disablerepo="*" --enablerepo="cuda" list available
 yum -y install libXi-devel mesa-libGLU-devel libXmu-devel libX11-devel freeglut-devel libXm*
 yum -y install openmotif*
 ```
+
+\# === Ubuntu 20.04 ===
 ```bash
 # Nvidia 저장소 생성 (Cuda,cudnn 설치를 위해)
-===== Ubuntu 20.04 =====
 OS=$(lsb_release -isr |  tr -d "." | sed -e '{N;s/\n//}' | tr '[A-Z]' '[a-z]')
 apt-get -y install sudo gnupg
 apt-key adv --fetch-keys "https://developer.download.nvidia.com/compute/cuda/repos/"$OS"/x86_64/7fa2af80.pub"
@@ -463,9 +475,9 @@ apt-get update
 ```
 
 ### # [14. CUDA 설치 및 PATH 설정](#목차)
+\# === CentOS 7.9 ===
 ```bash
 # cuda 설치 및 설치된 cuda를 사용하기 위해 경로 설정값을 profile에 입력
-===== CentOS 7.9 =====
 echo " "  >> /etc/profile
 echo "### ADD Cuda 11.0 PATH"  >> /etc/profile
 echo "export PATH=/usr/local/cuda-11.0/bin:/usr/local/cuda-11.0/include:\$PATH " >> /etc/profile
@@ -478,8 +490,9 @@ systemctl enable nvidia-persistenced
 source /etc/profile
 source /root/.bashrc
 ```
+
+\# === Ubuntu 20.04 ===
 ```bash
-===== Ubuntu 20.04 =====
 # cuda 설치 및 설치된 cuda를 사용하기 위해 경로 설정값을 profile에 입력
 echo " "  >> /etc/profile
 echo "### ADD Cuda 11.0 PATH"  >> /etc/profile
@@ -495,15 +508,15 @@ source /root/.bashrc
 ```
 
 ### # [15. CUDNN 설치 및 PATH 설정](#목차)
+\# === CentOS 7.9 ===
 ```bash
-===== CentOS 7.9 =====
 # cudnn 설치 진행
 yum -y install libcudnn8*
 yum -y upgrade
 ```
 
+\# === Ubuntu 20.04 ===
 ```bash
-===== Ubuntu 20.04 =====
 # cudnn 설치 진행
 apt-get -y install libcudnn8*
 ```
@@ -511,10 +524,10 @@ apt-get -y install libcudnn8*
 ### # [16. 딥러닝 패키지 설치](#목차)
 ### ## JupyterHub는 마지막 설정이 동일하여 마지막에 같이 서술하였습니다.
 ### ## 마지막 설정에 사용되는 파일은 Git에 LAS 밑에 존재합니다.
+\# === CentOS 7.9 ===
 ```bash
 # 딥러닝 패키지 (R, R-Server, JupyterHub) 를 설치 합니다.
 # JupyterHub에 작업 중 사용되는 파일들은 LAS에 존재하므로 git을 통해 Pull 하고 사용해야 합니다.
-===== CentOS 7.9 =====
 ## R,R-sutdio install
 yum -y install R 
 wget https://download2.rstudio.org/server/centos7/x86_64/rstudio-server-rhel-2022.02.0-443-x86_64.rpm  
@@ -527,8 +540,9 @@ wget https://rpm.nodesource.com/pub_16.x/el/7/x86_64/nodejs-devel-16.10.0-1nodes
 rpm -ivh nodejs-16.10.0-1nodesource.x86_64.rpm nodejs-devel-16.10.0-1nodesource.x86_64.rpm 
 npm install -g configurable-http-proxy 
 ```
+
+\# === Ubuntu 20.04 ===
 ```bash
-===== Ubuntu 20.04 =====
 # 딥러닝 패키지 (R, R-Server, JupyterHub) 를 설치 합니다.
 # JupyterHub에 작업 중 사용되는 파일들은 LISR에 존재하므로 git을 통해 Pull 하고 사용해야 합니다.
 
@@ -548,9 +562,9 @@ npm install -g configurable-http-proxy
 snap install pycharm-community --classic
 ```
 
+\# === CentOS 7.9, Ubuntu 20.04 ===
 ```bash
 ## CentOS , Ubuntu 동일하게 JupyterHub 마무리 작업을 진행 합니다.
-===== JupyterHub 마무리 설정 =====
 mkdir /etc/jupyterhub
 jupyterhub --generate-config -f /etc/jupyterhub/jupyterhub_config.py 
 sed -i '356a c.JupyterHub.port = 8000' /etc/jupyterhub/jupyterhub_config.py
@@ -575,8 +589,8 @@ R CMD BATCH /root/LAS/r_jupyterhub.R
 
 ### # [17. 서버 전용 MSM 설치](#목차)
 ### ## RAID DISK 관리 Tool인 Mega RAID Manager 를 설치 합니다. (RAID Card가 있을경우 사용 합니다.)
+\# === CentOS 7.9 ===
 ```bash
-===== CentOS 7.9 =====
 mkdir /tmp/raid_manager
 cd /tmp/raid_manager
 wget https://docs.broadcom.com/docs-and-downloads/raid-controllers/raid-controllers-common-files/17.05.00.02_Linux-64_MSM.gz
@@ -588,8 +602,9 @@ systemctl enable vivaldiframeworkd.service
 /usr/local/MegaRAID\ Storage\ Manager/startupui.sh
 cd
 ```
+
+\# === Ubuntu 20.04 ===
 ```bash
-===== Ubuntu 20.04 =====
 mkdir /tmp/raid_manager
 cd /tmp/raid_manager
 wget https://docs.broadcom.com/docs-and-downloads/raid-controllers/raid-controllers-common-files/17.05.00.02_Linux-64_MSM.gz
@@ -610,8 +625,8 @@ cd
 
 ### # [18. Dell 전용 OMSA설치](#목차)
 ### ## Dell 서버의 경우 원격 제어를 위한 OMSA (OpenManage Server Administrator) 를 설치 합니다.
+\# === CentOS 7.9 ===
 ```bash
-===== CentOS 7.9 =====
 perl -p -i -e '$.==20 and print "exclude = libsmbios smbios-utils-bin\n"' /etc/yum.repos.d/CentOS-Base.repo
 wget http://linux.dell.com/repo/hardware/dsu/bootstrap.cgi -O  ./dellomsainstall.sh
 sed -i -e "s/enabled=1/enabled=0/g" ./dellomsainstall.sh 
@@ -624,8 +639,9 @@ systemctl enable dsm_om_connsvc
 systemctl start dataeng
 systemctl start dsm_om_connsvc
 ```
+
+\# === Ubuntu 20.04 ===
 ```bash
-===== Ubuntu 20.04 =====
 ufw allow 1311/tcp
 echo 'deb http://linux.dell.com/repo/community/openmanage/950/focal focal main'  > /etc/apt/sources.list.d/linux.dell.com.sources.list
 wget http://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc
