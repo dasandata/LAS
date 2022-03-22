@@ -88,17 +88,25 @@ ssh <사용자 계정>@<IP 주소>
 ***
 
 ### # [1. 변수 선언](#목차)
+#### ## 각 변수는 사용하기 전 선언하도록 작성되어 있습니다.
+#### ## 여기서는 어떤 변수가 사용되는지 확인만 하도록 합니다.
 ```bash
-# 설치하려는 서버의 종류를 확인 후 변수로 선언합니다.
+# 설치하려는 서버의 종류를 확인 합니다. (Dell, Supermicro, 일반PC 등)
 VENDOR=$(dmidecode | grep -i manufacturer | awk '{print$2}' | head -1)
 
-# 설치하려는 서버의 네트워크 인터페이스를 변수로 선언합니다.
+# 지금 작동중인 네트워크 인터페이스 명을 확인 후 NIC 변수로 적용합니다.
 NIC=$(ip a | grep 'state UP' | cut -d ":" -f 2 | tr -d ' ')
 
-# OS의 종류에 맞게 (CentOS, Ubuntu) 변수로 선언 합니다.
+# 현재 설치된 OS의 종류를 확인 합니다. (ex: centos, ubuntu)
 OSCHECK=$(cat /etc/os-release | head -1 | cut -d "=" -f 2 | tr -d "\"" | awk '{print$1}' | tr '[A-Z]' '[a-z]')
 
-# CUDA 설치 버전을 선택할 수 있는 변수를 사용자에게 입력받아 선언 합니다.
+# centos의 정확한 버전을 확인 합니다.
+OS=$(cat /etc/redhat-release | awk '{print$1,$4}' | cut -d "." -f 1 | tr -d " " | tr '[A-Z]' '[a-z]')
+
+# ubuntu의 정확한 버전을 확인 합니다.
+OS=$(lsb_release -isr |  tr -d "." | sed -e '{N;s/\n//}' | tr '[A-Z]' '[a-z]')
+
+# CUDA 설치 버전을 중 선택하여 CUDAV라는 변수로 사용합니다.
 select CUDAV in 10-0 10-1 10-2 11-0 11-1 No-GPU; do echo "Select CUDA Version : $CUDAV" ; break; done
 ```
 
@@ -354,7 +362,6 @@ pip3 install --upgrade torch torchvision
  === CentOS 7.9 ===
 ```bash
 # 기존 방화벽 Zone 변경 후 패키지 및 ssh 포트 변경 작업 진행
-===== CentOS 7.9 =====
 firewall-cmd --get-zones
 firewall-cmd --list-all
 firewall-cmd --get-default-zone
@@ -404,7 +411,6 @@ systemctl restart sshd
  === CentOS 7.9 ===
 ```bash
 #다산 계정 생성 테스트 진행
-===== CentOS 7.9 =====
 useradd dasan
 usermod -aG wheel dasan
 ```
