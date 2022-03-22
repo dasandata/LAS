@@ -198,7 +198,7 @@ cat /etc/apt/sources.list | grep -v "#\|^$"
 yum -y update
 yum install -y epel-release
 yum install -y ethtool pciutils openssh mlocate nfs-utils rdate xauth firefox nautilus wget bind-utils
-yum install -y tcsh tree lshw tmux git kernel-headers kernel-devel gcc make gcc-c++ snapd
+yum install -y tcsh tree lshw tmux git kernel-headers kernel-devel gcc make gcc-c++ snapd yum-utils
 yum install -y cmake python-devel ntfs-3g dstat perl perl-CPAN perl-core net-tools openssl-devel git-lfs vim
 yum -y groups install "Development Tools"
 yum install -y glibc-static glibc-devel libstdc++ libstdc++-devel
@@ -458,12 +458,15 @@ reboot
 ### # [13. CUDA,CUDNN Repo 설치](#목차)
  === CentOS 7.9 ===
 ```bash
-# Nvidia 저장소 생성 (Cuda,cudnn 설치를 위해)
-wget https://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/cuda-repo-rhel7-10.0.130-1.x86_64.rpm
-wget https://developer.download.nvidia.com/compute/machine-learning/repos/rhel7/x86_64/nvidia-machine-learning-repo-rhel7-1.0.0-1.x86_64.rpm
+# 사용할 CUDA 버전을 선택합니다.
+select CUDAV in 10-0 10-1 10-2 11-0 11-1 11-2 11-3 11-4 11-5; do echo "Select CUDA Version : $CUDAV" ; break; done
 
+# Nvidia 저장소 생성 (Cuda,cudnn 설치를 위해)
+yum-config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/cuda-rhel7.repo
+wget https://developer.download.nvidia.com/compute/machine-learning/repos/rhel7/x86_64/nvidia-machine-learning-repo-rhel7-1.0.0-1.x86_64.rpm
 yum -y install nvidia-machine-learning-repo-rhel7-1.0.0-1.x86_64.rpm
-yum -y install cuda-repo-rhel7-10.0.130-1.x86_64.rpm
+
+# nvidia X11 관련 lib 설치
 yum --disablerepo="*" --enablerepo="cuda" list available
 yum -y install libXi-devel mesa-libGLU-devel libXmu-devel libX11-devel freeglut-devel libXm*
 yum -y install openmotif*
@@ -471,8 +474,13 @@ yum -y install openmotif*
 
  === Ubuntu 20.04 ===
 ```bash
-# Nvidia 저장소 생성 (Cuda,cudnn 설치를 위해)
+# 사용할 CUDA 버전을 선택합니다.
+select CUDAV in 11-0 11-1 11-2 11-3 11-4 11-5; do echo "Select CUDA Version : $CUDAV" ; break; done
+
+# 자세한 Ubuntu 버전을 변수로 선언합니다.
 OS=$(lsb_release -isr |  tr -d "." | sed -e '{N;s/\n//}' | tr '[A-Z]' '[a-z]')
+
+# Nvidia 저장소 생성 (Cuda,cudnn 설치를 위해)
 apt-get -y install sudo gnupg
 apt-key adv --fetch-keys "https://developer.download.nvidia.com/compute/cuda/repos/"$OS"/x86_64/7fa2af80.pub"
 sh -c 'echo "deb https://developer.download.nvidia.com/compute/cuda/repos/'$OS'/x86_64 /" > /etc/apt/sources.list.d/nvidia-cuda.list'
@@ -483,13 +491,16 @@ apt-get update
 ### # [14. CUDA 설치 및 PATH 설정](#목차)
  === CentOS 7.9 ===
 ```bash
+# profile에 PATH 설정시에는 cuda-11-1의 형식이 아닌 cuda-11.1 같은 형식으로 변경되어야 합니다.
+CUDAV="${CUDAV/-/.}"
+
 # cuda 설치 및 설치된 cuda를 사용하기 위해 경로 설정값을 profile에 입력
 echo " "  >> /etc/profile
-echo "### ADD Cuda 11.0 PATH"  >> /etc/profile
-echo "export PATH=/usr/local/cuda-11.0/bin:/usr/local/cuda-11.0/include:\$PATH " >> /etc/profile
-echo "export LD_LIBRARY_PATH=/usr/local/cuda-11.0/lib64:/usr/local/cuda/extras/CUPTI/:\$LD_LIBRARY_PATH " >> /etc/profile
-echo "export CUDA_HOME=/usr/local/cuda-11.0 " >> /etc/profile
-echo "export CUDA_INC_DIR=/usr/local/cuda-11.0/include " >> /etc/profile
+echo "### ADD Cuda $CUDAV PATH"  >> /etc/profile
+echo "export PATH=/usr/local/cuda-$CUDAV/bin:/usr/local/cuda-$CUDAV/include:\$PATH " >> /etc/profile
+echo "export LD_LIBRARY_PATH=/usr/local/cuda-$CUDAV/lib64:/usr/local/cuda/extras/CUPTI/:\$LD_LIBRARY_PATH " >> /etc/profile
+echo "export CUDA_HOME=/usr/local/cuda-$CUDAV " >> /etc/profile
+echo "export CUDA_INC_DIR=/usr/local/cuda-$CUDAV/include " >> /etc/profile
 
 yum -y install cuda-11-0
 systemctl enable nvidia-persistenced
@@ -499,13 +510,16 @@ source /root/.bashrc
 
  === Ubuntu 20.04 ===
 ```bash
+# profile에 PATH 설정시에는 cuda-11-1의 형식이 아닌 cuda-11.1 같은 형식으로 변경되어야 합니다.
+CUDAV="${CUDAV/-/.}"
+
 # cuda 설치 및 설치된 cuda를 사용하기 위해 경로 설정값을 profile에 입력
 echo " "  >> /etc/profile
-echo "### ADD Cuda 11.0 PATH"  >> /etc/profile
-echo "export PATH=/usr/local/cuda-11.0/bin:/usr/local/cuda-11.0/include:\$PATH " >> /etc/profile
-echo "export LD_LIBRARY_PATH=/usr/local/cuda-11.0/lib64:/usr/local/cuda/extras/CUPTI/:\$LD_LIBRARY_PATH " >> /etc/profile
-echo "export CUDA_HOME=/usr/local/cuda-11.0 " >> /etc/profile
-echo "export CUDA_INC_DIR=/usr/local/cuda-11.0/include " >> /etc/profile
+echo "### ADD Cuda $CUDAV PATH"  >> /etc/profile
+echo "export PATH=/usr/local/cuda-$CUDAV/bin:/usr/local/cuda-$CUDAV/include:\$PATH " >> /etc/profile
+echo "export LD_LIBRARY_PATH=/usr/local/cuda-$CUDAV/lib64:/usr/local/cuda/extras/CUPTI/:\$LD_LIBRARY_PATH " >> /etc/profile
+echo "export CUDA_HOME=/usr/local/cuda-$CUDAV " >> /etc/profile
+echo "export CUDA_INC_DIR=/usr/local/cuda-$CUDAV/include " >> /etc/profile
 
 apt-get -y install cuda-11-0
 systemctl enable nvidia-persistenced
@@ -518,7 +532,6 @@ source /root/.bashrc
 ```bash
 # cudnn 설치 진행
 yum -y install libcudnn8*
-yum -y upgrade
 ```
 
  === Ubuntu 20.04 ===
@@ -605,7 +618,7 @@ cd /tmp/raid_manager/disk/ && ./install.csh -a
 systemctl daemon-reload
 systemctl start vivaldiframeworkd.service
 systemctl enable vivaldiframeworkd.service
-/usr/local/MegaRAID\ Storage\ Manager/startupui.sh
+/usr/local/MegaRAID\ Storage\ Manager/startupui.sh &
 cd
 ```
 
@@ -623,7 +636,7 @@ dpkg --install megaraid-storage-manager_17.05.00-3_all.deb
 systemctl daemon-reload
 systemctl start vivaldiframeworkd.service
 systemctl enable vivaldiframeworkd.service
-/usr/local/MegaRAID\ Storage\ Manager/startupui.sh
+/usr/local/MegaRAID\ Storage\ Manager/startupui.sh &
 cd
 ```
 
