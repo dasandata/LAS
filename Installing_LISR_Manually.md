@@ -103,7 +103,7 @@ select CUDAV in 10-0 10-1 10-2 11-0 11-1 No-GPU; do echo "Select CUDA Version : 
 ```
 
 ### # [2. rc.local 생성 및 변경](#목차) 
-### ## 여기서는 사용하지 않습니다.
+#### ## 여기서는 사용하지 않습니다.
 
  === CentOS 7.9 ===
 ```bash
@@ -122,7 +122,7 @@ sed -i '1a bash /root/LAS/Linux_Auto_Script.sh' /etc/rc.local
 ```
 
 ### # [3. nouveau 끄기 및 grub 설정](#목차)
-### ## 부팅시 화면에 부팅 기록 출력, IPv6 비활성화, nouveau 비활성화를 위해 진행 합니다.
+#### ## 부팅시 화면에 부팅 기록 출력, IPv6 비활성화, nouveau 비활성화를 위해 진행 합니다.
  === CentOS 7.9 ===
 ```bash
 NIC=$(ip a | grep 'state UP' | cut -d ":" -f 2 | tr -d ' ')
@@ -159,8 +159,8 @@ update-initramfs -u && update-grub2
 ```
 
 ### # [4. selinux 제거 및 저장소 변경](#목차)
-### ## CentOS는 설정이 복잡한 SELINUX를 disable 합니다.
-### ## Ubuntu는 기존 저장소 속도 최적화를 위해 변경 합니다.
+#### ## CentOS는 설정이 복잡한 SELINUX를 disable 합니다.
+#### ## Ubuntu는 기존 저장소 속도 최적화를 위해 변경 합니다.
  === CentOS 7.9 ===
 ```bash
 # 기존의 SELINUX 상태 확인 후 disable로 변경 (재부팅 후 적용 됩니다.)
@@ -183,8 +183,8 @@ cat /etc/apt/sources.list | grep -v "#\|^$"
 ```
 
 ### # [5. 기본 패키지 설치](#목차)
-### ## 서버 기본 설정에 필요한 패키지를 설치 합니다.
-### ## 필요없는 서비스를 disable 합니다 (장비에 따라 존재하지 않는 서비스도 있습니다.)
+#### ## 서버 기본 설정에 필요한 패키지를 설치 합니다.
+#### ## 필요없는 서비스를 disable 합니다 (장비에 따라 존재하지 않는 서비스도 있습니다.)
  === CentOS 7.9 ===
 ```bash
 yum -y update
@@ -250,8 +250,8 @@ systemctl stop    NetworkManager.service
 ```
 
 ### # [6. 프로필 설정](#목차)
-### ## 사용자 편의를 위한 설정을 진행 합니다.
-### ## alias, prompt-color, History Size, History date
+#### ## 사용자 편의를 위한 설정을 진행 합니다.
+#### ## alias, prompt-color, History Size, History date
  === CentOS 7.9, Ubuntu20.04 ===
 ```bash
 # alias 설정
@@ -276,7 +276,7 @@ echo $HISTSIZE
 ```
 
 ### # [7. 서버 시간 동기화](#목차)
-### ## 서버 및 HW 시간을 동기화 합니다.
+#### ## 서버 및 HW 시간을 동기화 합니다.
  === CentOS 7.9, Ubuntu 20.04===
 ```bash
 # time.bora.net 기준으로 시간 동기화
@@ -447,7 +447,7 @@ reboot
 ***
 
 ### ===== GPU 버전 설치 진행 순서 ===== 
-### ### 아래 13 ~ 16 항목의 경우 Nvidia-GPU가 존재할 경우 진행 합니다.
+#### ### 아래 13 ~ 16 항목의 경우 Nvidia-GPU가 존재할 경우 진행 합니다.
 
 ### # [13. CUDA,CUDNN Repo 설치](#목차)
  === CentOS 7.9 ===
@@ -522,8 +522,8 @@ apt-get -y install libcudnn8*
 ```
 
 ### # [16. 딥러닝 패키지 설치](#목차)
-### ## JupyterHub는 마지막 설정이 동일하여 마지막에 같이 서술하였습니다.
-### ## 마지막 설정에 사용되는 파일은 Git에 LAS 밑에 존재합니다.
+#### ## JupyterHub는 마지막 설정이 동일하여 마지막에 같이 서술하였습니다.
+#### ## 마지막 설정에 사용되는 파일은 Git에 LAS 밑에 존재합니다.
  === CentOS 7.9 ===
 ```bash
 # 딥러닝 패키지 (R, R-Server, JupyterHub) 를 설치 합니다.
@@ -588,7 +588,7 @@ R CMD BATCH /root/LAS/r_jupyterhub.R
 ### ===== 서버 전용 설치 진행 순서 ===== 
 
 ### # [17. 서버 전용 MSM 설치](#목차)
-### ## RAID DISK 관리 Tool인 Mega RAID Manager 를 설치 합니다. (RAID Card가 있을경우 사용 합니다.)
+#### ## RAID DISK 관리 Tool인 Mega RAID Manager 를 설치 합니다. (RAID Card가 있을경우 사용 합니다.)
  === CentOS 7.9 ===
 ```bash
 mkdir /tmp/raid_manager
@@ -624,7 +624,7 @@ cd
 ### ===== Dell 서버 전용 설치 순서 =====
 
 ### # [18. Dell 전용 OMSA설치](#목차)
-### ## Dell 서버의 경우 원격 제어를 위한 OMSA (OpenManage Server Administrator) 를 설치 합니다.
+#### ## Dell 서버의 경우 원격 제어를 위한 OMSA (OpenManage Server Administrator) 를 설치 합니다.
  === CentOS 7.9 ===
 ```bash
 perl -p -i -e '$.==20 and print "exclude = libsmbios smbios-utils-bin\n"' /etc/yum.repos.d/CentOS-Base.repo
