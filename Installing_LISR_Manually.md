@@ -491,6 +491,9 @@ apt-get update
 ### # [14. CUDA 설치 및 PATH 설정](#목차)
  === CentOS 7.9 ===
 ```bash
+# CUDA 설치
+yum -y install cuda-$CUDAV
+
 # profile에 PATH 설정시에는 cuda-11-1의 형식이 아닌 cuda-11.1 같은 형식으로 변경되어야 합니다.
 CUDAV="${CUDAV/-/.}"
 
@@ -502,7 +505,7 @@ echo "export LD_LIBRARY_PATH=/usr/local/cuda-$CUDAV/lib64:/usr/local/cuda/extras
 echo "export CUDA_HOME=/usr/local/cuda-$CUDAV " >> /etc/profile
 echo "export CUDA_INC_DIR=/usr/local/cuda-$CUDAV/include " >> /etc/profile
 
-yum -y install cuda-11-0
+# 지속성 모드 On, 변경된 PATH 적용
 systemctl enable nvidia-persistenced
 source /etc/profile
 source /root/.bashrc
@@ -510,6 +513,9 @@ source /root/.bashrc
 
  === Ubuntu 20.04 ===
 ```bash
+# CUDA 설치
+apt-get -y install cuda-$CUDAV
+
 # profile에 PATH 설정시에는 cuda-11-1의 형식이 아닌 cuda-11.1 같은 형식으로 변경되어야 합니다.
 CUDAV="${CUDAV/-/.}"
 
@@ -521,7 +527,7 @@ echo "export LD_LIBRARY_PATH=/usr/local/cuda-$CUDAV/lib64:/usr/local/cuda/extras
 echo "export CUDA_HOME=/usr/local/cuda-$CUDAV " >> /etc/profile
 echo "export CUDA_INC_DIR=/usr/local/cuda-$CUDAV/include " >> /etc/profile
 
-apt-get -y install cuda-11-0
+# 지속성 모드 On, 변경된 PATH 적용
 systemctl enable nvidia-persistenced
 source /etc/profile
 source /root/.bashrc
@@ -530,13 +536,16 @@ source /root/.bashrc
 ### # [15. CUDNN 설치 및 PATH 설정](#목차)
  === CentOS 7.9 ===
 ```bash
-# cudnn 설치 진행
+# CUDA 10 버전
+yum -y install libcudnn7*
+
+# CUDA 11 버전
 yum -y install libcudnn8*
 ```
 
  === Ubuntu 20.04 ===
 ```bash
-# cudnn 설치 진행
+# Ubuntu 20.04 는 CUDA 11 버전부터 지원하여 libcudnn8 버전만 설치 가능
 apt-get -y install libcudnn8*
 ```
 
