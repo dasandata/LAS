@@ -219,29 +219,29 @@ case $OS in
     rpm -qa | grep -i htop &> /dev/null
     if [ $? != 0 ]
     then
-      yum -y update >> /root/install_log.txt 2>> /root/log_err.txt
+      yum -y update >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       sleep 2
-      yum install -y epel-release >> /root/install_log.txt 2>> /root/log_err.txt
+      yum install -y epel-release >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       sleep 2
-      yum install -y ethtool pciutils openssh mlocate nfs-utils rdate xauth firefox nautilus wget bind-utils >> /root/install_log.txt 2>> /root/log_err.txt
-      yum install -y tcsh tree lshw tmux kernel-headers kernel-devel gcc make gcc-c++ snapd yum-utils >> /root/install_log.txt 2>> /root/log_err.txt
-      yum install -y cmake python-devel ntfs-3g dstat perl perl-CPAN perl-core net-tools openssl-devel git-lfs vim >> /root/install_log.txt 2>> /root/log_err.txt
+      yum install -y ethtool pciutils openssh mlocate nfs-utils rdate xauth firefox nautilus wget bind-utils >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      yum install -y tcsh tree lshw tmux kernel-headers kernel-devel gcc make gcc-c++ snapd yum-utils >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      yum install -y cmake python-devel ntfs-3g dstat perl perl-CPAN perl-core net-tools openssl-devel git-lfs vim >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       sleep 2
       dmidecode | grep -i ipmi &> /dev/null
       if [ $? = 0 ]
       then
-        yum install -y ipmitool >> /root/install_log.txt 2>> /root/log_err.txt
+        yum install -y ipmitool >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       else
         echo "" | tee -a /root/install_log.txt
         echo "PC,Workstation do not install ipmitool" | tee -a /root/install_log.txt
       fi
-      yum -y groupinstall "GNOME Desktop" "Graphical Adminstration Tools"
-      yum -y groups install "Development Tools" >> /root/install_log.txt 2>> /root/log_err.txt
-      yum install -y glibc-static glibc-devel libstdc++ libstdc++-devel >> /root/install_log.txt 2>> /root/log_err.txt
+      yum -y groupinstall "GNOME Desktop" "Graphical Adminstration Tools" >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      yum -y groups install "Development Tools" >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      yum install -y glibc-static glibc-devel libstdc++ libstdc++-devel >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       sleep 2
-      sed -i -e "s/\]$/\]\npriority=5/g" /etc/yum.repos.d/epel.repo >> /root/install_log.txt 2>> /root/log_err.txt
-      yum install -y yum-plugin-priorities >> /root/install_log.txt 2>> /root/log_err.txt
-      yum install -y htop ntfs-3g figlet smartmontools >> /root/install_log.txt 2>> /root/log_err.txt
+      sed -i -e "s/\]$/\]\npriority=5/g" /etc/yum.repos.d/epel.repo >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      yum install -y yum-plugin-priorities >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      yum install -y htop ntfs-3g figlet smartmontools >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "The package install complete" | tee -a /root/install_log.txt
     else
@@ -249,23 +249,23 @@ case $OS in
       echo "The package has already been installed." | tee -a /root/install_log.txt
     fi
     #불필요한 서비스 disable
-    systemctl disable bluetooth.service >> /root/install_log.txt 2>> /root/log_err.txt
-    systemctl disable iscsi.service >> /root/install_log.txt 2>> /root/log_err.txt
-    systemctl disable ksm.service >> /root/install_log.txt 2>> /root/log_err.txt
-    systemctl disable ksmtuned.service >> /root/install_log.txt 2>> /root/log_err.txt
-    systemctl disable libstoragemgmt.service >> /root/install_log.txt 2>> /root/log_err.txt
-    systemctl disable libvirtd.service >> /root/install_log.txt 2>> /root/log_err.txt
-    systemctl disable spice-vdagentd.service >> /root/install_log.txt 2>> /root/log_err.txt
-    systemctl disable vmtoolsd.service >> /root/install_log.txt 2>> /root/log_err.txt
-    systemctl disable ModemManager.service >> /root/install_log.txt 2>> /root/log_err.txt
-    systemctl disable cups.service >> /root/install_log.txt 2>> /root/log_err.txt
-    systemctl disable cups-browsed.service >> /root/install_log.txt 2>> /root/log_err.txt
+    systemctl disable bluetooth.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+    systemctl disable iscsi.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+    systemctl disable ksm.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+    systemctl disable ksmtuned.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+    systemctl disable libstoragemgmt.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+    systemctl disable libvirtd.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+    systemctl disable spice-vdagentd.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+    systemctl disable vmtoolsd.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+    systemctl disable ModemManager.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+    systemctl disable cups.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+    systemctl disable cups-browsed.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
     if [ $OS = "centos7" ]
     then
-      systemctl disable NetworkManager.service >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl stop    NetworkManager.service >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl disable NetworkManager-dispatcher.service >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl disable NetworkManager-wait-online.service >> /root/install_log.txt 2>> /root/log_err.txt
+      systemctl disable NetworkManager.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl stop    NetworkManager.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable NetworkManager-dispatcher.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable NetworkManager-wait-online.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
     else
       echo "" | tee -a /root/install_log.txt
     fi
@@ -277,37 +277,37 @@ case $OS in
     dpkg -l | grep -i htop &> /dev/null
     if [ $? != 0 ]
     then
-      apt-get update >> /root/install_log.txt 2>> /root/log_err.txt
+      apt-get update >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       sleep 2
-      apt-get -y install vim nfs-common rdate xauth firefox gcc make tmux wget figlet >> /root/install_log.txt 2>> /root/log_err.txt
-      apt-get -y install net-tools xfsprogs ntfs-3g aptitude dstat curl python mlocate >> /root/install_log.txt 2>> /root/log_err.txt
+      apt-get -y install vim nfs-common rdate xauth firefox gcc make tmux wget figlet >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      apt-get -y install net-tools xfsprogs ntfs-3g aptitude dstat curl python mlocate >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       sleep 2
-      apt-get -y install ubuntu-desktop dconf-editor gnome-panel gnome-settings-daemon metacity nautilus gnome-terminal >> /root/install_log.txt 2>> /root/log_err.txt
-      apt-get -y install libzmq3-dev libcurl4-openssl-dev libxml2-dev snapd lvm2 ethtool htop dnsutils >> /root/install_log.txt 2>> /root/log_err.txt
+      apt-get -y install ubuntu-desktop dconf-editor gnome-panel gnome-settings-daemon metacity nautilus gnome-terminal >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      apt-get -y install libzmq3-dev libcurl4-openssl-dev libxml2-dev snapd lvm2 ethtool htop dnsutils >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       sleep 2
-      DEBIAN_FRONTEND=noninteractive apt-get install -y smartmontools >> /root/install_log.txt 2>> /root/log_err.txt
+      DEBIAN_FRONTEND=noninteractive apt-get install -y smartmontools >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       #불필요한 서비스 disable
-      systemctl disable bluetooth.service >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl disable iscsi.service >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl disable ksm.service >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl disable ksmtuned.service >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl disable libstoragemgmt.service >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl disable libvirtd.service >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl disable spice-vdagentd.service >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl disable vmtoolsd.service >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl disable ModemManager.service >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl disable cups.service >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl disable cups-browsed.service >> /root/install_log.txt 2>> /root/log_err.txt
+      systemctl disable bluetooth.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable iscsi.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable ksm.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable ksmtuned.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable libstoragemgmt.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable libvirtd.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable spice-vdagentd.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable vmtoolsd.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable ModemManager.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable cups.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable cups-browsed.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       sleep 3
       ## ipmi 여부로 PC, Server 판단
       dmidecode | grep -i ipmi &> /dev/null
       if [ $? = 0 ]
       then
-        apt-get -y install ipmitool >> /root/install_log.txt 2>> /root/log_err.txt
-        systemctl disable NetworkManager.service >> /root/install_log.txt 2>> /root/log_err.txt
-        systemctl stop    NetworkManager.service >> /root/install_log.txt 2>> /root/log_err.txt
-        systemctl disable NetworkManager-dispatcher.service >> /root/install_log.txt 2>> /root/log_err.txt
-        systemctl disable NetworkManager-wait-online.service >> /root/install_log.txt 2>> /root/log_err.txt
+        apt-get -y install ipmitool >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+        systemctl disable NetworkManager.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+        systemctl stop    NetworkManager.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+        systemctl disable NetworkManager-dispatcher.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+        systemctl disable NetworkManager-wait-online.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       else
         echo "" | tee -a /root/install_log.txt
         echo "PC,Workstation do not install ipmitool" | tee -a /root/install_log.txt
@@ -365,21 +365,21 @@ echo "" | tee -a /root/install_log.txt
 
 if [ $OS = "rocky8" ]
 then
-  yum install -y chrony >> /root/install_log.txt 2>> /root/log_err.txt
-  sed -i 's/pool 2.pool.ntp.org iburst/pool kr.pool.ntp.org iburst/' /etc/chrony.conf
-  systemctl enable chronyd >> /root/install_log.txt 2>> /root/log_err.txt
-  systemctl start  chronyd >> /root/install_log.txt 2>> /root/log_err.txt
-  chronyc sources >> /root/install_log.txt 2>> /root/log_err.txt
-  timedatectl >> /root/install_log.txt 2>> /root/log_err.txt
-  clock --systohc   >> /root/install_log.txt 2>> /root/log_err.txt
-  date >> /root/install_log.txt 2>> /root/log_err.txt
-  hwclock >> /root/install_log.txt 2>> /root/log_err.txt
+  yum install -y chrony >> /root/Time_Setting_log.txt 2>> /root/Time_Setting_log_err.txt
+  sed -i 's/pool 2.pool.ntp.org iburst/pool kr.pool.ntp.org iburst/' /etc/chrony.conf 
+  systemctl enable chronyd >> /root/Time_Setting_log.txt 2>> /root/Time_Setting_log_err.txt
+  systemctl start  chronyd >> /root/Time_Setting_log.txt 2>> /root/Time_Setting_log_err.txt
+  chronyc sources >> /root/Time_Setting_log.txt 2>> /root/Time_Setting_log_err.txt
+  timedatectl >> /root/Time_Setting_log.txt 2>> /root/Time_Setting_log_err.txt
+  clock --systohc >> /root/Time_Setting_log.txt 2>> /root/Time_Setting_log_err.txt
+  date >> /root/Time_Setting_log.txt 2>> /root/Time_Setting_log_err.txt
+  hwclock >> /root/Time_Setting_log.txt 2>> /root/Time_Setting_log_err.txt
 else
   echo "Start time setting" | tee -a /root/install_log.txt
-  rdate  -s  time.bora.net >> /root/install_log.txt 2>> /root/log_err.txt
-  hwclock --systohc >> /root/install_log.txt 2>> /root/log_err.txt
-  date >> /root/install_log.txt 2>> /root/log_err.txt
-  hwclock >> /root/install_log.txt 2>> /root/log_err.txt
+  rdate  -s  time.bora.net >> /root/Time_Setting_log.txt 2>> /root/Time_Setting_log_err.txt
+  hwclock --systohc >> /root/Time_Setting_log.txt 2>> /root/Time_Setting_log_err.txt
+  date >> /root/Time_Setting_log.txt 2>> /root/Time_Setting_log_err.txt
+  hwclock >> /root/Time_Setting_log.txt 2>> /root/Time_Setting_log_err.txt
   echo "" | tee -a /root/install_log.txt
   echo "Time setting completed" | tee -a /root/install_log.txt
 fi
@@ -396,59 +396,67 @@ then
     centos7 )
       echo "" | tee -a /root/install_log.txt
       echo "Python Install" | tee -a /root/install_log.txt
-      yum -y install python-devel python-setuptools python-setuptools-devel >> /root/install_log.txt 2>> /root/log_err.txt
-      curl -O https://bootstrap.pypa.io/pip/2.7/get-pip.py >> /root/install_log.txt 2>> /root/log_err.txt
-      python get-pip.py >> /root/install_log.txt 2>> /root/log_err.txt
-      yum -y install python36  python36-devel python36-pip python36-setuptools >> /root/install_log.txt 2>> /root/log_err.txt
-      easy_install-3.6   pip >> /root/install_log.txt 2>> /root/log_err.txt
-      yum -y install openblas* >> /root/install_log.txt 2>> /root/log_err.txt
-      pip   install --upgrade pip >> /root/install_log.txt 2>> /root/log_err.txt
-      pip3   install --upgrade pip >> /root/install_log.txt 2>> /root/log_err.txt
-      perl -pi -e 's/python3/python/'   /usr/local/bin/pip >> /root/install_log.txt 2>> /root/log_err.txt
+      yum -y install python-devel python-setuptools python-setuptools-devel >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      curl -O https://bootstrap.pypa.io/pip/2.7/get-pip.py >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      python get-pip.py >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      yum -y install python36  python36-devel python36-pip python36-setuptools >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      easy_install-3.6   pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      yum -y install openblas* >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      pip   install --upgrade pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      pip3   install --upgrade pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      perl -pi -e 's/python3/python/'   /usr/local/bin/pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "Python Install complete" | tee -a /root/install_log.txt
     ;;
     rocky8 )
-      yum -y install python36-devel >> /root/install_log.txt 2>> /root/log_err.txt
-      python3 -m pip install --upgrade pip
-      python3 -m pip install numpy scipy nose matplotlib pandas keras 
-      python3 -m pip install --upgrade tensorflow-gpu==1.13.1 
-      python3 -m pip install torch torchvision 
+      echo "" | tee -a /root/install_log.txt
+      echo "Python Install" | tee -a /root/install_log.txt
+      yum -y install python36-devel >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      echo "" | tee -a /root/install_log.txt
+      echo "Python Install complete" | tee -a /root/install_log.txt
+      echo "" | tee -a /root/install_log.txt
+      echo "Python Package Install" | tee -a /root/install_log.txt
+      python3 -m pip install --upgrade pip >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      python3 -m pip install numpy scipy nose matplotlib pandas keras >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      python3 -m pip install --upgrade tensorflow-gpu==1.13.1 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      python3 -m pip install torch torchvision >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      echo "" | tee -a /root/install_log.txt
+      echo "Python Package Install complete" | tee -a /root/install_log.txt
     ;;
     ubuntu1604 )
       echo "" | tee -a /root/install_log.txt
       echo "Python Install" | tee -a /root/install_log.txt
-      apt-get -y install python-dev python3-dev libssl-dev build-essential libffi-dev >> /root/install_log.txt 2>> /root/log_err.txt
-      curl -fsSL -o- https://bootstrap.pypa.io/pip/2.7/get-pip.py | python2.7 >> /root/install_log.txt 2>> /root/log_err.txt
-      curl -fsSL -o- https://bootstrap.pypa.io/pip/3.5/get-pip.py | python3.5 >> /root/install_log.txt 2>> /root/log_err.txt
-      pip   install --upgrade pip >> /root/install_log.txt 2>> /root/log_err.txt
-      pip3   install --upgrade pip >> /root/install_log.txt 2>> /root/log_err.txt
-      perl -pi -e 's/python3/python/'   /usr/local/bin/pip >> /root/install_log.txt 2>> /root/log_err.txt
+      apt-get -y install python-dev python3-dev libssl-dev build-essential libffi-dev >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      curl -fsSL -o- https://bootstrap.pypa.io/pip/2.7/get-pip.py | python2.7 >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      curl -fsSL -o- https://bootstrap.pypa.io/pip/3.5/get-pip.py | python3.5 >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      pip   install --upgrade pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      pip3   install --upgrade pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      perl -pi -e 's/python3/python/'   /usr/local/bin/pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "Python Install complete" | tee -a /root/install_log.txt
     ;;
     ubuntu1804 )
       echo "" | tee -a /root/install_log.txt
       echo "Python Install" | tee -a /root/install_log.txt
-      apt-get -y install  python-pip python3-pip python-tk python3-tk >> /root/install_log.txt 2>> /root/log_err.txt
-      pip install --upgrade pip >> /root/install_log.txt 2>> /root/log_err.txt
-      pip3 install --upgrade pip >> /root/install_log.txt 2>> /root/log_err.txt
-      perl -pi -e 's/python3/python/'   /usr/local/bin/pip >> /root/install_log.txt 2>> /root/log_err.txt
+      apt-get -y install  python-pip python3-pip python-tk python3-tk >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      pip install --upgrade pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      pip3 install --upgrade pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      perl -pi -e 's/python3/python/'   /usr/local/bin/pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "Python Install complete" | tee -a /root/install_log.txt
     ;;
     ubuntu2004 )
       echo "" | tee -a /root/install_log.txt
       echo "Python Install" | tee -a /root/install_log.txt
-      apt-get -y install python3-pip >> /root/install_log.txt 2>> /root/log_err.txt
-      add-apt-repository universe >> /root/install_log.txt 2>> /root/log_err.txt
-      apt update >> /root/install_log.txt 2>> /root/log_err.txt
-      apt list --upgradeable >> /root/install_log.txt 2>> /root/log_err.txt
-      apt install -y python2 >> /root/install_log.txt 2>> /root/log_err.txt
-      curl https://bootstrap.pypa.io/pip/2.7/get-pip.py -o get-pip.py >> /root/install_log.txt 2>> /root/log_err.txt
-      python2.7 get-pip.py --force-reinstall >> /root/install_log.txt 2>> /root/log_err.txt
-      pip3 install --upgrade pip >> /root/install_log.txt 2>> /root/log_err.txt
-      perl -pi -e 's/python3/python/'   /usr/local/bin/pip >> /root/install_log.txt 2>> /root/log_err.txt
+      apt-get -y install python3-pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      add-apt-repository universe >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      apt update >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      apt list --upgradeable >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      apt install -y python2 >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      curl https://bootstrap.pypa.io/pip/2.7/get-pip.py -o get-pip.py >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      python2.7 get-pip.py --force-reinstall >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      pip3 install --upgrade pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      perl -pi -e 's/python3/python/'   /usr/local/bin/pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "Python Install complete" | tee -a /root/install_log.txt
     ;;
@@ -472,35 +480,35 @@ then
     centos7 )
       echo "" | tee -a /root/install_log.txt
       echo "Python Package Install" | tee -a /root/install_log.txt
-      pip install  numpy   scipy  nose  matplotlib  pandas  keras >> /root/install_log.txt 2>> /root/log_err.txt
-      pip uninstall --yes dnspython >> /root/install_log.txt 2>> /root/log_err.txt
-      yum erase -y python-ldap pyparsing >> /root/install_log.txt 2>> /root/log_err.txt
-      pip3 install  numpy   scipy  nose  matplotlib  pandas  keras >> /root/install_log.txt 2>> /root/log_err.txt
-      pip install --upgrade setuptools >> /root/install_log.txt 2>> /root/log_err.txt
-      rm -rf /usr/share/doc/python-enum34-1.0.4* >> /root/install_log.txt 2>> /root/log_err.txt
-      rm -rf /usr/lib/python2.7/site-packages/enum34-1.0.4-py2.7.egg-info >> /root/install_log.txt 2>> /root/log_err.txt
-      pip  install --upgrade setuptools==40 >> /root/install_log.txt 2>> /root/log_err.txt
-      pip3 install --upgrade tensorflow-gpu==1.13.1 >> /root/install_log.txt 2>> /root/log_err.txt
-      pip3 install --upgrade setuptools >> /root/install_log.txt 2>> /root/log_err.txt
-      pip  install torch torchvision >> /root/install_log.txt 2>> /root/log_err.txt
-      pip3 install torch torchvision >> /root/install_log.txt 2>> /root/log_err.txt
-      pip3 install --upgrade optimuspyspark >> /root/install_log.txt 2>> /root/log_err.txt
+      pip install  numpy   scipy  nose  matplotlib  pandas  keras >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip uninstall --yes dnspython >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      yum erase -y python-ldap pyparsing >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install  numpy   scipy  nose  matplotlib  pandas  keras >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip install --upgrade setuptools >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      rm -rf /usr/share/doc/python-enum34-1.0.4* >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      rm -rf /usr/lib/python2.7/site-packages/enum34-1.0.4-py2.7.egg-info >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip  install --upgrade setuptools==40 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install --upgrade tensorflow-gpu==1.13.1 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install --upgrade setuptools >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip  install torch torchvision >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install torch torchvision >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install --upgrade optimuspyspark >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "Python Package Install complete" | tee -a /root/install_log.txt
     ;;
     ubuntu1604 )
       echo "" | tee -a /root/install_log.txt
       echo "Python Package Install" | tee -a /root/install_log.txt
-      pip2 install  numpy   scipy  nose  matplotlib  pandas  keras >> /root/install_log.txt 2>> /root/log_err.txt
-      pip3 install  numpy   scipy  nose  matplotlib  pandas  keras >> /root/install_log.txt 2>> /root/log_err.txt
-      pip2 install  --upgrade tensorflow-gpu==1.13.1 >> /root/install_log.txt 2>> /root/log_err.txt
-      pip3 install  --upgrade tensorflow-gpu==1.13.1 >> /root/install_log.txt 2>> /root/log_err.txt
-      pip2 install  --upgrade setuptools >> /root/install_log.txt 2>> /root/log_err.txt
-      pip3 install  --upgrade setuptools >> /root/install_log.txt 2>> /root/log_err.txt
-      pip3 install --upgrade optimuspyspark  >> /root/install_log.txt 2>> /root/log_err.txt
-      pip3 install --upgrade testresources >> /root/install_log.txt 2>> /root/log_err.txt
-      pip2 install torch torchvision >> /root/install_log.txt 2>> /root/log_err.txt
-      pip3 install torch torchvision >> /root/install_log.txt 2>> /root/log_err.txt
+      pip2 install  numpy   scipy  nose  matplotlib  pandas  keras >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install  numpy   scipy  nose  matplotlib  pandas  keras >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip2 install  --upgrade tensorflow-gpu==1.13.1 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install  --upgrade tensorflow-gpu==1.13.1 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip2 install  --upgrade setuptools >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install  --upgrade setuptools >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install --upgrade optimuspyspark  >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install --upgrade testresources >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip2 install torch torchvision >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install torch torchvision >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       sed -i 's/python.5/python2.7/g' /usr/local/bin/pip 
       echo "" | tee -a /root/install_log.txt
       echo "Python Package Install complete" | tee -a /root/install_log.txt
@@ -508,27 +516,27 @@ then
     ubuntu1804 )
       echo "" | tee -a /root/install_log.txt
       echo "Python Package Install" | tee -a /root/install_log.txt
-      pip install  numpy   scipy  nose  matplotlib  pandas  keras >> /root/install_log.txt 2>> /root/log_err.txt
-      pip3 install  numpy   scipy  nose  matplotlib  pandas  keras >> /root/install_log.txt 2>> /root/log_err.txt
-      pip install  --upgrade tensorflow-gpu==1.13.1 >> /root/install_log.txt 2>> /root/log_err.txt
-      pip3 install  --upgrade tensorflow-gpu==1.13.1 >> /root/install_log.txt 2>> /root/log_err.txt
-      pip3 install --upgrade cryptography==3.3.2 >> /root/install_log.txt 2>> /root/log_err.txt
-      pip3 install --upgrade optimuspyspark  >> /root/install_log.txt 2>> /root/log_err.txt
-      pip3 install --upgrade testresources >> /root/install_log.txt 2>> /root/log_err.txt
-      pip install torch torchvision >> /root/install_log.txt 2>> /root/log_err.txt
-      pip3 install torch torchvision >> /root/install_log.txt 2>> /root/log_err.txt
+      pip install  numpy   scipy  nose  matplotlib  pandas  keras >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install  numpy   scipy  nose  matplotlib  pandas  keras >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip install  --upgrade tensorflow-gpu==1.13.1 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install  --upgrade tensorflow-gpu==1.13.1 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install --upgrade cryptography==3.3.2 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install --upgrade optimuspyspark  >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install --upgrade testresources >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip install torch torchvision >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install torch torchvision >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "Python Package Install complete" | tee -a /root/install_log.txt
     ;;
     ubuntu2004 )
       echo "" | tee -a /root/install_log.txt
       echo "Python Package Install"
-      pip install --upgrade numpy scipy  nose  matplotlib  pandas  keras tensorflow-gpu >> /root/install_log.txt 2>> /root/log_err.txt
-      pip install scipy==1.2.2 >> /root/install_log.txt 2>> /root/log_err.txt
-      pip3 install --upgrade numpy scipy nose matplotlib pandas keras tensorflow-gpu >> /root/install_log.txt 2>> /root/log_err.txt
-      pip3 install numpy==1.16.0 h5py==2.10.0 cryptography==3.3.2 >> /root/install_log.txt 2>> /root/log_err.txt
-      pip install --upgrade torch torchvision  >> /root/install_log.txt 2>> /root/log_err.txt
-      pip3 install --upgrade torch torchvision >> /root/install_log.txt 2>> /root/log_err.txt
+      pip install --upgrade numpy scipy  nose  matplotlib  pandas  keras tensorflow-gpu >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip install scipy==1.2.2 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install --upgrade numpy scipy nose matplotlib pandas keras tensorflow-gpu >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install numpy==1.16.0 h5py==2.10.0 cryptography==3.3.2 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip install --upgrade torch torchvision  >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install --upgrade torch torchvision >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "Python Package Install complete" | tee -a /root/install_log.txt
     ;;
@@ -552,18 +560,18 @@ case $OS in
     then
       echo "" | tee -a /root/install_log.txt
       echo "Firewall Settings" | tee -a /root/install_log.txt
-      firewall-cmd --add-port=7777/tcp  --permanent >> /root/install_log.txt 2>> /root/log_err.txt
+      firewall-cmd --add-port=7777/tcp  --permanent >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
       ## R Server Port
-      firewall-cmd --add-port=8787/tcp  --permanent >> /root/install_log.txt 2>> /root/log_err.txt
+      firewall-cmd --add-port=8787/tcp  --permanent >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
       ## jupyterHub Port
-      firewall-cmd --add-port=8000/tcp  --permanent >> /root/install_log.txt 2>> /root/log_err.txt
+      firewall-cmd --add-port=8000/tcp  --permanent >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
       ## masquerade on
-      firewall-cmd --add-masquerade --permanent >> /root/install_log.txt 2>> /root/log_err.txt
+      firewall-cmd --add-masquerade --permanent >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
       ## remove service
-      firewall-cmd --remove-service=dhcpv6-client  --permanent >> /root/install_log.txt 2>> /root/log_err.txt
-      firewall-cmd --remove-service=cockpit  --permanent >> /root/install_log.txt 2>> /root/log_err.txt
-      firewall-cmd --remove-service=ssh  --permanent >> /root/install_log.txt 2>> /root/log_err.txt
-      firewall-cmd --reload >> /root/install_log.txt 2>> /root/log_err.txt
+      firewall-cmd --remove-service=dhcpv6-client  --permanent >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
+      firewall-cmd --remove-service=cockpit  --permanent >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
+      firewall-cmd --remove-service=ssh  --permanent >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
+      firewall-cmd --reload >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
       sed -i  "s/#Port 22/Port 7777/g" /etc/ssh/sshd_config
       if [ $OS = "rocky8" ]
       then
@@ -572,7 +580,7 @@ case $OS in
         sed -i  "s/#PermitRootLogin yes/PermitRootLogin no/g" /etc/ssh/sshd_config
       fi
       echo "AddressFamily inet" >> /etc/ssh/sshd_config
-      systemctl restart sshd >> /root/install_log.txt 2>> /root/log_err.txt
+      systemctl restart sshd >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "Firewall setting complete" | tee -a /root/install_log.txt
     else
@@ -586,16 +594,16 @@ case $OS in
     then
       echo "" | tee -a /root/install_log.txt
       echo "Firewall Settings" | tee -a /root/install_log.txt
-      systemctl start ufw >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl enable ufw >> /root/install_log.txt 2>> /root/log_err.txt
-      yes | ufw enable >> /root/install_log.txt 2>> /root/log_err.txt
-      ufw default deny >> /root/install_log.txt 2>> /root/log_err.txt
-      ufw allow 22/tcp  >> /root/install_log.txt 2>> /root/log_err.txt
-      ufw allow 7777/tcp  >> /root/install_log.txt 2>> /root/log_err.txt
+      systemctl start ufw >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
+      systemctl enable ufw >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
+      yes | ufw enable >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
+      ufw default deny >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
+      ufw allow 22/tcp  >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
+      ufw allow 7777/tcp  >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
       ## R Server port
-      ufw allow 8787/tcp  >> /root/install_log.txt 2>> /root/log_err.txt
+      ufw allow 8787/tcp  >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
       ## JupyterHub port
-      ufw allow 8000/tcp >> /root/install_log.txt 2>> /root/log_err.txt
+      ufw allow 8000/tcp >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
       if [ $OS = "ubuntu1604" ]
       then
         perl -pi -e "s/Port 22/Port 7777/g" /etc/ssh/sshd_config
@@ -604,7 +612,7 @@ case $OS in
       fi
       perl -pi -e "s/PermitRootLogin prohibit-password/PermitRootLogin no/g" /etc/ssh/sshd_config
       echo "AddressFamily inet" >> /etc/ssh/sshd_config
-      systemctl restart sshd >> /root/install_log.txt 2>> /root/log_err.txt
+      systemctl restart sshd >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
     else
       echo "" | tee -a /root/install_log.txt
       echo "The Firewall has already been started." | tee -a /root/install_log.txt
@@ -627,14 +635,14 @@ then
     centos7 | rocky8 )
       echo "" | tee -a /root/install_log.txt
       echo "User Add Start" | tee -a /root/install_log.txt
-      useradd dasan >> /root/install_log.txt 2>> /root/log_err.txt
-      usermod -aG wheel dasan >> /root/install_log.txt 2>> /root/log_err.txt
+      useradd dasan >> /root/useradd_log.txt 2>> /root/useradd_log_err.txt
+      usermod -aG wheel dasan >> /root/useradd_log.txt 2>> /root/useradd_log_err.txt
     ;;
     ubuntu1604 | ubuntu1804 | ubuntu2004 )
       echo "" | tee -a /root/install_log.txt
       echo "User add Start" | tee -a /root/install_log.txt
-      adduser --disabled-login --gecos "" dasan >> /root/install_log.txt 2>> /root/log_err.txt
-      usermod -G sudo dasan >> /root/install_log.txt 2>> /root/log_err.txt
+      adduser --disabled-login --gecos "" dasan >> /root/useradd_log.txt 2>> /root/useradd_log_err.txt
+      usermod -G sudo dasan >> /root/useradd_log.txt 2>> /root/useradd_log_err.txt
     ;;
     *)
     ;;
@@ -777,29 +785,29 @@ then
     centos7 )
       echo "" | tee -a /root/install_log.txt
       echo "CUDA,CUDNN REPO install Start" | tee -a /root/install_log.txt
-      yum-config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/cuda-rhel7.repo >> /root/install_log.txt 2>> /root/log_err.txt
-      wget https://developer.download.nvidia.com/compute/machine-learning/repos/rhel7/x86_64/nvidia-machine-learning-repo-rhel7-1.0.0-1.x86_64.rpm >> /root/install_log.txt 2>> /root/log_err.txt
-      yum -y install nvidia-machine-learning-repo-rhel7-1.0.0-1.x86_64.rpm >> /root/install_log.txt 2>> /root/log_err.txt
-      yum --disablerepo="*" --enablerepo="cuda" list available >> /root/install_log.txt 2>> /root/log_err.txt
-      yum -y install libXi-devel mesa-libGLU-devel libXmu-devel libX11-devel freeglut-devel libXm* >> /root/install_log.txt 2>> /root/log_err.txt
-      yum -y install openmotif* >> /root/install_log.txt 2>> /root/log_err.txt
+      yum-config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/cuda-rhel7.repo >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
+      wget https://developer.download.nvidia.com/compute/machine-learning/repos/rhel7/x86_64/nvidia-machine-learning-repo-rhel7-1.0.0-1.x86_64.rpm >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
+      yum -y install nvidia-machine-learning-repo-rhel7-1.0.0-1.x86_64.rpm >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
+      yum --disablerepo="*" --enablerepo="cuda" list available >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
+      yum -y install libXi-devel mesa-libGLU-devel libXmu-devel libX11-devel freeglut-devel libXm* >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
+      yum -y install openmotif* >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "CUDA,CUDNN REPO install complete" | tee -a /root/install_log.txt
     ;;
     rocky8 )
-      dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64/cuda-rhel8.repo >> /root/install_log.txt 2>> /root/log_err.txt
-      wget https://developer.download.nvidia.com/compute/machine-learning/repos/rhel8/x86_64/nvidia-machine-learning-repo-rhel8-1.0.0-1.x86_64.rpm >> /root/install_log.txt 2>> /root/log_err.txt
-      yum -y install nvidia-machine-learning-repo-rhel8-1.0.0-1.x86_64.rpm >> /root/install_log.txt 2>> /root/log_err.txt
-      yum -y install libXi-devel mesa-libGLU-devel libXmu-devel libX11-devel freeglut-devel libXm* openmotif* >> /root/install_log.txt 2>> /root/log_err.txt
+      dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64/cuda-rhel8.repo >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
+      wget https://developer.download.nvidia.com/compute/machine-learning/repos/rhel8/x86_64/nvidia-machine-learning-repo-rhel8-1.0.0-1.x86_64.rpm >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
+      yum -y install nvidia-machine-learning-repo-rhel8-1.0.0-1.x86_64.rpm >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
+      yum -y install libXi-devel mesa-libGLU-devel libXmu-devel libX11-devel freeglut-devel libXm* openmotif* >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
     ;;
     ubuntu1604 | ubuntu1804 | ubuntu2004 )
       echo "" | tee -a /root/install_log.txt
       echo "CUDA,CUDNN REPO install Start" | tee -a /root/install_log.txt
-      apt-get -y install sudo gnupg >> /root/install_log.txt 2>> /root/log_err.txt
-      apt-key adv --fetch-keys "https://developer.download.nvidia.com/compute/cuda/repos/"$OS"/x86_64/7fa2af80.pub" >> /root/install_log.txt 2>> /root/log_err.txt
-      sh -c 'echo "deb https://developer.download.nvidia.com/compute/cuda/repos/'$OS'/x86_64 /" > /etc/apt/sources.list.d/nvidia-cuda.list' >> /root/install_log.txt 2>> /root/log_err.txt
-      sh -c 'echo "deb https://developer.download.nvidia.com/compute/machine-learning/repos/'$OS'/x86_64 /" > /etc/apt/sources.list.d/nvidia-machine-learning.list'  >> /root/install_log.txt 2>> /root/log_err.txt
-      apt-get update >> /root/install_log.txt 2>> /root/log_err.txt
+      apt-get -y install sudo gnupg >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
+      apt-key adv --fetch-keys "https://developer.download.nvidia.com/compute/cuda/repos/"$OS"/x86_64/7fa2af80.pub" >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
+      sh -c 'echo "deb https://developer.download.nvidia.com/compute/cuda/repos/'$OS'/x86_64 /" > /etc/apt/sources.list.d/nvidia-cuda.list' >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
+      sh -c 'echo "deb https://developer.download.nvidia.com/compute/machine-learning/repos/'$OS'/x86_64 /" > /etc/apt/sources.list.d/nvidia-machine-learning.list'  >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
+      apt-get update >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "CUDA,CUDNN REPO install complete" | tee -a /root/install_log.txt
     ;;
@@ -845,10 +853,10 @@ then
         fi
         CUDAV="${CUDAV/./-}"
         sleep 1
-        yum -y install cuda-$CUDAV >> /root/install_log.txt 2>> /root/log_err.txt
+        yum -y install cuda-$CUDAV >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
         sleep 1
-        nvidia-smi -pm 1 >> /root/install_log.txt 2>> /root/log_err.txt
-        systemctl enable nvidia-persistenced >> /root/install_log.txt 2>> /root/log_err.txt
+        nvidia-smi -pm 1 >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
+        systemctl enable nvidia-persistenced >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
         sleep 1
         source /etc/profile
         sleep 1
@@ -874,10 +882,10 @@ then
         fi
         CUDAV="${CUDAV/./-}"
         sleep 1
-        apt-get -y install cuda-$CUDAV >> /root/install_log.txt 2>> /root/log_err.txt
+        apt-get -y install cuda-$CUDAV >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
         sleep 1
-        nvidia-smi -pm 1 >> /root/install_log.txt 2>> /root/log_err.txt
-        systemctl enable nvidia-persistenced >> /root/install_log.txt 2>> /root/log_err.txt
+        nvidia-smi -pm 1 >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
+        systemctl enable nvidia-persistenced >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
         source /etc/profile
         sleep 1
         source /root/.bashrc
@@ -911,11 +919,11 @@ then
       echo "libcudnn Install Start" | tee -a /root/install_log.txt
       if [[ $CUDAV == *11* ]]
       then
-        yum -y install libcudnn8* >> /root/install_log.txt 2>> /root/log_err.txt
-        yum -y update >> /root/install_log.txt 2>> /root/log_err.txt
+        yum -y install libcudnn8* >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
+        yum -y update >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
       else
-        yum -y install libcudnn7* >> /root/install_log.txt 2>> /root/log_err.txt
-        yum -y update >> /root/install_log.txt 2>> /root/log_err.txt
+        yum -y install libcudnn7* >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
+        yum -y update >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
       fi
       echo "" | tee -a /root/install_log.txt
       echo "libcudnn Install complete" | tee -a /root/install_log.txt
@@ -923,8 +931,8 @@ then
     rocky8 )
       echo "" | tee -a /root/install_log.txt
       echo "libcudnn Install Start" | tee -a /root/install_log.txt
-      yum -y install libcudnn8* >> /root/install_log.txt 2>> /root/log_err.txt
-      yum -y install libnccl*   >> /root/install_log.txt 2>> /root/log_err.txt
+      yum -y install libcudnn8* >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
+      yum -y install libnccl*   >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "libcudnn Install complete" | tee -a /root/install_log.txt
     ;;
@@ -933,11 +941,11 @@ then
       echo "libcudnn Install Start" | tee -a /root/install_log.txt
       if [[ $CUDAV == *11* ]]
       then
-        apt-get -y install libcudnn8* >> /root/install_log.txt 2>> /root/log_err.txt
-        apt-get -y install libcublas-dev >> /root/install_log.txt 2>> /root/log_err.txt
+        apt-get -y install libcudnn8* >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
+        apt-get -y install libcublas-dev >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
       else
-        apt-get -y install libcudnn7* >> /root/install_log.txt 2>> /root/log_err.txt
-        apt-get -y install libcublas-dev >> /root/install_log.txt 2>> /root/log_err.txt
+        apt-get -y install libcudnn7* >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
+        apt-get -y install libcublas-dev >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
       fi
       echo "" | tee -a /root/install_log.txt
       echo "libcudnn Install complete" | tee -a /root/install_log.txt
@@ -945,8 +953,8 @@ then
     ubuntu2004 )
       echo "" | tee -a /root/install_log.txt
       echo "libcudnn Install Start" | tee -a /root/install_log.txt
-      apt-get -y install nvidia-cuda-toolkit >> /root/install_log.txt 2>> /root/log_err.txt
-      apt-get -y install libcudnn8* >> /root/install_log.txt 2>> /root/log_err.txt
+      apt-get -y install nvidia-cuda-toolkit >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
+      apt-get -y install libcudnn8* >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "libcudnn Install complete" | tee -a /root/install_log.txt
     ;;
@@ -974,47 +982,47 @@ then
       echo "" | tee -a /root/install_log.txt
       echo "Deep Learnig Package Install Start" | tee -a /root/install_log.txt
       ## R,R-sutdio install
-      yum -y install R >> /root/install_log.txt 2>> /root/log_err.txt
-      wget https://download2.rstudio.org/server/centos7/x86_64/rstudio-server-rhel-2022.02.0-443-x86_64.rpm  >> /root/install_log.txt 2>> /root/log_err.txt
-      yum -y install rstudio-server-rhel-2022.02.0-443-x86_64.rpm >> /root/install_log.txt 2>> /root/log_err.txt
+      yum -y install R >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      wget https://download2.rstudio.org/server/centos7/x86_64/rstudio-server-rhel-2022.02.0-443-x86_64.rpm  >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      yum -y install rstudio-server-rhel-2022.02.0-443-x86_64.rpm >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
       ## JupyterHub install
-      pip3 install --upgrade jupyterhub jupyterlab notebook >> /root/install_log.txt 2>> /root/log_err.txt
-      wget https://rpm.nodesource.com/pub_16.x/el/7/x86_64/nodejs-16.10.0-1nodesource.x86_64.rpm >> /root/install_log.txt 2>> /root/log_err.txt
-      wget https://rpm.nodesource.com/pub_16.x/el/7/x86_64/nodejs-devel-16.10.0-1nodesource.x86_64.rpm >> /root/install_log.txt 2>> /root/log_err.txt
-      rpm -ivh nodejs-16.10.0-1nodesource.x86_64.rpm nodejs-devel-16.10.0-1nodesource.x86_64.rpm >> /root/install_log.txt 2>> /root/log_err.txt
-      npm install -g configurable-http-proxy >> /root/install_log.txt 2>> /root/log_err.txt
+      pip3 install --upgrade jupyterhub jupyterlab notebook >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      wget https://rpm.nodesource.com/pub_16.x/el/7/x86_64/nodejs-16.10.0-1nodesource.x86_64.rpm >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      wget https://rpm.nodesource.com/pub_16.x/el/7/x86_64/nodejs-devel-16.10.0-1nodesource.x86_64.rpm >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      rpm -ivh nodejs-16.10.0-1nodesource.x86_64.rpm nodejs-devel-16.10.0-1nodesource.x86_64.rpm >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      npm install -g configurable-http-proxy >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "Deep Learnig Package install complete"  | tee -a /root/install_log.txt
     ;;
     rocky8 )
       ## R,R-studio install
-      dnf config-manager --set-enabled powertools >> /root/install_log.txt 2>> /root/log_err.txt
-      yum -y install R >> /root/install_log.txt 2>> /root/log_err.txt
-      yum install libcurl-devel libxml2-devel >> /root/install_log.txt 2>> /root/log_err.txt
-      wget https://download2.rstudio.org/server/rhel8/x86_64/rstudio-server-rhel-2022.02.0-443-x86_64.rpm  >> /root/install_log.txt 2>> /root/log_err.txt
-      yum -y install rstudio-server-rhel-2022.02.0-443-x86_64.rpm  >> /root/install_log.txt 2>> /root/log_err.txt
+      dnf config-manager --set-enabled powertools >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      yum -y install R >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      yum install libcurl-devel libxml2-devel >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      wget https://download2.rstudio.org/server/rhel8/x86_64/rstudio-server-rhel-2022.02.0-443-x86_64.rpm  >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      yum -y install rstudio-server-rhel-2022.02.0-443-x86_64.rpm  >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
       ## jupyter install
-      python3 -m pip install jupyterhub jupyterlab notebook >> /root/install_log.txt 2>> /root/log_err.txt
-      curl -sL https://rpm.nodesource.com/setup_16.x | sudo -E bash - >> /root/install_log.txt 2>> /root/log_err.txt
-      sed -i '/failover/d'  /etc/yum.repos.d/nodesource-el8.repo >> /root/install_log.txt 2>> /root/log_err.txt
-      yum -y install nodejs >> /root/install_log.txt 2>> /root/log_err.txt
-      npm install -g configurable-http-proxy >> /root/install_log.txt 2>> /root/log_err.txt
+      python3 -m pip install jupyterhub jupyterlab notebook >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      curl -sL https://rpm.nodesource.com/setup_16.x | sudo -E bash - >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      sed -i '/failover/d'  /etc/yum.repos.d/nodesource-el8.repo >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      yum -y install nodejs >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      npm install -g configurable-http-proxy >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
     ;;
     ubuntu1604 | ubuntu1804 | ubuntu2004 )
       echo "" | tee -a /root/install_log.txt
       echo "Deep Learnig Package Install Start" | tee -a /root/install_log.txt
       ## R,R-studio Install
-      apt-get -y install r-base >> /root/install_log.txt 2>> /root/log_err.txt
-      apt-get -y install gdebi-core >> /root/install_log.txt 2>> /root/log_err.txt
-      wget https://download2.rstudio.org/server/bionic/amd64/rstudio-server-2022.02.0-443-amd64.deb >> /root/install_log.txt 2>> /root/log_err.txt
-      yes | gdebi rstudio-server-2022.02.0-443-amd64.deb >> /root/install_log.txt 2>> /root/log_err.txt
+      apt-get -y install r-base >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      apt-get -y install gdebi-core >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      wget https://download2.rstudio.org/server/bionic/amd64/rstudio-server-2022.02.0-443-amd64.deb >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      yes | gdebi rstudio-server-2022.02.0-443-amd64.deb >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
       ## JupyterHub install
-      pip3 install --upgrade jupyterhub jupyterlab notebook >> /root/install_log.txt 2>> /root/log_err.txt
-      curl -fsSL https://deb.nodesource.com/setup_16.x | bash - >> /root/install_log.txt 2>> /root/log_err.txt
-      apt-get -y install nodejs default-jre >> /root/install_log.txt 2>> /root/log_err.txt
-      npm install -g configurable-http-proxy >> /root/install_log.txt 2>> /root/log_err.txt
+      pip3 install --upgrade jupyterhub jupyterlab notebook >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      curl -fsSL https://deb.nodesource.com/setup_16.x | bash - >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      apt-get -y install nodejs default-jre >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      npm install -g configurable-http-proxy >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
       ## Pycharm install
-      snap install pycharm-community --classic >> /root/install_log.txt 2>> /root/log_err.txt
+      snap install pycharm-community --classic >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "Deep Learnig Package install complete" | tee -a /root/install_log.txt
     ;;
@@ -1040,7 +1048,7 @@ then
     echo "JupyterHub Setting Files Copy" | tee -a /root/install_log.txt
     ## jupyterhub 설정값 변경
     mkdir /etc/jupyterhub
-    jupyterhub --generate-config -f /etc/jupyterhub/jupyterhub_config.py >> /root/install_log.txt 2>> /root/log_err.txt
+    jupyterhub --generate-config -f /etc/jupyterhub/jupyterhub_config.py >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
     sed -i '356a c.JupyterHub.port = 8000' /etc/jupyterhub/jupyterhub_config.py
     sed -i '358a c.LocalAuthenticator.create_system_users = True' /etc/jupyterhub/jupyterhub_config.py
     sed -i '359a c.Authenticator.add_user_cmd = ['adduser', '--force-badname', '-q', '--gecos', '""', '--disabled-password']' /etc/jupyterhub/jupyterhub_config.py
@@ -1050,12 +1058,12 @@ then
     ## jupyterhub service 설정 파일 복사
     mv /root/LAS/jupyterhub.service /lib/systemd/system/
     mv /root/LAS/jupyterhub /etc/init.d/
-    chmod 777 /lib/systemd/system/jupyterhub.service >> /root/install_log.txt 2>> /root/log_err.txt
-    chmod 755 /etc/init.d/jupyterhub >> /root/install_log.txt 2>> /root/log_err.txt
-    systemctl daemon-reload >> /root/install_log.txt 2>> /root/log_err.txt
-    systemctl enable jupyterhub.service >> /root/install_log.txt 2>> /root/log_err.txt
-    systemctl restart jupyterhub.service >> /root/install_log.txt 2>> /root/log_err.txt
-    R CMD BATCH /root/LAS/r_jupyterhub.R >> /root/install_log.txt 2>> /root/log_err.txt
+    chmod 777 /lib/systemd/system/jupyterhub.service >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+    chmod 755 /etc/init.d/jupyterhub >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+    systemctl daemon-reload >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+    systemctl enable jupyterhub.service >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+    systemctl restart jupyterhub.service >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+    R CMD BATCH /root/LAS/r_jupyterhub.R >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
     echo "" | tee -a /root/install_log.txt
     echo "JupyterHub Setting Files Copy Complete" | tee -a /root/install_log.txt
   else
@@ -1123,12 +1131,12 @@ then
       echo "MSM install start" | tee -a /root/install_log.txt
       mkdir /tmp/raid_manager
       cd /tmp/raid_manager
-      wget https://docs.broadcom.com/docs-and-downloads/raid-controllers/raid-controllers-common-files/17.05.00.02_Linux-64_MSM.gz >> /root/install_log.txt 2>> /root/log_err.txt
-      tar zxf 17.05.00.02_Linux-64_MSM.gz >> /root/install_log.txt 2>> /root/log_err.txt
-      cd /tmp/raid_manager/disk/ && ./install.csh -a >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl daemon-reload >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl enable vivaldiframeworkd.service
-      systemctl start vivaldiframeworkd.service
+      wget https://docs.broadcom.com/docs-and-downloads/raid-controllers/raid-controllers-common-files/17.05.00.02_Linux-64_MSM.gz >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
+      tar zxf 17.05.00.02_Linux-64_MSM.gz >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
+      cd /tmp/raid_manager/disk/ && ./install.csh -a >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
+      systemctl daemon-reload >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
+      systemctl enable vivaldiframeworkd.service >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
+      systemctl start vivaldiframeworkd.service >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
       cd /root/
       echo "" | tee -a /root/install_log.txt
       echo "MSM install complete" | tee -a /root/install_log.txt
@@ -1138,16 +1146,16 @@ then
       echo "MSM install start" | tee -a /root/install_log.txt
       mkdir /tmp/raid_manager
       cd /tmp/raid_manager
-      wget https://docs.broadcom.com/docs-and-downloads/raid-controllers/raid-controllers-common-files/17.05.00.02_Linux-64_MSM.gz >> /root/install_log.txt 2>> /root/log_err.txt
-      tar zxf 17.05.00.02_Linux-64_MSM.gz >> /root/install_log.txt 2>> /root/log_err.txt
+      wget https://docs.broadcom.com/docs-and-downloads/raid-controllers/raid-controllers-common-files/17.05.00.02_Linux-64_MSM.gz >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
+      tar zxf 17.05.00.02_Linux-64_MSM.gz >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
       cd /tmp/raid_manager/disk/
-      apt-get -y install alien >> /root/install_log.txt 2>> /root/log_err.txt
-      alien --scripts *.rpm >> /root/install_log.txt 2>> /root/log_err.txt
-      dpkg --install lib-utils2_1.00-9_all.deb >> /root/install_log.txt 2>> /root/log_err.txt
-      dpkg --install megaraid-storage-manager_17.05.00-3_all.deb >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl daemon-reload >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl start vivaldiframeworkd.service >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl enable vivaldiframeworkd.service >> /root/install_log.txt 2>> /root/log_err.txt
+      apt-get -y install alien >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
+      alien --scripts *.rpm >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
+      dpkg --install lib-utils2_1.00-9_all.deb >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
+      dpkg --install megaraid-storage-manager_17.05.00-3_all.deb >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
+      systemctl daemon-reload >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
+      systemctl start vivaldiframeworkd.service >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
+      systemctl enable vivaldiframeworkd.service >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
       cd /root/
       echo "" | tee -a /root/install_log.txt
       echo "MSM install complete" | tee -a /root/install_log.txt
@@ -1212,72 +1220,72 @@ then
   case $OS in
     centos7 | rocky8 )
       perl -p -i -e '$.==20 and print "exclude = libsmbios smbios-utils-bin\n"' /etc/yum.repos.d/CentOS-Base.repo
-      wget http://linux.dell.com/repo/hardware/dsu/bootstrap.cgi -O  ./dellomsainstall.sh >> /root/install_log.txt 2>> /root/log_err.txt
+      wget http://linux.dell.com/repo/hardware/dsu/bootstrap.cgi -O  ./dellomsainstall.sh >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
       sed -i -e "s/enabled=1/enabled=0/g" ./dellomsainstall.sh 
-      yes | bash ./dellomsainstall.sh >> /root/install_log.txt 2>> /root/log_err.txt
+      yes | bash ./dellomsainstall.sh >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
       sleep 3
-      rm -f ./dellomsainstall.sh >> /root/install_log.txt 2>> /root/log_err.txt
-      yum -y erase  tog-pegasus-libs >> /root/install_log.txt 2>> /root/log_err.txt
-      yum -y install --enablerepo=dell-system-update_dependent -y srvadmin-all openssl-devel >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl daemon-reload >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl enable dataeng >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl enable dsm_om_connsvc >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl start dataeng >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl start dsm_om_connsvc >> /root/install_log.txt 2>> /root/log_err.txt
+      rm -f ./dellomsainstall.sh >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      yum -y erase  tog-pegasus-libs >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      yum -y install --enablerepo=dell-system-update_dependent -y srvadmin-all openssl-devel >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      systemctl daemon-reload >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      systemctl enable dataeng >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      systemctl enable dsm_om_connsvc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      systemctl start dataeng >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      systemctl start dsm_om_connsvc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "OMSA install complete" | tee -a /root/install_log.txt
     ;;
     ubuntu1604 )
       ## OMSA port
-      ufw allow 1311/tcp >> /root/install_log.txt 2>> /root/log_err.txt
+      ufw allow 1311/tcp >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
       echo 'deb http://linux.dell.com/repo/community/openmanage/911/xenial xenial main'  >  /etc/apt/sources.list.d/linux.dell.com.sources.list
-      wget http://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc >> /root/install_log.txt 2>> /root/log_err.txt
-      apt-key add 0x1285491434D8786F.asc >> /root/install_log.txt 2>> /root/log_err.txt
-      apt-get -y update >> /root/install_log.txt 2>> /root/log_err.txt
-      apt-get -y install srvadmin-all >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl daemon-reload >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl enable dataeng >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl enable dsm_om_connsvc >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl start dataeng >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl start dsm_om_connsvc >> /root/install_log.txt 2>> /root/log_err.txt
+      wget http://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      apt-key add 0x1285491434D8786F.asc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      apt-get -y update >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      apt-get -y install srvadmin-all >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      systemctl daemon-reload >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      systemctl enable dataeng >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      systemctl enable dsm_om_connsvc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      systemctl start dataeng >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      systemctl start dsm_om_connsvc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "OMSA install complete" | tee -a /root/install_log.txt
     ;;
     ubuntu1804 )
       ## OMSA port
-      ufw allow 1311/tcp >> /root/install_log.txt 2>> /root/log_err.txt
+      ufw allow 1311/tcp >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
       echo 'deb http://linux.dell.com/repo/community/openmanage/940/bionic bionic main'  > /etc/apt/sources.list.d/linux.dell.com.sources.list
-      wget http://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc
-      apt-key add 0x1285491434D8786F.asc >> /root/install_log.txt 2>> /root/log_err.txt
-      apt-get -y update >> /root/install_log.txt 2>> /root/log_err.txt
-      apt-get -y install srvadmin-all >> /root/install_log.txt 2>> /root/log_err.txt
-      cd /usr/lib/x86_64-linux-gnu/ >> /root/install_log.txt 2>> /root/log_err.txt
-      ln -s /usr/lib/x86_64-linux-gnu/libssl.so.1.1 libssl.so >> /root/install_log.txt 2>> /root/log_err.txt
+      wget http://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      apt-key add 0x1285491434D8786F.asc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      apt-get -y update >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      apt-get -y install srvadmin-all >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      cd /usr/lib/x86_64-linux-gnu/ >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      ln -s /usr/lib/x86_64-linux-gnu/libssl.so.1.1 libssl.so >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
       cd /root/
-      systemctl daemon-reload >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl enable dataeng >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl enable dsm_om_connsvc >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl start dataeng >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl start dsm_om_connsvc >> /root/install_log.txt 2>> /root/log_err.txt
+      systemctl daemon-reload >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      systemctl enable dataeng >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      systemctl enable dsm_om_connsvc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      systemctl start dataeng >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      systemctl start dsm_om_connsvc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "OMSA install complete" | tee -a /root/install_log.txt
     ;;
     ubuntu2004 )
       ## OMSA port
-      ufw allow 1311/tcp >> /root/install_log.txt 2>> /root/log_err.txt
+      ufw allow 1311/tcp >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
       echo 'deb http://linux.dell.com/repo/community/openmanage/950/focal focal main'  > /etc/apt/sources.list.d/linux.dell.com.sources.list
-      wget http://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc
-      apt-key add 0x1285491434D8786F.asc >> /root/install_log.txt 2>> /root/log_err.txt
-      apt-get -y update >> /root/install_log.txt 2>> /root/log_err.txt
-      apt-get -y install srvadmin-all >> /root/install_log.txt 2>> /root/log_err.txt
-      cd /usr/lib/x86_64-linux-gnu/ >> /root/install_log.txt 2>> /root/log_err.txt
-      ln -s /usr/lib/x86_64-linux-gnu/libssl.so.1.1 libssl.so >> /root/install_log.txt 2>> /root/log_err.txt
+      wget http://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      apt-key add 0x1285491434D8786F.asc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      apt-get -y update >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      apt-get -y install srvadmin-all >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      cd /usr/lib/x86_64-linux-gnu/ >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      ln -s /usr/lib/x86_64-linux-gnu/libssl.so.1.1 libssl.so >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
       cd /root/
-      systemctl daemon-reload >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl enable dsm_sa_datamgrd.service >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl enable dsm_om_connsvc >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl start dsm_sa_datamgrd.service >> /root/install_log.txt 2>> /root/log_err.txt
-      systemctl start dsm_om_connsvc >> /root/install_log.txt 2>> /root/log_err.txt
+      systemctl daemon-reload >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      systemctl enable dsm_sa_datamgrd.service >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      systemctl enable dsm_om_connsvc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      systemctl start dsm_sa_datamgrd.service >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
+      systemctl start dsm_om_connsvc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "OMSA install complete" | tee -a /root/install_log.txt
     ;;

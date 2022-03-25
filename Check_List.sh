@@ -28,7 +28,7 @@ sleep 3
 
 # selinux 제거 및 저장소 변경 
 case $OSCHECK in 
-    centos )
+    centos | rocky )
         echo ""  | tee -a /root/Auto_Install_Log.txt
         echo "##### 2. SELINUX Check #####"  | tee -a /root/Auto_Install_Log.txt
         echo ""  | tee -a /root/Auto_Install_Log.txt
@@ -58,7 +58,7 @@ echo ""  | tee -a /root/Auto_Install_Log.txt
 echo "##### 3. Pacakage Install Check #####"  | tee -a /root/Auto_Install_Log.txt
 echo ""  | tee -a /root/Auto_Install_Log.txt
 case $OSCHECK in 
-    centos )
+    centos | rocky )
         echo "=== Kernel Version Check ==="  | tee -a /root/Auto_Install_Log.txt
         uname -r  >> /root/Auto_Install_Log.txt
         echo "" | tee -a /root/Auto_Install_Log.txt
@@ -95,7 +95,7 @@ sleep 3
 echo ""  | tee -a /root/Auto_Install_Log.txt
 echo "##### 4. Profile Check #####"  | tee -a /root/Auto_Install_Log.txt
 case $OSCHECK in 
-    centos )
+    centos | rocky )
         sed -n "77,\$p"  /etc/profile  >> /root/Auto_Install_Log.txt
     ;;
     ubuntu )
@@ -153,7 +153,7 @@ echo ""  | tee -a /root/Auto_Install_Log.txt
 echo "##### 8. Firewall Check #####"  | tee -a /root/Auto_Install_Log.txt
 echo ""  | tee -a /root/Auto_Install_Log.txt
 case $OSCHECK in 
-    centos )
+    centos | rocky )
         echo "=== firewall service Check ==="  | tee -a /root/Auto_Install_Log.txt
         systemctl status firewalld  >> /root/Auto_Install_Log.txt
         echo ""  | tee -a /root/Auto_Install_Log.txt
@@ -218,7 +218,7 @@ then
     echo ""  | tee -a /root/Auto_Install_Log.txt
     echo "##### Check List Complete #####"  | tee -a /root/Auto_Install_Log.txt
     case $OSCHECK in 
-        centos )
+        centos | rocky )
             sed -i '/root/d' /etc/rc.d/rc.local
             sed -i '/restart/d' /etc/rc.d/rc.local
             sleep 3
@@ -250,7 +250,7 @@ echo ""  | tee -a /root/Auto_Install_Log.txt
 echo "##### 13. CUDA, CUDNN Repo Check Start #####"  | tee -a /root/Auto_Install_Log.txt
 echo ""  | tee -a /root/Auto_Install_Log.txt
 case $OSCHECK in 
-    centos )
+    centos | rocky )
         rpm -qa | grep nvidia  >> /root/Auto_Install_Log.txt
         sleep 3
         rpm -qa | grep cuda  >> /root/Auto_Install_Log.txt
@@ -295,7 +295,7 @@ echo ""  | tee -a /root/Auto_Install_Log.txt
 echo "=== CUDNN Install Check Start ==="  | tee -a /root/Auto_Install_Log.txt
 echo ""  | tee -a /root/Auto_Install_Log.txt
 case $OSCHECK in 
-    centos )
+    centos | rocky )
         rpm -qa | grep libcudnn*  >> /root/Auto_Install_Log.txt
         sleep 3
     ;;
@@ -316,7 +316,7 @@ echo ""  | tee -a /root/Auto_Install_Log.txt
 echo "##### 15. Deep Learning Install Check Start #####"  | tee -a /root/Auto_Install_Log.txt
 echo ""  | tee -a /root/Auto_Install_Log.txt
 case $OSCHECK in 
-    centos )
+    centos | rocky )
         echo "=== R,R-Server Check ==="  | tee -a /root/Auto_Install_Log.txt
         rpm -qa | grep rstudio  >> /root/Auto_Install_Log.txt
         sleep 3
@@ -346,7 +346,7 @@ sleep 3
 
 echo ""
 case $OSCHECK in 
-    centos )
+    centos | rocky )
         echo "##### GPU Check List Complete #####"  | tee -a /root/Auto_Install_Log.txt
         sed -i '/root/d' /etc/rc.d/rc.local
         sed -i '/restart/d' /etc/rc.d/rc.local
