@@ -1,5 +1,5 @@
-# 다산데이타 LISR 스크립트 설치 매뉴얼 2021-12-06
-다산데이타 장비 출고시 설치되는 Linux Rocky 8.5 의 설치 표준안 입니다.  
+# 다산데이타 LISR 스크립트 설치 매뉴얼 2022-03-25
+다산데이타 장비 출고시 설치되는 Rocky Linux 8.5 설치 표준안 입니다.  
 별도의 요청사항이 없는 경우 기본적으로 아래 절차에 따라 자동 스크립트 설치가 진행 됩니다.  
 이 문서는 스크립트의 수동 설치 가이드 입니다.  
 ***
@@ -104,7 +104,7 @@ OSCHECK=$(cat /etc/os-release | head -1 | cut -d "=" -f 2 | tr -d "\"" | awk '{p
 OS=$(cat /etc/redhat-release | awk '{print$1,$4}' | cut -d "." -f 1 | tr -d " " | tr '[A-Z]' '[a-z]')
 
 # CUDA 설치 버전을 중 선택하여 CUDAV라는 변수로 사용합니다.
-select CUDAV in 10-0 10-1 10-2 11-0 11-1 No-GPU; do echo "Select CUDA Version : $CUDAV" ; break; done
+select CUDAV in 11-0 11-1 11-2 11-3 11-4 11-5 No-GPU; do echo "Select CUDA Version : $CUDAV" ; break; done
 ```
 
 ### # [2. rc.local 생성 및 변경](#목차) 
@@ -171,7 +171,6 @@ yum -y groupinstall "Server with GUI"
 yum -y groupinstall "Graphical Adminstration Tools" 
 yum -y groups install "Development Tools" 
 yum install -y glibc-devel libstdc++ libstdc++-devel
-sed -i -e "s/\]$/\]\npriority=5/g" /etc/yum.repos.d/epel.repo
 yum install -y htop ntfs-3g figlet smartmontools
 
 #불필요한 서비스 disable
@@ -266,9 +265,9 @@ firewall-cmd --add-port=8000/tcp  --permanent
 ## masquerade on
 firewall-cmd --add-masquerade --permanent 
 ## remove service
-firewall-cmd --remove-service=dhcpv6-client  --permanent 
-firewall-cmd --remove-service=cockpit  --permanent 
-firewall-cmd --remove-service=ssh  --permanent 
+firewall-cmd --zone=public --remove-service=dhcpv6-client  --permanent 
+firewall-cmd --zone=public --remove-service=cockpit  --permanent 
+firewall-cmd --zone=public --remove-service=ssh  --permanent 
 firewall-cmd --reload 
 # ssh 기존 22 포트에서 7777로 변경
 sed -i  "s/#Port 22/Port 7777/g" /etc/ssh/sshd_config

@@ -1,5 +1,5 @@
-# 다산데이타 LISR 스크립트 설치 매뉴얼 2021-12-06
-다산데이타 장비 출고시 설치되는 Linux CentOS 7.9 의 설치 표준안 입니다.  
+# 다산데이타 LISR 스크립트 설치 매뉴얼 2022-03-25
+다산데이타 장비 출고시 설치되는 CentOS 7.9 설치 표준안 입니다.  
 별도의 요청사항이 없는 경우 기본적으로 아래 절차에 따라 자동 스크립트 설치가 진행 됩니다.  
 이 문서는 스크립트의 수동 설치 가이드 입니다.
 ***
@@ -97,14 +97,14 @@ VENDOR=$(dmidecode | grep -i manufacturer | awk '{print$2}' | head -1)
 # 지금 작동중인 네트워크 인터페이스 명을 확인 후 NIC 변수로 적용합니다.
 NIC=$(ip a | grep 'state UP' | cut -d ":" -f 2 | tr -d ' ')
 
-# 현재 설치된 OS의 종류를 확인 합니다. (ex: centos, ubuntu)
+# 현재 설치된 OS의 종류를 확인 합니다. (ex: centos, ubuntu, rocky)
 OSCHECK=$(cat /etc/os-release | head -1 | cut -d "=" -f 2 | tr -d "\"" | awk '{print$1}' | tr '[A-Z]' '[a-z]')
 
 # centos의 정확한 버전을 확인 합니다.
 OS=$(cat /etc/redhat-release | awk '{print$1,$4}' | cut -d "." -f 1 | tr -d " " | tr '[A-Z]' '[a-z]')
 
 # CUDA 설치 버전을 중 선택하여 CUDAV라는 변수로 사용합니다.
-select CUDAV in 10-0 10-1 10-2 11-0 11-1 No-GPU; do echo "Select CUDA Version : $CUDAV" ; break; done
+select CUDAV in 10-0 10-1 10-2 11-0 11-1 11-2 11-3 No-GPU; do echo "Select CUDA Version : $CUDAV" ; break; done
 ```
 
 ### # [2. rc.local 생성 및 변경](#목차) 
@@ -114,7 +114,8 @@ select CUDAV in 10-0 10-1 10-2 11-0 11-1 No-GPU; do echo "Select CUDA Version : 
 ```bash
 # rc.local에 파일명을 입력하여 재부팅 후에도 다시 실행될 수 있게 변경 합니다.
 chmod +x /etc/rc.d/rc.local
-sed -i '12a bash /root/LAS/Linux_Auto_Script.sh' /etc/rc.d/rc.local
+sed -i '13a systemctl restart rc-local.service' /etc/rc.d/rc.local
+sed -i '14a bash /root/LAS/Linux_Auto_Script.sh' /etc/rc.d/rc.local
 ```
 
 ### # [3. nouveau 끄기 및 grub 설정](#목차)
@@ -162,7 +163,12 @@ yum -y update
 yum install -y epel-release
 yum install -y ethtool pciutils openssh mlocate nfs-utils rdate xauth firefox nautilus wget bind-utils
 yum install -y tcsh tree lshw tmux git kernel-headers kernel-devel gcc make gcc-c++ snapd yum-utils
-yum install -y cmake python-devel ntfs-3g dstat perl perl-CPAN perl-core net-tools openssl-devel git-lfs vim
+yum install -y cmake ntfs-3g dstat perl perl-CPAN perl-core net-tools openssl-devel git-lfs vim
+
+# GUI 관련 Tool 설치
+yum -y groupinstall "GNOME Desktop" 
+yum -y groupinstall "Graphical Adminstration Tools" 
+yum install -y glibc-static yum-plugin-priorities 
 yum -y groups install "Development Tools"
 yum install -y glibc-static glibc-devel libstdc++ libstdc++-devel
 sed -i -e "s/\]$/\]\npriority=5/g" /etc/yum.repos.d/epel.repo
@@ -268,24 +274,21 @@ pip3 install  --upgrade optimuspyspark
 ### # [10. 방화벽 설정](#목차)
 
 ```bash
-# 기존 방화벽 Zone 변경 후 패키지 및 ssh 포트 변경 작업 진행
-firewall-cmd --get-zones
-firewall-cmd --list-all
-firewall-cmd --get-default-zone
-firewall-cmd --change-interface=${NIC} --zone=external --permanent
-firewall-cmd --set-default-zone=external
-firewall-cmd --reload
-# ssh 변경될 포트 추가
-firewall-cmd --add-port=7777/tcp --zone=external --permanent
-
-## R Server Port
-firewall-cmd --add-port=8787/tcp --zone=external --permanent
-
-## jupyterHub Port
-firewall-cmd --add-port=8000/tcp --zone=external --permanent
-firewall-cmd --remove-service=ssh --zone=external --permanent
-firewall-cmd --reload
-
+# 방화벽 실행
+systemctl enable firewalld 
+systemctl restart firewalld 
+# ssh 포트 변경
+firewall-cmd --add-port=7777/tcp  --permanent 
+## R Server Port 개방
+firewall-cmd --add-port=8787/tcp  --permanent 
+## jupyterHub Port 개방
+firewall-cmd --add-port=8000/tcp  --permanent 
+## masquerade on
+firewall-cmd --add-masquerade --permanent 
+## remove service
+firewall-cmd --zone=public --remove-service=dhcpv6-client  --permanent 
+firewall-cmd --zone=public --remove-service=ssh  --permanent 
+firewall-cmd --reload 
 # ssh 기존 22 포트에서 7777로 변경
 sed -i  "s/#Port 22/Port 7777/g" /etc/ssh/sshd_config
 sed -i  "s/#PermitRootLogin yes/PermitRootLogin no/g" /etc/ssh/sshd_config
@@ -339,7 +342,7 @@ reboot
 
 ```bash
 # 사용할 CUDA 버전을 선택합니다.
-select CUDAV in 10-0 10-1 10-2 11-0 11-1 11-2 11-3 11-4 11-5; do echo "Select CUDA Version : $CUDAV" ; break; done
+select CUDAV in 10-0 10-1 10-2 11-0 11-1 11-2 11-3; do echo "Select CUDA Version : $CUDAV" ; break; done
 
 # Nvidia 저장소 생성 (Cuda,cudnn 설치를 위해)
 yum-config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/cuda-rhel7.repo

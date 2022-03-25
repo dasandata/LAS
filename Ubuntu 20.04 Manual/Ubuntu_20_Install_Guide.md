@@ -1,5 +1,5 @@
-# 다산데이타 LISR 스크립트 설치 매뉴얼 2021-12-06
-다산데이타 장비 출고시 설치되는 Linux Ubuntu 20.04 의 설치 표준안 입니다.  
+# 다산데이타 LISR 스크립트 설치 매뉴얼 2022-03-25
+다산데이타 장비 출고시 설치되는 Ubuntu 20.04 설치 표준안 입니다. 
 별도의 요청사항이 없는 경우 기본적으로 아래 절차에 따라 자동 스크립트 설치가 진행 됩니다.  
 이 문서는 스크립트의 수동 설치 가이드 입니다.
 ***
@@ -97,14 +97,14 @@ VENDOR=$(dmidecode | grep -i manufacturer | awk '{print$2}' | head -1)
 # 지금 작동중인 네트워크 인터페이스 명을 확인 후 NIC 변수로 적용합니다.
 NIC=$(ip a | grep 'state UP' | cut -d ":" -f 2 | tr -d ' ')
 
-# 현재 설치된 OS의 종류를 확인 합니다. (ex: centos, ubuntu)
+# 현재 설치된 OS의 종류를 확인 합니다. (ex: centos, ubuntu, rocky)
 OSCHECK=$(cat /etc/os-release | head -1 | cut -d "=" -f 2 | tr -d "\"" | awk '{print$1}' | tr '[A-Z]' '[a-z]')
 
 # ubuntu의 정확한 버전을 확인 합니다.
 OS=$(lsb_release -isr |  tr -d "." | sed -e '{N;s/\n//}' | tr '[A-Z]' '[a-z]')
 
 # CUDA 설치 버전을 중 선택하여 CUDAV라는 변수로 사용합니다.
-select CUDAV in 10-0 10-1 10-2 11-0 11-1 No-GPU; do echo "Select CUDA Version : $CUDAV" ; break; done
+select CUDAV in 11-1 11-2 11-3 11-4 11-5 No-GPU; do echo "Select CUDA Version : $CUDAV" ; break; done
 ```
 
 ### # [2. rc.local 생성 및 변경](#목차) 
@@ -182,7 +182,7 @@ systemctl stop    NetworkManager.service
 ### # [6. 프로필 설정](#목차)
 #### ## 사용자 편의를 위한 설정을 진행 합니다.
 #### ## alias, prompt-color, History Size, History date
- === Ubuntu20.04 ===
+
 ```bash
 # alias 설정
 echo " "                                >>  /etc/profile

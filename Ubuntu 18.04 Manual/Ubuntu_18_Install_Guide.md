@@ -1,5 +1,5 @@
-# 다산데이타 LISR 스크립트 설치 매뉴얼 2021-12-06
-다산데이타 장비 출고시 설치되는 Linux Ubuntu 18.04 의 설치 표준안 입니다.  
+# 다산데이타 LISR 스크립트 설치 매뉴얼 2022-03-25
+다산데이타 장비 출고시 설치되는 Ubuntu 18.04 설치 표준안 입니다. 
 별도의 요청사항이 없는 경우 기본적으로 아래 절차에 따라 자동 스크립트 설치가 진행 됩니다.  
 이 문서는 스크립트의 수동 설치 가이드 입니다.
 ***
@@ -97,11 +97,8 @@ VENDOR=$(dmidecode | grep -i manufacturer | awk '{print$2}' | head -1)
 # 지금 작동중인 네트워크 인터페이스 명을 확인 후 NIC 변수로 적용합니다.
 NIC=$(ip a | grep 'state UP' | cut -d ":" -f 2 | tr -d ' ')
 
-# 현재 설치된 OS의 종류를 확인 합니다. (ex: centos, ubuntu)
+# 현재 설치된 OS의 종류를 확인 합니다. (ex: centos, ubuntu, rocky)
 OSCHECK=$(cat /etc/os-release | head -1 | cut -d "=" -f 2 | tr -d "\"" | awk '{print$1}' | tr '[A-Z]' '[a-z]')
-
-# centos의 정확한 버전을 확인 합니다.
-OS=$(cat /etc/redhat-release | awk '{print$1,$4}' | cut -d "." -f 1 | tr -d " " | tr '[A-Z]' '[a-z]')
 
 # ubuntu의 정확한 버전을 확인 합니다.
 OS=$(lsb_release -isr |  tr -d "." | sed -e '{N;s/\n//}' | tr '[A-Z]' '[a-z]')
