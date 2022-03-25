@@ -567,6 +567,8 @@ case $OS in
     then
       echo "" | tee -a /root/install_log.txt
       echo "Firewall Settings" | tee -a /root/install_log.txt
+      systemctl enable firewalld >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
+      systemctl restart firewalld >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
       firewall-cmd --add-port=7777/tcp  --permanent >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
       ## R Server Port
       firewall-cmd --add-port=8787/tcp  --permanent >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
