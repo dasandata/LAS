@@ -32,6 +32,16 @@ then
       echo "" | tee -a /root/install_log.txt
       echo "Cuda Version Select complete" | tee -a /root/install_log.txt
     ;;
+    rocky )
+      until [ $CUDAV != ' ' ]
+      do
+        PS3='Please Select one : '
+        select CUDAV in 11-0 11-1 11-2 11-3 11-4 11-5 No-GPU; do echo "Select CUDA Version : $CUDAV" ; break; done
+      done 
+      echo $CUDAV > /root/cudaversion.txt
+      echo "" | tee -a /root/install_log.txt
+      echo "Cuda Version Select complete" | tee -a /root/install_log.txt
+    ;;
     ubuntu )
       OS=$(lsb_release -isr |  tr -d "." | sed -e '{N;s/\n//}' | tr '[A-Z]' '[a-z]')
       if [ $OS = "ubuntu2004" ]
@@ -74,7 +84,7 @@ then
   echo "" | tee -a /root/install_log.txt
   echo "rc.local Setting start" | tee -a /root/install_log.txt
   case $OSCHECK in
-    centos )
+    centos | rocky )
       ## centos는 이미 rc.local이 존재하여 실행될 파일값만 넣어준다.
       chmod +x /etc/rc.d/rc.local
       sed -i '13a systemctl restart rc-local.service' /etc/rc.d/rc.local
@@ -117,7 +127,7 @@ then
   echo "" | tee -a /root/install_log.txt
   echo "Nouveau Disable and Grub Settings Start." | tee -a /root/install_log.txt
   case $OSCHECK in
-    centos )
+    centos | rocky )
       echo "" | tee -a /root/install_log.txt
       echo "CentOS Grub Setting Start." | tee -a /root/install_log.txt
       sed -i  's/rhgb//'   /etc/default/grub
@@ -162,7 +172,7 @@ echo "" | tee -a /root/install_log.txt
 
 # 4. selinux 제거 및 저장소 변경
 case $OSCHECK in
-  centos )
+  centos | rocky )
     OS=$(cat /etc/redhat-release | awk '{print$1,$4}' | cut -d "." -f 1 | tr -d " " | tr '[A-Z]' '[a-z]')
     echo "" | tee -a /root/install_log.txt
     echo "OS is $OS" | tee -a /root/install_log.txt
@@ -202,7 +212,7 @@ echo "" | tee -a /root/install_log.txt
 
 # 5. 기본 패키지 설치
 case $OS in
-  centos7 )
+  centos7 | rocky8 )
     echo "" | tee -a /root/install_log.txt
     echo "$OS Package Install" | tee -a /root/install_log.txt
     ## Package 설치를 ipmi 여부로 Server와 PC를 나눠서 진행
@@ -214,7 +224,7 @@ case $OS in
       yum install -y epel-release >> /root/install_log.txt 2>> /root/log_err.txt
       sleep 2
       yum install -y ethtool pciutils openssh mlocate nfs-utils rdate xauth firefox nautilus wget bind-utils >> /root/install_log.txt 2>> /root/log_err.txt
-      yum install -y tcsh tree lshw tmux git kernel-headers kernel-devel gcc make gcc-c++ snapd yum-utils >> /root/install_log.txt 2>> /root/log_err.txt
+      yum install -y tcsh tree lshw tmux kernel-headers kernel-devel gcc make gcc-c++ snapd yum-utils >> /root/install_log.txt 2>> /root/log_err.txt
       yum install -y cmake python-devel ntfs-3g dstat perl perl-CPAN perl-core net-tools openssl-devel git-lfs vim >> /root/install_log.txt 2>> /root/log_err.txt
       sleep 2
       dmidecode | grep -i ipmi &> /dev/null
@@ -347,13 +357,27 @@ sleep 3
 echo "" | tee -a /root/install_log.txt
 
 # 7. 서버 시간 동기화
-echo "Start time setting" | tee -a /root/install_log.txt
-rdate  -s  time.bora.net >> /root/install_log.txt 2>> /root/log_err.txt
-hwclock --systohc >> /root/install_log.txt 2>> /root/log_err.txt
-date >> /root/install_log.txt 2>> /root/log_err.txt
-hwclock >> /root/install_log.txt 2>> /root/log_err.txt
-echo "" | tee -a /root/install_log.txt
-echo "Time setting completed" | tee -a /root/install_log.txt
+
+if [ $OS = "rocky8" ]
+then
+  yum install -y chrony >> /root/install_log.txt 2>> /root/log_err.txt
+  sed -i 's/pool 2.pool.ntp.org iburst/pool kr.pool.ntp.org iburst/' /etc/chrony.conf
+  systemctl enable chronyd >> /root/install_log.txt 2>> /root/log_err.txt
+  systemctl start  chronyd >> /root/install_log.txt 2>> /root/log_err.txt
+  chronyc sources >> /root/install_log.txt 2>> /root/log_err.txt
+  timedatectl >> /root/install_log.txt 2>> /root/log_err.txt
+  clock --systohc   >> /root/install_log.txt 2>> /root/log_err.txt
+  date >> /root/install_log.txt 2>> /root/log_err.txt
+  hwclock >> /root/install_log.txt 2>> /root/log_err.txt
+else
+  echo "Start time setting" | tee -a /root/install_log.txt
+  rdate  -s  time.bora.net >> /root/install_log.txt 2>> /root/log_err.txt
+  hwclock --systohc >> /root/install_log.txt 2>> /root/log_err.txt
+  date >> /root/install_log.txt 2>> /root/log_err.txt
+  hwclock >> /root/install_log.txt 2>> /root/log_err.txt
+  echo "" | tee -a /root/install_log.txt
+  echo "Time setting completed" | tee -a /root/install_log.txt
+fi
 
 echo "" | tee -a /root/install_log.txt
 sleep 3
@@ -378,6 +402,13 @@ then
       perl -pi -e 's/python3/python/'   /usr/local/bin/pip >> /root/install_log.txt 2>> /root/log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "Python Install complete" | tee -a /root/install_log.txt
+    ;;
+    rocky8 )
+      yum -y install python36-devel >> /root/install_log.txt 2>> /root/log_err.txt
+      python3 -m pip install --upgrade pip
+      python3 -m pip install numpy scipy nose matplotlib pandas keras 
+      python3 -m pip install --upgrade tensorflow-gpu==1.13.1 
+      python3 -m pip install torch torchvision 
     ;;
     ubuntu1604 )
       echo "" | tee -a /root/install_log.txt
@@ -510,27 +541,31 @@ echo "" | tee -a /root/install_log.txt
 
 # 10. 방화벽 설정
 case $OS in
-  centos7 )
+  centos7 | rocky8 )
     firewall-cmd --list-all | grep 7777 &> /dev/null
     if [ $? != 0 ]
     then
       echo "" | tee -a /root/install_log.txt
       echo "Firewall Settings" | tee -a /root/install_log.txt
-      firewall-cmd --get-zones >> /root/install_log.txt 2>> /root/log_err.txt
-      firewall-cmd --list-all >> /root/install_log.txt 2>> /root/log_err.txt
-      firewall-cmd --get-default-zone >> /root/install_log.txt 2>> /root/log_err.txt
-      firewall-cmd --change-interface=${NIC} --zone=external --permanent >> /root/install_log.txt 2>> /root/log_err.txt
-      firewall-cmd --set-default-zone=external >> /root/install_log.txt 2>> /root/log_err.txt
-      firewall-cmd --reload >> /root/install_log.txt 2>> /root/log_err.txt
-      firewall-cmd --add-port=7777/tcp --zone=external --permanent >> /root/install_log.txt 2>> /root/log_err.txt
+      firewall-cmd --add-port=7777/tcp  --permanent >> /root/install_log.txt 2>> /root/log_err.txt
       ## R Server Port
-      firewall-cmd --add-port=8787/tcp --zone=external --permanent >> /root/install_log.txt 2>> /root/log_err.txt
+      firewall-cmd --add-port=8787/tcp  --permanent >> /root/install_log.txt 2>> /root/log_err.txt
       ## jupyterHub Port
-      firewall-cmd --add-port=8000/tcp --zone=external --permanent >> /root/install_log.txt 2>> /root/log_err.txt
-      firewall-cmd --remove-service=ssh --zone=external --permanent >> /root/install_log.txt 2>> /root/log_err.txt
+      firewall-cmd --add-port=8000/tcp  --permanent >> /root/install_log.txt 2>> /root/log_err.txt
+      ## masquerade on
+      firewall-cmd --add-masquerade --permanent >> /root/install_log.txt 2>> /root/log_err.txt
+      ## remove service
+      firewall-cmd --remove-service=dhcpv6-client  --permanent >> /root/install_log.txt 2>> /root/log_err.txt
+      firewall-cmd --remove-service=cockpit  --permanent >> /root/install_log.txt 2>> /root/log_err.txt
+      firewall-cmd --remove-service=ssh  --permanent >> /root/install_log.txt 2>> /root/log_err.txt
       firewall-cmd --reload >> /root/install_log.txt 2>> /root/log_err.txt
       sed -i  "s/#Port 22/Port 7777/g" /etc/ssh/sshd_config
-      sed -i  "s/#PermitRootLogin yes/PermitRootLogin no/g" /etc/ssh/sshd_config
+      if [ $OS = "rocky8"]
+      then
+        sed -i  "s/PermitRootLogin yes/PermitRootLogin no/g" /etc/ssh/sshd_config
+      else
+        sed -i  "s/#PermitRootLogin yes/PermitRootLogin no/g" /etc/ssh/sshd_config
+      fi
       echo "AddressFamily inet" >> /etc/ssh/sshd_config
       systemctl restart sshd >> /root/install_log.txt 2>> /root/log_err.txt
       echo "" | tee -a /root/install_log.txt
@@ -584,7 +619,7 @@ ls /home/ | grep -i dasan &> /dev/null
 if [ $? != 0 ]
 then
   case $OS in
-    centos7 )
+    centos7 | rocky8 )
       echo "" | tee -a /root/install_log.txt
       echo "User Add Start" | tee -a /root/install_log.txt
       useradd dasan >> /root/install_log.txt 2>> /root/log_err.txt
@@ -654,7 +689,7 @@ then
   echo "" | tee -a /root/install_log.txt
   echo "Complete basic setup" | tee -a /root/install_log.txt
   case $OS in
-    centos7 )
+    centos7 | rocky8 )
       dmidecode | grep -i ipmi &> /dev/null
       if [ $? != 0 ]
       then
@@ -746,6 +781,12 @@ then
       echo "" | tee -a /root/install_log.txt
       echo "CUDA,CUDNN REPO install complete" | tee -a /root/install_log.txt
     ;;
+    rocky8 )
+      dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64/cuda-rhel8.repo >> /root/install_log.txt 2>> /root/log_err.txt
+      wget https://developer.download.nvidia.com/compute/machine-learning/repos/rhel8/x86_64/nvidia-machine-learning-repo-rhel8-1.0.0-1.x86_64.rpm >> /root/install_log.txt 2>> /root/log_err.txt
+      yum -y install nvidia-machine-learning-repo-rhel8-1.0.0-1.x86_64.rpm >> /root/install_log.txt 2>> /root/log_err.txt
+      yum -y install libXi-devel mesa-libGLU-devel libXmu-devel libX11-devel freeglut-devel libXm* openmotif* >> /root/install_log.txt 2>> /root/log_err.txt
+    ;;
     ubuntu1604 | ubuntu1804 | ubuntu2004 )
       echo "" | tee -a /root/install_log.txt
       echo "CUDA,CUDNN REPO install Start" | tee -a /root/install_log.txt
@@ -782,7 +823,7 @@ then
   else
     CUDAV="${CUDAV/-/.}"
     case $OS in
-      centos7 )
+      centos7 | rocky8 )
         echo "CUDA $CUDAV install Start" | tee -a /root/install_log.txt
         cat /etc/profile | grep "ADD Cuda" >> /root/install_log.txt 2>> /root/log_err.txt
         if [ $? != 0 ]
@@ -801,6 +842,7 @@ then
         sleep 1
         yum -y install cuda-$CUDAV >> /root/install_log.txt 2>> /root/log_err.txt
         sleep 1
+        nvidia-smi -pm 1 >> /root/install_log.txt 2>> /root/log_err.txt
         systemctl enable nvidia-persistenced >> /root/install_log.txt 2>> /root/log_err.txt
         sleep 1
         source /etc/profile
@@ -810,7 +852,7 @@ then
         echo "" | tee -a /root/install_log.txt
         echo "CUDA $CUDAV install Start complete" | tee -a /root/install_log.txt
       ;;
-      ubuntu1604 | ubuntu1804 )
+      ubuntu1604 | ubuntu1804 | ubuntu2004 )
         echo "CUDA $CUDAV install Start" | tee -a /root/install_log.txt
         cat /etc/profile | grep "ADD Cuda" >> /root/install_log.txt 2>> /root/log_err.txt
         if [ $? != 0 ]
@@ -829,33 +871,7 @@ then
         sleep 1
         apt-get -y install cuda-$CUDAV >> /root/install_log.txt 2>> /root/log_err.txt
         sleep 1
-        systemctl enable nvidia-persistenced >> /root/install_log.txt 2>> /root/log_err.txt
-        source /etc/profile
-        sleep 1
-        source /root/.bashrc
-        sleep 1
-        echo "" | tee -a /root/install_log.txt
-        echo "CUDA $CUDAV install Start complete" | tee -a /root/install_log.txt
-      ;;
-      ubuntu2004 )
-        echo "CUDA $CUDAV install Start" | tee -a /root/install_log.txt
-        cat /etc/profile | grep "ADD Cuda" >> /root/install_log.txt 2>> /root/log_err.txt
-        if [ $? != 0 ]
-        then
-          echo " "  >> /etc/profile
-          echo "### ADD Cuda $CUDAV PATH"  >> /etc/profile
-          echo "export PATH=/usr/local/cuda-$CUDAV/bin:/usr/local/cuda-$CUDAV/include:\$PATH " >> /etc/profile
-          echo "export LD_LIBRARY_PATH=/usr/local/cuda-$CUDAV/lib64:/usr/local/cuda/extras/CUPTI/:\$LD_LIBRARY_PATH " >> /etc/profile
-          echo "export CUDA_HOME=/usr/local/cuda-$CUDAV " >> /etc/profile
-          echo "export CUDA_INC_DIR=/usr/local/cuda-$CUDAV/include " >> /etc/profile
-          cat /etc/profile | tail -6 >> /root/install_log.txt 2>> /root/log_err.txt
-        else
-          echo "" | tee -a /root/install_log.txt
-        fi
-        CUDAV="${CUDAV/./-}"
-        sleep 1
-        apt-get -y install cuda-$CUDAV >> /root/install_log.txt 2>> /root/log_err.txt
-        sleep 1
+        nvidia-smi -pm 1 >> /root/install_log.txt 2>> /root/log_err.txt
         systemctl enable nvidia-persistenced >> /root/install_log.txt 2>> /root/log_err.txt
         source /etc/profile
         sleep 1
@@ -888,7 +904,7 @@ then
     centos7 )
       echo "" | tee -a /root/install_log.txt
       echo "libcudnn Install Start" | tee -a /root/install_log.txt
-      if [ $CUDAV = "11-0" ] || [ $CUDAV = "11-1" ] || [ $CUDAV = "11-2" ] || [ $CUDAV = "11-3" ] || [ $CUDAV = "11-4" ] || [ $CUDAV = "11-5" ]
+      if [[ $CUDAV == *11* ]]
       then
         yum -y install libcudnn8* >> /root/install_log.txt 2>> /root/log_err.txt
         yum -y update >> /root/install_log.txt 2>> /root/log_err.txt
@@ -899,10 +915,18 @@ then
       echo "" | tee -a /root/install_log.txt
       echo "libcudnn Install complete" | tee -a /root/install_log.txt
     ;;
+    rocky8 )
+      echo "" | tee -a /root/install_log.txt
+      echo "libcudnn Install Start" | tee -a /root/install_log.txt
+      yum -y install libcudnn8* >> /root/install_log.txt 2>> /root/log_err.txt
+      yum -y install libnccl*   >> /root/install_log.txt 2>> /root/log_err.txt
+      echo "" | tee -a /root/install_log.txt
+      echo "libcudnn Install complete" | tee -a /root/install_log.txt
+    ;;
     ubuntu1604 | ubuntu1804 )
       echo "" | tee -a /root/install_log.txt
       echo "libcudnn Install Start" | tee -a /root/install_log.txt
-      if [ $CUDAV = "11-0" ] || [ $CUDAV = "11-1" ] || [ $CUDAV = "11-2" ] || [ $CUDAV = "11-3" ]
+      if [[ $CUDAV == *11* ]]
       then
         apt-get -y install libcudnn8* >> /root/install_log.txt 2>> /root/log_err.txt
         apt-get -y install libcublas-dev >> /root/install_log.txt 2>> /root/log_err.txt
@@ -957,43 +981,21 @@ then
       echo "" | tee -a /root/install_log.txt
       echo "Deep Learnig Package install complete"  | tee -a /root/install_log.txt
     ;;
-    ubuntu1604 )
-      echo "" | tee -a /root/install_log.txt
-      echo "Deep Learnig Package Install Start" | tee -a /root/install_log.txt
-      ## R,R-studio Install
-      apt-get -y install r-base >> /root/install_log.txt 2>> /root/log_err.txt
-      apt-get -y install gdebi-core >> /root/install_log.txt 2>> /root/log_err.txt
-      wget https://download2.rstudio.org/server/bionic/amd64/rstudio-server-2022.02.0-443-amd64.deb >> /root/install_log.txt 2>> /root/log_err.txt
-      yes | gdebi rstudio-server-2022.02.0-443-amd64.deb >> /root/install_log.txt 2>> /root/log_err.txt
-      ## JupyterHub install
-      pip3 install --upgrade jupyterhub jupyterlab notebook flask >> /root/install_log.txt 2>> /root/log_err.txt
-      curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -  >> /root/install_log.txt 2>> /root/log_err.txt
-      apt-get -y install nodejs default-jre >> /root/install_log.txt 2>> /root/log_err.txt
+    rocky8 )
+      ## R,R-studio install
+      dnf config-manager --set-enabled powertools >> /root/install_log.txt 2>> /root/log_err.txt
+      yum -y install R >> /root/install_log.txt 2>> /root/log_err.txt
+      yum install libcurl-devel libxml2-devel >> /root/install_log.txt 2>> /root/log_err.txt
+      wget https://download2.rstudio.org/server/rhel8/x86_64/rstudio-server-rhel-2022.02.0-443-x86_64.rpm  >> /root/install_log.txt 2>> /root/log_err.txt
+      yum -y install rstudio-server-rhel-2022.02.0-443-x86_64.rpm  >> /root/install_log.txt 2>> /root/log_err.txt
+      ## jupyter install
+      python3 -m pip install jupyterhub jupyterlab notebook >> /root/install_log.txt 2>> /root/log_err.txt
+      curl -sL https://rpm.nodesource.com/setup_16.x | sudo -E bash - >> /root/install_log.txt 2>> /root/log_err.txt
+      sed -i '/failover/d'  /etc/yum.repos.d/nodesource-el8.repo >> /root/install_log.txt 2>> /root/log_err.txt
+      yum -y install nodejs >> /root/install_log.txt 2>> /root/log_err.txt
       npm install -g configurable-http-proxy >> /root/install_log.txt 2>> /root/log_err.txt
-      ## Pycharm install
-      snap install pycharm-community --classic >> /root/install_log.txt 2>> /root/log_err.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "Deep Learnig Package install complete" | tee -a /root/install_log.txt
     ;;
-    ubuntu1804 )
-      echo "" | tee -a /root/install_log.txt
-      echo "Deep Learnig Package Install Start" | tee -a /root/install_log.txt
-      ## R,R-studio Install
-      apt-get -y install r-base >> /root/install_log.txt 2>> /root/log_err.txt
-      apt-get -y install gdebi-core >> /root/install_log.txt 2>> /root/log_err.txt
-      wget https://download2.rstudio.org/server/bionic/amd64/rstudio-server-2022.02.0-443-amd64.deb >> /root/install_log.txt 2>> /root/log_err.txt
-      yes | gdebi rstudio-server-2022.02.0-443-amd64.deb >> /root/install_log.txt 2>> /root/log_err.txt
-      ## JupyterHub install
-      pip3 install --upgrade jupyterhub jupyterlab notebook >> /root/install_log.txt 2>> /root/log_err.txt
-      curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -  >> /root/install_log.txt 2>> /root/log_err.txt
-      apt-get -y install nodejs default-jre >> /root/install_log.txt 2>> /root/log_err.txt
-      npm install -g configurable-http-proxy >> /root/install_log.txt 2>> /root/log_err.txt
-      ## pycharm install
-      snap install pycharm-community --classic >> /root/install_log.txt 2>> /root/log_err.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "Deep Learnig Package install complete" | tee -a /root/install_log.txt
-    ;;
-    ubuntu2004 )
+    ubuntu1604 | ubuntu1804 | ubuntu2004 )
       echo "" | tee -a /root/install_log.txt
       echo "Deep Learnig Package Install Start" | tee -a /root/install_log.txt
       ## R,R-studio Install
@@ -1070,7 +1072,7 @@ then
   echo "" | tee -a /root/install_log.txt
   echo "LAS install complete" | tee -a /root/install_log.txt
   case $OSCHECK in
-    centos )
+    centos | rocky )
       sed -i '14a bash /root/LAS/Check_List.sh' /etc/rc.d/rc.local
       systemctl set-default graphical.target >> /root/install_log.txt 2>> /root/log_err.txt
     ;;
@@ -1099,11 +1101,11 @@ sleep 3
 echo "" | tee -a /root/install_log.txt
 
 ## GPU 없는 서버가 여기까지 건너뛰기 위해 제거했던 OS 변수 입력
-if [ $OSCHECK = "centos" ]
+if [ $OSCHECK = "ubuntu" ]
 then
-  OS=$(cat /etc/redhat-release | awk '{print$1,$4}' | cut -d "." -f 1 | tr -d " " | tr '[A-Z]' '[a-z]')
-else
   OS=$(lsb_release -isr |  tr -d "." | sed -e '{N;s/\n//}' | tr '[A-Z]' '[a-z]')
+else
+  OS=$(cat /etc/redhat-release | awk '{print$1,$4}' | cut -d "." -f 1 | tr -d " " | tr '[A-Z]' '[a-z]')
 fi
 
 # 17. 서버 전용 MSM 설치
@@ -1111,7 +1113,7 @@ ls /usr/local/ | grep Mega &> /dev/null
 if [ $? != 0 ]
 then
   case $OS in
-    centos7 )
+    centos7 | rocky8 )
       echo "" | tee -a /root/install_log.txt
       echo "MSM install start" | tee -a /root/install_log.txt
       mkdir /tmp/raid_manager
@@ -1165,7 +1167,7 @@ then
   echo "" | tee -a /root/install_log.txt
   echo "LAS install complete" | tee -a /root/install_log.txt
     case $OS in
-      centos7 )
+      centos7 | rocky8 )
         sed -i '14a bash /root/LAS/Check_List.sh' /etc/rc.d/rc.local
         sleep 2
         systemctl set-default  multi-user.target
@@ -1200,10 +1202,10 @@ then
   echo "" | tee -a /root/install_log.txt
   echo "OMSA install start" | tee -a /root/install_log.txt
   ## OMSA Port
-  firewall-cmd --add-port=1311/tcp --zone=external --permanent >> /root/install_log.txt 2>> /root/log_err.txt
+  firewall-cmd --add-port=1311/tcp  --permanent >> /root/install_log.txt 2>> /root/log_err.txt
   firewall-cmd --reload >> /root/install_log.txt 2>> /root/log_err.txt
   case $OS in
-    centos7 )
+    centos7 | rocky8 )
       perl -p -i -e '$.==20 and print "exclude = libsmbios smbios-utils-bin\n"' /etc/yum.repos.d/CentOS-Base.repo
       wget http://linux.dell.com/repo/hardware/dsu/bootstrap.cgi -O  ./dellomsainstall.sh >> /root/install_log.txt 2>> /root/log_err.txt
       sed -i -e "s/enabled=1/enabled=0/g" ./dellomsainstall.sh 
@@ -1292,7 +1294,7 @@ echo "" | tee -a /root/install_log.txt
 echo "" | tee -a /root/install_log.txt
 echo "LAS install complete" | tee -a /root/install_log.txt
 case $OS in
-  centos7 )
+  centos7 | rocky8 )
     sed -i '14a bash /root/LAS/Check_List.sh' /etc/rc.d/rc.local
     systemctl set-default  multi-user.target | tee -a /root/install_log.txt
   ;;
