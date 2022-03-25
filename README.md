@@ -14,10 +14,10 @@
 - [1. 리눅스 설치 표준안 - (2022.03)]  
 
   - 운영체제별 수동 설치 방법
-      - [centos 7.9](https://github.com/dasandata/LAS/blob/ce0932c463fa3fc06617e3859c80a641008e4be8/CentOS%207.9%20Manual/CentOS_7_Install_Guide.md)
-      - [rocky  8.5](https://github.com/dasandata/LAS/blob/ce0932c463fa3fc06617e3859c80a641008e4be8/Rocky%208.5%20Manual/Rocky_8_install_guide.md)
-      - [ubuntu 18.04](https://github.com/dasandata/LAS/blob/ce0932c463fa3fc06617e3859c80a641008e4be8/Ubuntu%2018.04%20Manual/Ubuntu_18_Install_Guide.md)
-      - [ubuntu 20.04](https://github.com/dasandata/LAS/blob/ce0932c463fa3fc06617e3859c80a641008e4be8/Ubuntu%2020.04%20Manual/Ubuntu_20_Install_Guide.md)
+      - [CentOS 7.9](https://github.com/dasandata/LAS/blob/ce0932c463fa3fc06617e3859c80a641008e4be8/CentOS%207.9%20Manual/CentOS_7_Install_Guide.md)
+      - [Rocky  8.5](https://github.com/dasandata/LAS/blob/ce0932c463fa3fc06617e3859c80a641008e4be8/Rocky%208.5%20Manual/Rocky_8_install_guide.md)
+      - [Ubuntu 18.04](https://github.com/dasandata/LAS/blob/ce0932c463fa3fc06617e3859c80a641008e4be8/Ubuntu%2018.04%20Manual/Ubuntu_18_Install_Guide.md)
+      - [Ubuntu 20.04](https://github.com/dasandata/LAS/blob/ce0932c463fa3fc06617e3859c80a641008e4be8/Ubuntu%2020.04%20Manual/Ubuntu_20_Install_Guide.md)
 
 - [2. 자동 스크립트](https://github.com/dasandata/LAS/blob/806c4a01b23c5ab6dc6b9a77d17d32cdf201b426/Linux_Auto_Script.sh)
 
