@@ -12,7 +12,7 @@
 ## 목차
 - [1. 리눅스 설치 표준안 - Centos 7.9, Ubuntu 20.04 (2022.03)](https://github.com/dasandata/LAS/blob/88da18550bf95d744024adf16aab93a0fcb59005/Installing_LISR_Manually.md)  
 
-- 2. 리눅스 자동설치 스크립트
+- [2. 리눅스 자동설치 스크립트]
   - 운영체제 통합 스크립트
       - [centos 7.9](https://github.com/dasandata/LAS/blob/ce0932c463fa3fc06617e3859c80a641008e4be8/CentOS%207.9%20Manual/CentOS_7_Install_Guide.md)
       - [rocky  8.5](https://github.com/dasandata/LAS/blob/ce0932c463fa3fc06617e3859c80a641008e4be8/Rocky%208.5%20Manual/Rocky_8_install_guide.md)
