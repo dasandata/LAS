@@ -408,7 +408,6 @@ npm install -g configurable-http-proxy
 
 
 ```bash
-## CentOS , Ubuntu 동일하게 JupyterHub 마무리 작업을 진행 합니다.
 mkdir /etc/jupyterhub
 jupyterhub --generate-config -f /etc/jupyterhub/jupyterhub_config.py 
 sed -i '356a c.JupyterHub.port = 8000' /etc/jupyterhub/jupyterhub_config.py
@@ -418,7 +417,8 @@ sed -i '384a c.JupyterHub.proxy_class = 'jupyterhub.proxy.ConfigurableHTTPProxy'
 sed -i '824a c.Authenticator.admin_users = {"sonic"}' /etc/jupyterhub/jupyterhub_config.py
 sed -i '929a c.Spawner.default_url = '/lab'' /etc/jupyterhub/jupyterhub_config.py
 
-## jupyterhub service 설정 파일 복사
+## jupyterhub service 설정 파일 복사에 필요한 파일 가져오기
+git clone https://github.com/dasandata/LAS
 mv /root/LAS/jupyterhub.service /lib/systemd/system/
 mv /root/LAS/jupyterhub /etc/init.d/
 chmod 777 /lib/systemd/system/jupyterhub.service 
