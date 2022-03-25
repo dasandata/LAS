@@ -255,15 +255,19 @@ case $OS in
     systemctl disable ksmtuned.service >> /root/install_log.txt 2>> /root/log_err.txt
     systemctl disable libstoragemgmt.service >> /root/install_log.txt 2>> /root/log_err.txt
     systemctl disable libvirtd.service >> /root/install_log.txt 2>> /root/log_err.txt
-    systemctl disable NetworkManager.service >> /root/install_log.txt 2>> /root/log_err.txt
-    systemctl stop    NetworkManager.service >> /root/install_log.txt 2>> /root/log_err.txt
-    systemctl disable NetworkManager-dispatcher.service >> /root/install_log.txt 2>> /root/log_err.txt
-    systemctl disable NetworkManager-wait-online.service >> /root/install_log.txt 2>> /root/log_err.txt
     systemctl disable spice-vdagentd.service >> /root/install_log.txt 2>> /root/log_err.txt
     systemctl disable vmtoolsd.service >> /root/install_log.txt 2>> /root/log_err.txt
     systemctl disable ModemManager.service >> /root/install_log.txt 2>> /root/log_err.txt
     systemctl disable cups.service >> /root/install_log.txt 2>> /root/log_err.txt
     systemctl disable cups-browsed.service >> /root/install_log.txt 2>> /root/log_err.txt
+    if [ $OS = "centos7" ]
+    then
+      systemctl disable NetworkManager.service >> /root/install_log.txt 2>> /root/log_err.txt
+      systemctl stop    NetworkManager.service >> /root/install_log.txt 2>> /root/log_err.txt
+      systemctl disable NetworkManager-dispatcher.service >> /root/install_log.txt 2>> /root/log_err.txt
+      systemctl disable NetworkManager-wait-online.service >> /root/install_log.txt 2>> /root/log_err.txt
+    else
+    fi
   ;;
   ubuntu1604 | ubuntu1804 | ubuntu2004 )
     echo "" | tee -a /root/install_log.txt
@@ -560,7 +564,7 @@ case $OS in
       firewall-cmd --remove-service=ssh  --permanent >> /root/install_log.txt 2>> /root/log_err.txt
       firewall-cmd --reload >> /root/install_log.txt 2>> /root/log_err.txt
       sed -i  "s/#Port 22/Port 7777/g" /etc/ssh/sshd_config
-      if [ $OS = "rocky8"]
+      if [ $OS = "rocky8" ]
       then
         sed -i  "s/PermitRootLogin yes/PermitRootLogin no/g" /etc/ssh/sshd_config
       else
