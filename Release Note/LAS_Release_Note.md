@@ -4,9 +4,15 @@
 
 ## 수정된 사항
 ```
+설치 중 사용되는 Log 위치를 실행 부분에 따라 변경 완료
+
 ==== CentOS 7.9 ====
 pip(python2.7)에 setuptools의 지원 종료로 tensorflow-gpu 1.13.1 버전 설치불가로 삭제
 pip(python2.7)에 torch,torchvision 설치시 setuptools 40 버전으로 변경
+```
+## 추가된 사항
+```
+Rocky Linux 8.5 자동 스크립트에 내용 추가
 ```
 
 ## 2201 LAS Release Note
