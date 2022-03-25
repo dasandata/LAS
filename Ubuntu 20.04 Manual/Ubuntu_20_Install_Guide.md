@@ -1,5 +1,5 @@
 # 다산데이타 LISR 스크립트 설치 매뉴얼 2021-12-06
-다산데이타 장비 출고시 설치되는 Linux (CentOS, Ubuntu) 의 설치 표준안 입니다.  
+다산데이타 장비 출고시 설치되는 Linux Ubuntu 20.04 의 설치 표준안 입니다.  
 별도의 요청사항이 없는 경우 기본적으로 아래 절차에 따라 자동 스크립트 설치가 진행 됩니다.  
 이 문서는 스크립트의 수동 설치 가이드 입니다.
 ***
@@ -382,7 +382,7 @@ snap install pycharm-community --classic
 
 
 ```bash
-## CentOS , Ubuntu 동일하게 JupyterHub 마무리 작업을 진행 합니다.
+## Ubuntu 동일하게 JupyterHub 마무리 작업을 진행 합니다.
 mkdir /etc/jupyterhub
 jupyterhub --generate-config -f /etc/jupyterhub/jupyterhub_config.py 
 sed -i '356a c.JupyterHub.port = 8000' /etc/jupyterhub/jupyterhub_config.py

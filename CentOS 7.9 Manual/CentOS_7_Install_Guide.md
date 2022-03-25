@@ -1,5 +1,5 @@
 # 다산데이타 LISR 스크립트 설치 매뉴얼 2021-12-06
-다산데이타 장비 출고시 설치되는 Linux (CentOS, Ubuntu) 의 설치 표준안 입니다.  
+다산데이타 장비 출고시 설치되는 Linux CentOS 7.9 의 설치 표준안 입니다.  
 별도의 요청사항이 없는 경우 기본적으로 아래 절차에 따라 자동 스크립트 설치가 진행 됩니다.  
 이 문서는 스크립트의 수동 설치 가이드 입니다.
 ***
@@ -140,7 +140,6 @@ grub2-mkconfig -o /boot/efi/EFI/centos/grub.cfg
 
 ### # [4. selinux 제거 및 저장소 변경](#목차)
 #### ## CentOS는 설정이 복잡한 SELINUX를 disable 합니다.
-#### ## Ubuntu는 기존 저장소 속도 최적화를 위해 변경 합니다.
 
 ```bash
 # 기존의 SELINUX 상태 확인 후 disable로 변경 (재부팅 후 적용 됩니다.)
