@@ -8,7 +8,7 @@
 #### - [1분 git 사용 방법 (리눅스 터미널에서)][how-to-git]  
 [how-to-git]:https://github.com/dasandata/LISR/blob/master/how-to-git.md
 
-### 아래 표준안의 경우 LAS 자동 스크립트를 기반으로 수동 설치시 사용 할 수 있게 제작되었습니다.
+#### 아래 표준안의 경우 LAS 자동 스크립트를 기반으로 수동 설치시 사용 할 수 있게 제작되었습니다.
 
 ## 목차
 - [1. 리눅스 설치 표준안 - (2022.03)]  
@@ -18,7 +18,7 @@
       - [rocky  8.5](https://github.com/dasandata/LAS/blob/ce0932c463fa3fc06617e3859c80a641008e4be8/Rocky%208.5%20Manual/Rocky_8_install_guide.md)
       - [ubuntu 18.04](https://github.com/dasandata/LAS/blob/ce0932c463fa3fc06617e3859c80a641008e4be8/Ubuntu%2018.04%20Manual/Ubuntu_18_Install_Guide.md)
       - [ubuntu 20.04](https://github.com/dasandata/LAS/blob/ce0932c463fa3fc06617e3859c80a641008e4be8/Ubuntu%2020.04%20Manual/Ubuntu_20_Install_Guide.md)
-      
+
 - [4. 자동 스크립트 Release Note ](https://github.com/dasandata/LAS/blob/88da18550bf95d744024adf16aab93a0fcb59005/Release%20Note/LAS_Release_Note.md)
 
 
