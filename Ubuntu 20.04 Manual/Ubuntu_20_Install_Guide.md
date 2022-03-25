@@ -14,7 +14,7 @@
 
 [3. nouveau 끄기 및 grub 설정](Ubuntu_20_Install_Guide.md#-3-nouveau-끄기-및-grub-설정)  
 
-[4. selinux 제거 및 저장소 변경](Ubuntu_20_Install_Guide.md#-4-selinux-제거-및-저장소-변경)  
+[4. 저장소 변경](Ubuntu_20_Install_Guide.md#-4-저장소-변경)  
 
 [5. 기본 패키지 설치](Ubuntu_20_Install_Guide.md#-5-기본-패키지-설치)  
 
@@ -136,8 +136,7 @@ echo "options nouveau modeset=0" >> /etc/modprobe.d/blacklist.conf
 update-initramfs -u && update-grub2
 ```
 
-### # [4. selinux 제거 및 저장소 변경](#목차)
-#### ## CentOS는 설정이 복잡한 SELINUX를 disable 합니다.
+### # [4. 저장소 변경](#목차)
 #### ## Ubuntu는 기존 저장소 속도 최적화를 위해 변경 합니다.
 
 ```bash
