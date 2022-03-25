@@ -14,7 +14,7 @@
 
 [3. nouveau 끄기 및 grub 설정](CentOS_7_Install_Guide.md#-3-nouveau-끄기-및-grub-설정)  
 
-[4. selinux 제거 및 저장소 변경](CentOS_7_Install_Guide.md#-4-selinux-제거-및-저장소-변경)  
+[4. selinux 제거](CentOS_7_Install_Guide.md#-4-selinux-제거)  
 
 [5. 기본 패키지 설치](CentOS_7_Install_Guide.md#-5-기본-패키지-설치)  
 
@@ -138,7 +138,7 @@ grub2-mkconfig -o /boot/grub2/grub.cfg
 grub2-mkconfig -o /boot/efi/EFI/centos/grub.cfg
 ```
 
-### # [4. selinux 제거 및 저장소 변경](#목차)
+### # [4. selinux 제거](#목차)
 #### ## CentOS는 설정이 복잡한 SELINUX를 disable 합니다.
 
 ```bash

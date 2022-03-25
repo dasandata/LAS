@@ -8,47 +8,47 @@
 
 ### ===== 기본 버전 설치 진행 순서 =====
 
-[1. 변수 선언](Rocky-85-install-guide.md#-1-변수-선언)  
+[1. 변수 선언](Rocky_8_install_guide.md#-1-변수-선언)  
 
-[2. rc.local 생성 및 변경](Installing_LISR_Manually.md#-2-rclocal-생성-및-변경)  
+[2. rc.local 생성 및 변경](Rocky_8_install_guide.md#-2-rclocal-생성-및-변경)  
 
-[3. nouveau 끄기 및 grub 설정](Installing_LISR_Manually.md#-3-nouveau-끄기-및-grub-설정)  
+[3. nouveau 끄기 및 grub 설정](Rocky_8_install_guide.md#-3-nouveau-끄기-및-grub-설정)  
 
-[4. selinux 제거 및 저장소 변경](Installing_LISR_Manually.md#-4-selinux-제거-및-저장소-변경)  
+[4. selinux 제거](Rocky_8_install_guide.md#-4-selinux-제거)  
 
-[5. 기본 패키지 설치](Installing_LISR_Manually.md#-5-기본-패키지-설치)  
+[5. 기본 패키지 설치](Rocky_8_install_guide.md#-5-기본-패키지-설치)  
 
-[6. 프로필 설정](Installing_LISR_Manually.md#-6-프로필-설정)  
+[6. 프로필 설정](Rocky_8_install_guide.md#-6-프로필-설정)  
 
-[7. 서버 시간 동기화](Installing_LISR_Manually.md#-7-서버-시간-동기화)  
+[7. 서버 시간 동기화](Rocky_8_install_guide.md#-7-서버-시간-동기화)  
 
-[8. 파이썬 설치](Installing_LISR_Manually.md#-8-파이썬-설치)  
+[8. 파이썬 설치](Rocky_8_install_guide.md#-8-파이썬-설치)  
 
-[9. 파이썬 패키지 설치](Installing_LISR_Manually.md#-9-파이썬-패키지-설치)  
+[9. 파이썬 패키지 설치](Rocky_8_install_guide.md#-9-파이썬-패키지-설치)  
 
-[10. 방화벽 설정](Installing_LISR_Manually.md#-10-방화벽-설정)  
+[10. 방화벽 설정](Rocky_8_install_guide.md#-10-방화벽-설정)  
 
-[11. 사용자 생성 테스트](Installing_LISR_Manually.md#-11-사용자-생성-테스트)  
+[11. 사용자 생성 테스트](Rocky_8_install_guide.md#-11-사용자-생성-테스트)  
 
-[12. H/W 사양 체크](Installing_LISR_Manually.md#-12-HW-사양-체크)  
+[12. H/W 사양 체크](Rocky_8_install_guide.md#-12-HW-사양-체크)  
 
 ### ===== GPU 버전 설치 진행 순서 ===== 
 
-[13. CUDA,CUDNN Repo 설치](Installing_LISR_Manually.md#-13-CUDACUDNN-Repo-설치)
+[13. CUDA,CUDNN Repo 설치](Rocky_8_install_guide.md#-13-CUDACUDNN-Repo-설치)
 
-[14. CUDA 설치 및 PATH 설정](Installing_LISR_Manually.md#-14-CUDA-설치-및-PATH-설정)
+[14. CUDA 설치 및 PATH 설정](Rocky_8_install_guide.md#-14-CUDA-설치-및-PATH-설정)
 
-[15. CUDNN 설치 및 PATH 설정](Installing_LISR_Manually.md#-15-CUDNN-설치-및-PATH-설정)
+[15. CUDNN 설치 및 PATH 설정](Rocky_8_install_guide.md#-15-CUDNN-설치-및-PATH-설정)
 
-[16. 딥러닝 패키지 설치](Installing_LISR_Manually.md#-16-딥러닝-패키지-설치)
+[16. 딥러닝 패키지 설치](Rocky_8_install_guide.md#-16-딥러닝-패키지-설치)
 
 ### ===== 서버 전용 설치 진행 순서 ===== 
 
-[17. 서버 전용 MSM 설치](Installing_LISR_Manually.md#-17-서버-전용-MSM-설치)
+[17. 서버 전용 MSM 설치](Rocky_8_install_guide.md#-17-서버-전용-MSM-설치)
 
 ### ===== Dell 서버 전용 설치 순서 =====
 
-[18. Dell 전용 OMSA설치](Installing_LISR_Manually.md#-18-Dell-전용-OMSA설치)
+[18. Dell 전용 OMSA설치](Rocky_8_install_guide.md#-18-Dell-전용-OMSA설치)
 
 ***
 ## # 범례(변수).
