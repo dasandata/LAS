@@ -60,7 +60,3 @@
 ***
 
 end.
-
-[centos7]: https://github.com/dasandata/LISR/blob/master/CentOS7/Standard_Install_CentOS_7.md  
-[ubuntu]: https://github.com/dasandata/LISR/blob/master/Ubuntu16/Standard_Install_Ubuntu.md  
-[markdown]: https://github.com/dasandata/LISR/blob/master/makrdown.md
