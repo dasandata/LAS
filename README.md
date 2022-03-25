@@ -12,12 +12,12 @@
 ## 목차
 - [1. 리눅스 설치 표준안 - Centos 7.9, Ubuntu 20.04 (2022.03)](https://github.com/dasandata/LAS/blob/88da18550bf95d744024adf16aab93a0fcb59005/Installing_LISR_Manually.md)  
 
-- [2. 리눅스 자동설치 스크립트. ](https://github.com/dasandata/LAS/blob/88da18550bf95d744024adf16aab93a0fcb59005/Linux_Auto_Script.sh)
+- 2. 리눅스 자동설치 스크립트
   - 운영체제 통합 스크립트
-      - centos 7.9
-      - ubuntu 16.04
-      - ubuntu 18.04
-      - ubuntu 20.04
+      - [centos 7.9](https://github.com/dasandata/LAS/blob/ce0932c463fa3fc06617e3859c80a641008e4be8/CentOS%207.9%20Manual/CentOS_7_Install_Guide.md)
+      - [rocky  8.5](https://github.com/dasandata/LAS/blob/ce0932c463fa3fc06617e3859c80a641008e4be8/Rocky%208.5%20Manual/Rocky_8_install_guide.md)
+      - [ubuntu 18.04](https://github.com/dasandata/LAS/blob/ce0932c463fa3fc06617e3859c80a641008e4be8/Ubuntu%2018.04%20Manual/Ubuntu_18_Install_Guide.md)
+      - [ubuntu 20.04](https://github.com/dasandata/LAS/blob/ce0932c463fa3fc06617e3859c80a641008e4be8/Ubuntu%2020.04%20Manual/Ubuntu_20_Install_Guide.md)
 - [4. 자동 스크립트 Release Note ](https://github.com/dasandata/LAS/blob/88da18550bf95d744024adf16aab93a0fcb59005/Release%20Note/LAS_Release_Note.md)
 
 
