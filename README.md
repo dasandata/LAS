@@ -19,7 +19,9 @@
       - [ubuntu 18.04](https://github.com/dasandata/LAS/blob/ce0932c463fa3fc06617e3859c80a641008e4be8/Ubuntu%2018.04%20Manual/Ubuntu_18_Install_Guide.md)
       - [ubuntu 20.04](https://github.com/dasandata/LAS/blob/ce0932c463fa3fc06617e3859c80a641008e4be8/Ubuntu%2020.04%20Manual/Ubuntu_20_Install_Guide.md)
 
-- [4. 자동 스크립트 Release Note ](https://github.com/dasandata/LAS/blob/88da18550bf95d744024adf16aab93a0fcb59005/Release%20Note/LAS_Release_Note.md)
+- [2. 자동 스크립트](https://github.com/dasandata/LAS/blob/806c4a01b23c5ab6dc6b9a77d17d32cdf201b426/Linux_Auto_Script.sh)
+
+- [3. 자동 스크립트 Release Note ](https://github.com/dasandata/LAS/blob/88da18550bf95d744024adf16aab93a0fcb59005/Release%20Note/LAS_Release_Note.md)
 
 
 [root@dasandata-script-test:~]#  yum install -y git  # Centos , Rocky Linux
