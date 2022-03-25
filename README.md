@@ -22,7 +22,7 @@
 - [4. 자동 스크립트 Release Note ](https://github.com/dasandata/LAS/blob/88da18550bf95d744024adf16aab93a0fcb59005/Release%20Note/LAS_Release_Note.md)
 
 
-[root@dasandata-script-test:~]#  yum install -y git  # Centos
+[root@dasandata-script-test:~]#  yum install -y git  # Centos , Rocky Linux
 
 [root@dasandata-script-test:~]#
 
