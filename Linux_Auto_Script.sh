@@ -267,6 +267,7 @@ case $OS in
       systemctl disable NetworkManager-dispatcher.service >> /root/install_log.txt 2>> /root/log_err.txt
       systemctl disable NetworkManager-wait-online.service >> /root/install_log.txt 2>> /root/log_err.txt
     else
+      echo "" | tee -a /root/install_log.txt
     fi
   ;;
   ubuntu1604 | ubuntu1804 | ubuntu2004 )
