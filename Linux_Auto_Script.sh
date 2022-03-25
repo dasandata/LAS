@@ -225,7 +225,7 @@ case $OS in
       sleep 2
       yum install -y ethtool pciutils openssh mlocate nfs-utils rdate xauth firefox nautilus wget bind-utils >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       yum install -y tcsh tree lshw tmux kernel-headers kernel-devel gcc make gcc-c++ snapd yum-utils >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      yum install -y cmake python-devel ntfs-3g dstat perl perl-CPAN perl-core net-tools openssl-devel git-lfs vim >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      yum install -y cmake ntfs-3g dstat perl perl-CPAN perl-core net-tools openssl-devel git-lfs vim >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       sleep 2
       dmidecode | grep -i ipmi &> /dev/null
       if [ $? = 0 ]
@@ -235,12 +235,19 @@ case $OS in
         echo "" | tee -a /root/install_log.txt
         echo "PC,Workstation do not install ipmitool" | tee -a /root/install_log.txt
       fi
-      yum -y groupinstall "GNOME Desktop" "Graphical Adminstration Tools" >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      echo ""
+      if [ $OS = "centos7" ]
+      then
+        yum -y groupinstall "GNOME Desktop" >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+        yum install -y glibc-static yum-plugin-priorities >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      else
+        yum -y groupinstall "Server with GUI" >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      fi
+      yum -y groupinstall "Graphical Adminstration Tools" >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       yum -y groups install "Development Tools" >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      yum install -y glibc-static glibc-devel libstdc++ libstdc++-devel >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      yum install -y glibc-devel libstdc++ libstdc++-devel >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       sleep 2
       sed -i -e "s/\]$/\]\npriority=5/g" /etc/yum.repos.d/epel.repo >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      yum install -y yum-plugin-priorities >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       yum install -y htop ntfs-3g figlet smartmontools >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "The package install complete" | tee -a /root/install_log.txt
