@@ -8,7 +8,7 @@
 
 ### ===== 기본 버전 설치 진행 순서 =====
 
-[1. 변수 선언](CentOS-7.9-Install-guide.md#-1-변수-선언)  
+[1. 변수 선언](CentOS-79-Install-guide.md#-1-변수-선언)
 
 [2. rc.local 생성 및 변경](CentOS-7-9-Install-guide.md#-2-rclocal-생성-및-변경)  
 
