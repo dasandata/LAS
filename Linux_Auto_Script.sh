@@ -814,6 +814,7 @@ then
       echo "CUDA,CUDNN REPO install Start" | tee -a /root/install_log.txt
       apt-get -y install sudo gnupg >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
       apt-key adv --fetch-keys "https://developer.download.nvidia.com/compute/cuda/repos/"$OS"/x86_64/7fa2af80.pub" >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
+      apt-key adv --fetch-keys "https://developer.download.nvidia.com/compute/cuda/repos/"$OS"/x86_64/3bf863cc.pub" >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
       sh -c 'echo "deb https://developer.download.nvidia.com/compute/cuda/repos/'$OS'/x86_64 /" > /etc/apt/sources.list.d/nvidia-cuda.list' >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
       sh -c 'echo "deb https://developer.download.nvidia.com/compute/machine-learning/repos/'$OS'/x86_64 /" > /etc/apt/sources.list.d/nvidia-machine-learning.list'  >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
       apt-get update >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
