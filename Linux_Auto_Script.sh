@@ -797,7 +797,7 @@ then
       yum-config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/cuda-rhel7.repo >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
       wget https://developer.download.nvidia.com/compute/machine-learning/repos/rhel7/x86_64/nvidia-machine-learning-repo-rhel7-1.0.0-1.x86_64.rpm >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
       yum -y install nvidia-machine-learning-repo-rhel7-1.0.0-1.x86_64.rpm >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
-      yum --disablerepo="*" --enablerepo="cuda" list available >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
+      yum --disablerepo="*" --enablerepo="cuda-rhel7-x86_64" list available >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
       yum -y install libXi-devel mesa-libGLU-devel libXmu-devel libX11-devel freeglut-devel libXm* >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
       yum -y install openmotif* >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
       echo "" | tee -a /root/install_log.txt
