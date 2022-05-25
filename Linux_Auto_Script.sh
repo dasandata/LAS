@@ -87,7 +87,7 @@ then
     centos | rocky )
       ## centos는 이미 rc.local이 존재하여 실행될 파일값만 넣어준다.
       chmod +x /etc/rc.d/rc.local
-      sed -i '13a systemctl restart rc-local.service' /etc/rc.d/rc.local
+      systemctl enable rc-local.service
       sed -i '14a bash /root/LAS/Linux_Auto_Script.sh' /etc/rc.d/rc.local
       echo "rc.local setting complete" | tee -a /root/install_log.txt
     ;;
