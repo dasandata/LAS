@@ -350,7 +350,7 @@ wget https://developer.download.nvidia.com/compute/machine-learning/repos/rhel7/
 yum -y install nvidia-machine-learning-repo-rhel7-1.0.0-1.x86_64.rpm
 
 # nvidia X11 관련 lib 설치
-yum --disablerepo="*" --enablerepo="cuda" list available
+yum --disablerepo="*" --enablerepo="cuda-rhel7-x86_64" list available
 yum -y install libXi-devel mesa-libGLU-devel libXmu-devel libX11-devel freeglut-devel libXm*
 yum -y install openmotif*
 ```
