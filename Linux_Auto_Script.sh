@@ -531,6 +531,14 @@ then
       echo "" | tee -a /root/install_log.txt
       echo "Python Install complete" | tee -a /root/install_log.txt
     ;;
+    ubuntu2204 )
+      echo "" | tee -a /root/install_log.txt
+      echo "Python Install" | tee -a /root/install_log.txt
+      apt-get -y install python3-pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      pip3 install --upgrade pip     >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      echo "" | tee -a /root/install_log.txt
+      echo "Python Install complete" | tee -a /root/install_log.txt
+    ;;
     *)
     ;;
   esac
@@ -611,6 +619,14 @@ then
       echo "" | tee -a /root/install_log.txt
       echo "Python Package Install complete" | tee -a /root/install_log.txt
     ;;
+    ubuntu2204 )
+      echo "" | tee -a /root/install_log.txt
+      echo "Python Package Install"
+      pip3 install --upgrade numpy scipy nose matplotlib pandas keras h5py cryptography tensorflow-gpu  >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install --upgrade torch torchvision >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      echo "" | tee -a /root/install_log.txt
+      echo "Python Package Install complete" | tee -a /root/install_log.txt
+    ;;
     *)
     ;;
   esac
@@ -661,7 +677,7 @@ case $OS in
       echo "The Firewall has already been started." | tee -a /root/install_log.txt
     fi
   ;;
-  ubuntu1604 | ubuntu1804 | ubuntu2004 )
+  ubuntu1604 | ubuntu1804 | ubuntu2004 | ubuntu2204 )
     ufw status | grep inactive &> /dev/null
     if [ $? = 0 ]
     then
@@ -711,7 +727,7 @@ then
       useradd dasan >> /root/useradd_log.txt 2>> /root/useradd_log_err.txt
       usermod -aG wheel dasan >> /root/useradd_log.txt 2>> /root/useradd_log_err.txt
     ;;
-    ubuntu1604 | ubuntu1804 | ubuntu2004 )
+    ubuntu1604 | ubuntu1804 | ubuntu2004 | ubuntu2204 )
       echo "" | tee -a /root/install_log.txt
       echo "User add Start" | tee -a /root/install_log.txt
       adduser --disabled-login --gecos "" dasan >> /root/useradd_log.txt 2>> /root/useradd_log_err.txt
@@ -797,7 +813,7 @@ then
         fi
       fi
     ;;
-    ubuntu1604 | ubuntu1804 | ubuntu2004 )
+    ubuntu1604 | ubuntu1804 | ubuntu2004 | ubuntu2204 )
       dmidecode | grep -i ipmi &> /dev/null
       if [ $? != 0 ]
       then
@@ -873,14 +889,12 @@ then
       yum -y install nvidia-machine-learning-repo-rhel8-1.0.0-1.x86_64.rpm >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
       yum -y install libXi-devel mesa-libGLU-devel libXmu-devel libX11-devel freeglut-devel libXm* openmotif* >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
     ;;
-    ubuntu1604 | ubuntu1804 | ubuntu2004 )
+    ubuntu1604 | ubuntu1804 | ubuntu2004 | ubuntu2204 )
       echo "" | tee -a /root/install_log.txt
       echo "CUDA,CUDNN REPO install Start" | tee -a /root/install_log.txt
       apt-get -y install sudo gnupg >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
-      apt-key adv --fetch-keys "https://developer.download.nvidia.com/compute/cuda/repos/"$OS"/x86_64/7fa2af80.pub" >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
       apt-key adv --fetch-keys "https://developer.download.nvidia.com/compute/cuda/repos/"$OS"/x86_64/3bf863cc.pub" >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
       sh -c 'echo "deb https://developer.download.nvidia.com/compute/cuda/repos/'$OS'/x86_64 /" > /etc/apt/sources.list.d/nvidia-cuda.list' >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
-      sh -c 'echo "deb https://developer.download.nvidia.com/compute/machine-learning/repos/'$OS'/x86_64 /" > /etc/apt/sources.list.d/nvidia-machine-learning.list'  >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
       apt-get update >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "CUDA,CUDNN REPO install complete" | tee -a /root/install_log.txt
@@ -939,7 +953,7 @@ then
         echo "" | tee -a /root/install_log.txt
         echo "CUDA $CUDAV install Start complete" | tee -a /root/install_log.txt
       ;;
-      ubuntu1604 | ubuntu1804 | ubuntu2004 )
+      ubuntu1604 | ubuntu1804 | ubuntu2004 | ubuntu2204 )
         echo "CUDA $CUDAV install Start" | tee -a /root/install_log.txt
         cat /etc/profile | grep "ADD Cuda" >> /root/install_log.txt 2>> /root/log_err.txt
         if [ $? != 0 ]
@@ -1024,7 +1038,7 @@ then
       echo "" | tee -a /root/install_log.txt
       echo "libcudnn Install complete" | tee -a /root/install_log.txt
     ;;
-    ubuntu2004 )
+    ubuntu2004 | ubuntu2204)
       echo "" | tee -a /root/install_log.txt
       echo "libcudnn Install Start" | tee -a /root/install_log.txt
       apt-get -y install nvidia-cuda-toolkit >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
@@ -1100,6 +1114,31 @@ then
       echo "" | tee -a /root/install_log.txt
       echo "Deep Learnig Package install complete" | tee -a /root/install_log.txt
     ;;
+    ubuntu2204 )
+      echo "" | tee -a /root/install_log.txt
+      echo "Deep Learnig Package Install Start" | tee -a /root/install_log.txt
+      ## R,R-studio Install
+      apt-get -y install r-base       >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      apt-get -y install gdebi-core   >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+
+      wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.0g-2ubuntu4_amd64.deb
+      dpkg -i libssl1.1_1.1.0g-2ubuntu4_amd64.deb
+
+      wget https://download2.rstudio.org/server/bionic/amd64/rstudio-server-2022.07.1-554-amd64.deb >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      yes | gdebi rstudio-server-2022.07.1-554-amd64.deb >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      ## JupyterHub install
+      pip3 install --upgrade jupyterhub jupyterlab notebook >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+
+      apt-get -y purge nodejs libnode72
+
+      curl -fsSL https://deb.nodesource.com/setup_16.x | bash - >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      apt-get -y install nodejs default-jre >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      npm install -g configurable-http-proxy >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      ## Pycharm install
+      snap install pycharm-community --classic >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      echo "" | tee -a /root/install_log.txt
+      echo "Deep Learnig Package install complete" | tee -a /root/install_log.txt
+    ;;
     *)
       echo "" | tee -a /root/install_log.txt
       echo "$OS"   | tee -a /root/install_log.txt
@@ -1123,21 +1162,28 @@ then
     ## jupyterhub 설정값 변경
     mkdir /etc/jupyterhub
     jupyterhub --generate-config -f /etc/jupyterhub/jupyterhub_config.py >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-    sed -i '356a c.JupyterHub.port = 8000' /etc/jupyterhub/jupyterhub_config.py
-    sed -i '358a c.LocalAuthenticator.create_system_users = True' /etc/jupyterhub/jupyterhub_config.py
-    sed -i '359a c.Authenticator.add_user_cmd = ['adduser', '--force-badname', '-q', '--gecos', '""', '--disabled-password']' /etc/jupyterhub/jupyterhub_config.py
-    sed -i '384a c.JupyterHub.proxy_class = 'jupyterhub.proxy.ConfigurableHTTPProxy'' /etc/jupyterhub/jupyterhub_config.py
-    sed -i '824a c.Authenticator.admin_users = {"sonic"}' /etc/jupyterhub/jupyterhub_config.py
-    sed -i '929a c.Spawner.default_url = '/lab'' /etc/jupyterhub/jupyterhub_config.py
+
+      sed -i '625a c.JupyterHub.port = 8000'                        /etc/jupyterhub/jupyterhub_config.py
+      sed -i '656a c.JupyterHub.proxy_class = 'jupyterhub.proxy.ConfigurableHTTPProxy'' /etc/jupyterhub/jupyterhub_config.py
+      sed -i '1260a c.Authenticator.admin_users = {"sonic"}'        /etc/jupyterhub/jupyterhub_config.py
+      sed -i '976a c.Spawner.default_url = '/lab''                  /etc/jupyterhub/jupyterhub_config.py
+
+      sed -i '1450a c.LocalAuthenticator.create_system_users = True' /etc/jupyterhub/jupyterhub_config.py
+      sed -i '1451a c.Authenticator.add_user_cmd = ['adduser', '--force-badname', '-q', '--gecos', '""', '--disabled-password']' /etc/jupyterhub/jupyterhub_config.py
+
     ## jupyterhub service 설정 파일 복사
-    mv /root/LAS/jupyterhub.service /lib/systemd/system/
-    mv /root/LAS/jupyterhub /etc/init.d/
+    mv /root/LAS/jupyterhub.service  /lib/systemd/system/
+    mv /root/LAS/jupyterhub          /etc/init.d/
+
     chmod 777 /lib/systemd/system/jupyterhub.service >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-    chmod 755 /etc/init.d/jupyterhub >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-    systemctl daemon-reload >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-    systemctl enable jupyterhub.service >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-    systemctl restart jupyterhub.service >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-    R CMD BATCH /root/LAS/r_jupyterhub.R >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+    chmod 755 /etc/init.d/jupyterhub                 >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+
+    systemctl daemon-reload                          >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+    systemctl enable jupyterhub.service              >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+    systemctl restart jupyterhub.service             >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+
+    R CMD BATCH /root/LAS/r_jupyterhub.R             >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+
     echo "" | tee -a /root/install_log.txt
     echo "JupyterHub Setting Files Copy Complete" | tee -a /root/install_log.txt
   else
@@ -1208,6 +1254,7 @@ then
       wget https://docs.broadcom.com/docs-and-downloads/raid-controllers/raid-controllers-common-files/17.05.00.02_Linux-64_MSM.gz >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
       tar zxf 17.05.00.02_Linux-64_MSM.gz >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
       cd /tmp/raid_manager/disk/ && ./install.csh -a >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
+
       systemctl daemon-reload >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
       systemctl enable vivaldiframeworkd.service >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
       systemctl start vivaldiframeworkd.service >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
@@ -1312,7 +1359,7 @@ then
     ubuntu1604 )
       ## OMSA port
       ufw allow 1311/tcp >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      echo 'deb http://linux.dell.com/repo/community/openmanage/911/xenial xenial main'  >  /etc/apt/sources.list.d/linux.dell.com.sources.list
+      echo 'deb http://linux.dell.com/repo/community/openmanage/940/xenial xenial main'  >  /etc/apt/sources.list.d/linux.dell.com.sources.list
       wget http://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
       apt-key add 0x1285491434D8786F.asc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
       apt-get -y update >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
@@ -1344,10 +1391,10 @@ then
       echo "" | tee -a /root/install_log.txt
       echo "OMSA install complete" | tee -a /root/install_log.txt
     ;;
-    ubuntu2004 )
+    ubuntu2004 | ubuntu2204 )
       ## OMSA port
       ufw allow 1311/tcp >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      echo 'deb http://linux.dell.com/repo/community/openmanage/950/focal focal main'  > /etc/apt/sources.list.d/linux.dell.com.sources.list
+      echo 'deb http://linux.dell.com/repo/community/openmanage/10300/focal focal main'  > /etc/apt/sources.list.d/linux.dell.com.sources.list
       wget http://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
       apt-key add 0x1285491434D8786F.asc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
       apt-get -y update >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
