@@ -20,12 +20,12 @@
       - [Ubuntu 20.04](https://github.com/dasandata/LAS/blob/master/Ubuntu%2020.04%20Manual/Ubuntu_20_Install_Guide.md)
       - [Ubuntu 22.04](https://github.com/dasandata/LAS/blob/master/Ubuntu%2022.04%20Manual/Ubuntu_22_Install_Guide.md)
 
-- [2. 자동 스크립트](https://github.com/dasandata/LAS/blob/806c4a01b23c5ab6dc6b9a77d17d32cdf201b426/Linux_Auto_Script.sh)
+- [2. 자동 스크립트](https://github.com/dasandata/LAS/blob/master/Linux_Auto_Script.sh)
 
-- [3. Release Note](https://github.com/dasandata/LAS/blob/88da18550bf95d744024adf16aab93a0fcb59005/Release%20Note/LAS_Release_Note.md)
+- [3. Release Note](https://github.com/dasandata/LAS/blob/master/Release_Note.md)
 
 
-[root@dasandata-script-test:~]#  yum install -y git  # Centos , Rocky Linux
+[root@dasandata-script-test:~]# yum install -y git  # Centos , Rocky Linux
 
 [root@dasandata-script-test:~]#
 
