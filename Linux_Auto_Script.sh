@@ -1262,7 +1262,7 @@ then
       echo "" | tee -a /root/install_log.txt
       echo "MSM install complete" | tee -a /root/install_log.txt
     ;;
-    ubuntu1604 | ubuntu1804 | ubuntu2004 )
+    ubuntu1604 | ubuntu1804 | ubuntu2004 | ubuntu2204 )
       echo "" | tee -a /root/install_log.txt
       echo "MSM install start" | tee -a /root/install_log.txt
       mkdir /tmp/raid_manager
