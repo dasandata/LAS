@@ -1,6 +1,7 @@
 #!/bin/sh
 # Copyright by Dasandata.co.ltd
 # http://www.dasandata.co.kr
+# Ver : 2209
 
 # 1. 변수 선언
 ## Dell or Supermicro 확인
@@ -44,7 +45,15 @@ then
     ;;
     ubuntu )
       OS=$(lsb_release -isr |  tr -d "." | sed -e '{N;s/\n//}' | tr '[A-Z]' '[a-z]')
-      if [ $OS = "ubuntu2004" ]
+      if [ $OS = "ubuntu2204" ]
+      then
+        until [ $CUDAV != ' ' ]
+        do
+          PS3='Please Select one : '
+          select CUDAV in 11-7 No-GPU ; do echo "Select CUDA Version : $CUDAV" ; break; done
+        done
+        echo $CUDAV > /root/cudaversion.txt
+      else if [ $OS = "ubuntu2004" ]
       then
         until [ $CUDAV != ' ' ]
         do
@@ -121,8 +130,8 @@ sleep 3
 echo "" | tee -a /root/install_log.txt
 
 # 3. nouveau 끄기 및 grub 설정
-cat /etc/default/grub | grep quiet &> /dev/null
-if [ $? = 0 ]
+cat /etc/default/grub | grep ipv6.disable &> /dev/null
+if [ $? = 1 ]
 then
   echo "" | tee -a /root/install_log.txt
   echo "Nouveau Disable and Grub Settings Start." | tee -a /root/install_log.txt
@@ -134,7 +143,7 @@ then
       sed -i  's/quiet//'  /etc/default/grub
       sed -i  's/GRUB_CMDLINE_LINUX="/GRUB_CMDLINE_LINUX="ipv6.disable=1 /' /etc/default/grub
       sed -i  '/IPV6/d' /etc/sysconfig/network-scripts/ifcfg-${NIC}
-      echo "blacklist nouveau" >> /etc/modprobe.d/blacklist.conf
+      echo "blacklist nouveau" >>         /etc/modprobe.d/blacklist.conf
       echo "options nouveau modeset=0" >> /etc/modprobe.d/blacklist.conf
       dracut  -f >> /root/install_log.txt 2>> /root/log_err.txt
       grub2-mkconfig -o /boot/grub2/grub.cfg >> /root/install_log.txt 2>> /root/log_err.txt
@@ -147,12 +156,12 @@ then
       echo "" | tee -a /root/install_log.txt
       echo "$OS Grub Setting Start." | tee -a /root/install_log.txt
       systemctl set-default  multi-user.target >> /root/install_log.txt 2>> /root/log_err.txt
-      echo "blacklist nouveau" >> /etc/modprobe.d/blacklist.conf
+      echo "blacklist nouveau"         >> /etc/modprobe.d/blacklist.conf
       echo "options nouveau modeset=0" >> /etc/modprobe.d/blacklist.conf
       perl -pi -e 's/splash//' /etc/default/grub
       perl -pi -e 's/quiet//'  /etc/default/grub
       perl -pi -e  's/^GRUB_CMDLINE_LINUX="/GRUB_CMDLINE_LINUX="ipv6.disable=1 /'  /etc/default/grub
-      perl -pi -e  's/^GRUB_HIDDEN_TIMEOUT=/#GRUB_HIDDEN_TIMEOUT=/'  /etc/default/grub
+      perl -pi -e  's/^GRUB_HIDDEN_TIMEOUT=/#GRUB_HIDDEN_TIMEOUT=/'                /etc/default/grub
       update-initramfs -u && update-grub2 >> /root/install_log.txt 2>> /root/log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "Nouveau and Grub Setting complete" | tee -a /root/install_log.txt
@@ -165,6 +174,15 @@ else
   echo "" | tee -a /root/install_log.txt
   echo "Nouveau Disable and Grub Settings has already been complete." | tee -a /root/install_log.txt
 fi
+
+# ubuntu 2204 만 cloud-init 제거
+case $OS in
+  ubuntu2204 )
+    echo 'datasource_list: [ None ]' |  tee /etc/cloud/cloud.cfg.d/90_dpkg.cfg
+    apt-get -y purge cloud-init
+    rm -rf /etc/cloud/  /var/lib/cloud/
+esac
+
 
 echo "" | tee -a /root/install_log.txt
 sleep 3
@@ -294,17 +312,63 @@ case $OS in
       sleep 2
       DEBIAN_FRONTEND=noninteractive apt-get install -y smartmontools >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       #불필요한 서비스 disable
-      systemctl disable bluetooth.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable iscsi.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable ksm.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable ksmtuned.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable bluetooth.service      >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable iscsi.service          >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable ksm.service            >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable ksmtuned.service       >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       systemctl disable libstoragemgmt.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable libvirtd.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable libvirtd.service       >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       systemctl disable spice-vdagentd.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable vmtoolsd.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable ModemManager.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable cups.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable cups-browsed.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable vmtoolsd.service       >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable ModemManager.service   >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable cups.service           >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable cups-browsed.service   >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      sleep 3
+      ## ipmi 여부로 PC, Server 판단
+      dmidecode | grep -i ipmi &> /dev/null
+      if [ $? = 0 ]
+      then
+        apt-get -y install ipmitool >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+        systemctl disable NetworkManager.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+        systemctl stop    NetworkManager.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+        systemctl disable NetworkManager-dispatcher.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+        systemctl disable NetworkManager-wait-online.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      else
+        echo "" | tee -a /root/install_log.txt
+        echo "PC,Workstation do not install ipmitool" | tee -a /root/install_log.txt
+      fi
+      echo "" | tee -a /root/install_log.txt
+      echo "The package install complete" | tee -a /root/install_log.txt
+    else
+      echo "" | tee -a /root/install_log.txt
+      echo "The package has already been installed." | tee -a /root/install_log.txt
+    fi
+  ;;
+  ubuntu2204 )
+    echo "" | tee -a /root/install_log.txt
+    echo "$OS Package Install" | tee -a /root/install_log.txt
+    ## Package 설치를 ipmi 여부로 Server와 PC를 나눠서 진행
+    dpkg -l | grep -i htop &> /dev/null
+    if [ $? != 0 ]
+    then
+      apt-get update >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      sleep 2
+      apt-get -y install vim nfs-common rdate xauth firefox gcc make tmux wget figlet net-tools >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      apt-get -y install xfsprogs ntfs-3g aptitude lvm2 dstat curl npm mlocate  >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      sleep 2
+      apt-get -y install dconf-editor gnome-panel gnome-settings-daemon metacity nautilus gnome-terminal >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      apt-get -y install libzmq3-dev libcurl4-openssl-dev libxml2-dev snapd ethtool htop dnsutils >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      sleep 2
+      apt-get install -y smartmontools  >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      apt-get install -y ubuntu-desktop >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      #불필요한 서비스 disable
+      systemctl disable bluetooth.service      >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable iscsi.service          >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable spice-vdagentd.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable vmtoolsd.service       >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable ModemManager.service   >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable cups.service           >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable cups-browsed.service   >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       sleep 3
       ## ipmi 여부로 PC, Server 판단
       dmidecode | grep -i ipmi &> /dev/null
