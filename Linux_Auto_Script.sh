@@ -71,6 +71,7 @@ then
       fi
         echo "" | tee -a /root/install_log.txt
         echo "Cuda Version Select complete" | tee -a /root/install_log.txt
+      fi
     ;;
     *)
     ;;
