@@ -1,6 +1,7 @@
 #!/bin/sh
 # Copyright by Dasandata.co.ltd
 # http://www.dasandata.co.kr
+# Ver : 2209
 
 OSCHECK=$(cat /etc/os-release | head -1 | cut -d "=" -f 2 | tr -d "\"" | awk '{print$1}' | tr '[A-Z]' '[a-z]')
 VENDOR=$(dmidecode | grep -i manufacturer | awk '{print$2}' | head -1)
