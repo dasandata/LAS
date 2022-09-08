@@ -1,6 +1,7 @@
 #!/bin/sh
 # Copyright by Dasandata.co.ltd
 # http://www.dasandata.co.kr
+# Ver : 2209
 
 # 1. 변수 선언
 ## Dell or Supermicro 확인
@@ -18,7 +19,7 @@ then
   echo "Copyright by Dasandata.co.ltd" | tee -a /root/install_log.txt
   echo "http://www.dasandata.co.kr" | tee -a /root/install_log.txt
   echo "" | tee -a /root/install_log.txt
-  echo "Linux_Automatic_Script Install Start" | tee -a /root/install_log.txt
+  echo "Linux_Automatic_Script Install Start (Ver: 2209)" | tee -a /root/install_log.txt
   echo "" | tee -a /root/install_log.txt
   echo "CUDA Version Select" | tee -a /root/install_log.txt
   case $OSCHECK in 
@@ -44,7 +45,15 @@ then
     ;;
     ubuntu )
       OS=$(lsb_release -isr |  tr -d "." | sed -e '{N;s/\n//}' | tr '[A-Z]' '[a-z]')
-      if [ $OS = "ubuntu2004" ]
+      if [ $OS = "ubuntu2204" ]
+      then
+        until [ $CUDAV != ' ' ]
+        do
+          PS3='Please Select one : '
+          select CUDAV in 11-7 No-GPU ; do echo "Select CUDA Version : $CUDAV" ; break; done
+        done
+        echo $CUDAV > /root/cudaversion.txt
+      else if [ $OS = "ubuntu2004" ]
       then
         until [ $CUDAV != ' ' ]
         do
@@ -62,6 +71,7 @@ then
       fi
         echo "" | tee -a /root/install_log.txt
         echo "Cuda Version Select complete" | tee -a /root/install_log.txt
+      fi
     ;;
     *)
     ;;
@@ -121,8 +131,8 @@ sleep 3
 echo "" | tee -a /root/install_log.txt
 
 # 3. nouveau 끄기 및 grub 설정
-cat /etc/default/grub | grep quiet &> /dev/null
-if [ $? = 0 ]
+cat /etc/default/grub | grep ipv6.disable &> /dev/null
+if [ $? = 1 ]
 then
   echo "" | tee -a /root/install_log.txt
   echo "Nouveau Disable and Grub Settings Start." | tee -a /root/install_log.txt
@@ -134,7 +144,7 @@ then
       sed -i  's/quiet//'  /etc/default/grub
       sed -i  's/GRUB_CMDLINE_LINUX="/GRUB_CMDLINE_LINUX="ipv6.disable=1 /' /etc/default/grub
       sed -i  '/IPV6/d' /etc/sysconfig/network-scripts/ifcfg-${NIC}
-      echo "blacklist nouveau" >> /etc/modprobe.d/blacklist.conf
+      echo "blacklist nouveau" >>         /etc/modprobe.d/blacklist.conf
       echo "options nouveau modeset=0" >> /etc/modprobe.d/blacklist.conf
       dracut  -f >> /root/install_log.txt 2>> /root/log_err.txt
       grub2-mkconfig -o /boot/grub2/grub.cfg >> /root/install_log.txt 2>> /root/log_err.txt
@@ -147,12 +157,12 @@ then
       echo "" | tee -a /root/install_log.txt
       echo "$OS Grub Setting Start." | tee -a /root/install_log.txt
       systemctl set-default  multi-user.target >> /root/install_log.txt 2>> /root/log_err.txt
-      echo "blacklist nouveau" >> /etc/modprobe.d/blacklist.conf
+      echo "blacklist nouveau"         >> /etc/modprobe.d/blacklist.conf
       echo "options nouveau modeset=0" >> /etc/modprobe.d/blacklist.conf
       perl -pi -e 's/splash//' /etc/default/grub
       perl -pi -e 's/quiet//'  /etc/default/grub
       perl -pi -e  's/^GRUB_CMDLINE_LINUX="/GRUB_CMDLINE_LINUX="ipv6.disable=1 /'  /etc/default/grub
-      perl -pi -e  's/^GRUB_HIDDEN_TIMEOUT=/#GRUB_HIDDEN_TIMEOUT=/'  /etc/default/grub
+      perl -pi -e  's/^GRUB_HIDDEN_TIMEOUT=/#GRUB_HIDDEN_TIMEOUT=/'                /etc/default/grub
       update-initramfs -u && update-grub2 >> /root/install_log.txt 2>> /root/log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "Nouveau and Grub Setting complete" | tee -a /root/install_log.txt
@@ -165,6 +175,16 @@ else
   echo "" | tee -a /root/install_log.txt
   echo "Nouveau Disable and Grub Settings has already been complete." | tee -a /root/install_log.txt
 fi
+
+# ubuntu 2204 만 cloud-init 제거
+case $OS in
+  ubuntu2204 )
+    echo "cloud-init remove on $OS."  | tee -a /root/install_log.txt
+    echo 'datasource_list: [ None ]' |  tee /etc/cloud/cloud.cfg.d/90_dpkg.cfg
+    apt-get -y purge cloud-init      | tee -a /root/install_log.txt
+    rm -rf /etc/cloud/  /var/lib/cloud/
+esac
+
 
 echo "" | tee -a /root/install_log.txt
 sleep 3
@@ -294,17 +314,64 @@ case $OS in
       sleep 2
       DEBIAN_FRONTEND=noninteractive apt-get install -y smartmontools >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       #불필요한 서비스 disable
-      systemctl disable bluetooth.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable iscsi.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable ksm.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable ksmtuned.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable bluetooth.service      >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable iscsi.service          >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable ksm.service            >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable ksmtuned.service       >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       systemctl disable libstoragemgmt.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable libvirtd.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable libvirtd.service       >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       systemctl disable spice-vdagentd.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable vmtoolsd.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable ModemManager.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable cups.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable cups-browsed.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable vmtoolsd.service       >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable ModemManager.service   >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable cups.service           >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable cups-browsed.service   >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      sleep 3
+      ## ipmi 여부로 PC, Server 판단
+      dmidecode | grep -i ipmi &> /dev/null
+      if [ $? = 0 ]
+      then
+        apt-get -y install ipmitool >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+        systemctl disable NetworkManager.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+        systemctl stop    NetworkManager.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+        systemctl disable NetworkManager-dispatcher.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+        systemctl disable NetworkManager-wait-online.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      else
+        echo "" | tee -a /root/install_log.txt
+        echo "PC,Workstation do not install ipmitool" | tee -a /root/install_log.txt
+      fi
+      echo "" | tee -a /root/install_log.txt
+      echo "The package install complete" | tee -a /root/install_log.txt
+    else
+      echo "" | tee -a /root/install_log.txt
+      echo "The package has already been installed." | tee -a /root/install_log.txt
+    fi
+  ;;
+  ubuntu2204 )
+    echo "" | tee -a /root/install_log.txt
+    echo "$OS Package Install" | tee -a /root/install_log.txt
+    ## Package 설치를 ipmi 여부로 Server와 PC를 나눠서 진행
+    dpkg -l | grep -i rdate &> /dev/null
+    if [ $? != 0 ]
+    then
+      apt-get update >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      sleep 2
+      apt-get -y install vim nfs-common xauth firefox gcc make tmux wget figlet net-tools >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      apt-get -y install xfsprogs ntfs-3g aptitude lvm2 dstat curl npm locate  >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      sleep 2
+      apt-get -y install dconf-editor gnome-panel gnome-settings-daemon metacity nautilus gnome-terminal >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      apt-get -y install libzmq3-dev libcurl4-openssl-dev libxml2-dev snapd ethtool htop dnsutils >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      sleep 2
+      apt-get install -y smartmontools  >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      apt-get install -y ubuntu-desktop >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      apt-get install -y rdate >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      #불필요한 서비스 disable
+      systemctl disable bluetooth.service      >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable iscsi.service          >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable spice-vdagentd.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable vmtoolsd.service       >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable ModemManager.service   >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable cups.service           >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      systemctl disable cups-browsed.service   >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       sleep 3
       ## ipmi 여부로 PC, Server 판단
       dmidecode | grep -i ipmi &> /dev/null
@@ -396,7 +463,7 @@ sleep 3
 echo "" | tee -a /root/install_log.txt
 
 # 8. 파이썬 설치
-pip -V &> /dev/null
+pip3 -V &> /dev/null
 if [ $? != 0 ]
 then
   case $OS in
@@ -464,6 +531,14 @@ then
       python2.7 get-pip.py --force-reinstall >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
       pip3 install --upgrade pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
       perl -pi -e 's/python3/python/'   /usr/local/bin/pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      echo "" | tee -a /root/install_log.txt
+      echo "Python Install complete" | tee -a /root/install_log.txt
+    ;;
+    ubuntu2204 )
+      echo "" | tee -a /root/install_log.txt
+      echo "Python Install" | tee -a /root/install_log.txt
+      apt-get -y install python3-pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+      pip3 install --upgrade pip     >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "Python Install complete" | tee -a /root/install_log.txt
     ;;
@@ -547,6 +622,14 @@ then
       echo "" | tee -a /root/install_log.txt
       echo "Python Package Install complete" | tee -a /root/install_log.txt
     ;;
+    ubuntu2204 )
+      echo "" | tee -a /root/install_log.txt
+      echo "Python Package Install"
+      pip3 install --upgrade numpy scipy nose matplotlib pandas keras h5py cryptography tensorflow-gpu  >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install --upgrade torch torchvision >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      echo "" | tee -a /root/install_log.txt
+      echo "Python Package Install complete" | tee -a /root/install_log.txt
+    ;;
     *)
     ;;
   esac
@@ -597,7 +680,7 @@ case $OS in
       echo "The Firewall has already been started." | tee -a /root/install_log.txt
     fi
   ;;
-  ubuntu1604 | ubuntu1804 | ubuntu2004 )
+  ubuntu1604 | ubuntu1804 | ubuntu2004 | ubuntu2204 )
     ufw status | grep inactive &> /dev/null
     if [ $? = 0 ]
     then
@@ -647,7 +730,7 @@ then
       useradd dasan >> /root/useradd_log.txt 2>> /root/useradd_log_err.txt
       usermod -aG wheel dasan >> /root/useradd_log.txt 2>> /root/useradd_log_err.txt
     ;;
-    ubuntu1604 | ubuntu1804 | ubuntu2004 )
+    ubuntu1604 | ubuntu1804 | ubuntu2004 | ubuntu2204 )
       echo "" | tee -a /root/install_log.txt
       echo "User add Start" | tee -a /root/install_log.txt
       adduser --disabled-login --gecos "" dasan >> /root/useradd_log.txt 2>> /root/useradd_log_err.txt
@@ -733,7 +816,7 @@ then
         fi
       fi
     ;;
-    ubuntu1604 | ubuntu1804 | ubuntu2004 )
+    ubuntu1604 | ubuntu1804 | ubuntu2004 | ubuntu2204 )
       dmidecode | grep -i ipmi &> /dev/null
       if [ $? != 0 ]
       then
@@ -809,14 +892,12 @@ then
       yum -y install nvidia-machine-learning-repo-rhel8-1.0.0-1.x86_64.rpm >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
       yum -y install libXi-devel mesa-libGLU-devel libXmu-devel libX11-devel freeglut-devel libXm* openmotif* >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
     ;;
-    ubuntu1604 | ubuntu1804 | ubuntu2004 )
+    ubuntu1604 | ubuntu1804 | ubuntu2004 | ubuntu2204 )
       echo "" | tee -a /root/install_log.txt
       echo "CUDA,CUDNN REPO install Start" | tee -a /root/install_log.txt
       apt-get -y install sudo gnupg >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
-      apt-key adv --fetch-keys "https://developer.download.nvidia.com/compute/cuda/repos/"$OS"/x86_64/7fa2af80.pub" >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
       apt-key adv --fetch-keys "https://developer.download.nvidia.com/compute/cuda/repos/"$OS"/x86_64/3bf863cc.pub" >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
       sh -c 'echo "deb https://developer.download.nvidia.com/compute/cuda/repos/'$OS'/x86_64 /" > /etc/apt/sources.list.d/nvidia-cuda.list' >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
-      sh -c 'echo "deb https://developer.download.nvidia.com/compute/machine-learning/repos/'$OS'/x86_64 /" > /etc/apt/sources.list.d/nvidia-machine-learning.list'  >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
       apt-get update >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "CUDA,CUDNN REPO install complete" | tee -a /root/install_log.txt
@@ -875,7 +956,7 @@ then
         echo "" | tee -a /root/install_log.txt
         echo "CUDA $CUDAV install Start complete" | tee -a /root/install_log.txt
       ;;
-      ubuntu1604 | ubuntu1804 | ubuntu2004 )
+      ubuntu1604 | ubuntu1804 | ubuntu2004 | ubuntu2204 )
         echo "CUDA $CUDAV install Start" | tee -a /root/install_log.txt
         cat /etc/profile | grep "ADD Cuda" >> /root/install_log.txt 2>> /root/log_err.txt
         if [ $? != 0 ]
@@ -951,20 +1032,20 @@ then
       echo "libcudnn Install Start" | tee -a /root/install_log.txt
       if [[ $CUDAV == *11* ]]
       then
-        apt-get -y install libcudnn8* >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
+        apt-get -y install libcudnn8*    >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
         apt-get -y install libcublas-dev >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
       else
-        apt-get -y install libcudnn7* >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
+        apt-get -y install libcudnn7*    >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
         apt-get -y install libcublas-dev >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
       fi
       echo "" | tee -a /root/install_log.txt
       echo "libcudnn Install complete" | tee -a /root/install_log.txt
     ;;
-    ubuntu2004 )
+    ubuntu2004 | ubuntu2204)
       echo "" | tee -a /root/install_log.txt
       echo "libcudnn Install Start" | tee -a /root/install_log.txt
       apt-get -y install nvidia-cuda-toolkit >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
-      apt-get -y install libcudnn8* >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
+      apt-get -y install libcudnn8*          >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "libcudnn Install complete" | tee -a /root/install_log.txt
     ;;
@@ -1036,6 +1117,31 @@ then
       echo "" | tee -a /root/install_log.txt
       echo "Deep Learnig Package install complete" | tee -a /root/install_log.txt
     ;;
+    ubuntu2204 )
+      echo "" | tee -a /root/install_log.txt
+      echo "Deep Learnig Package Install Start" | tee -a /root/install_log.txt
+      ## R,R-studio Install
+      apt-get -y install r-base       >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      apt-get -y install gdebi-core   >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+
+      wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.0g-2ubuntu4_amd64.deb
+      dpkg -i libssl1.1_1.1.0g-2ubuntu4_amd64.deb
+
+      wget https://download2.rstudio.org/server/bionic/amd64/rstudio-server-2022.07.1-554-amd64.deb >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      yes | gdebi rstudio-server-2022.07.1-554-amd64.deb >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      ## JupyterHub install
+      pip3 install --upgrade jupyterhub jupyterlab notebook >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+
+      apt-get -y purge nodejs libnode72
+
+      curl -fsSL https://deb.nodesource.com/setup_16.x | bash - >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      apt-get -y install nodejs default-jre >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      npm install -g configurable-http-proxy >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      ## Pycharm install
+      snap install pycharm-community --classic >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+      echo "" | tee -a /root/install_log.txt
+      echo "Deep Learnig Package install complete" | tee -a /root/install_log.txt
+    ;;
     *)
       echo "" | tee -a /root/install_log.txt
       echo "$OS"   | tee -a /root/install_log.txt
@@ -1059,21 +1165,28 @@ then
     ## jupyterhub 설정값 변경
     mkdir /etc/jupyterhub
     jupyterhub --generate-config -f /etc/jupyterhub/jupyterhub_config.py >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-    sed -i '356a c.JupyterHub.port = 8000' /etc/jupyterhub/jupyterhub_config.py
-    sed -i '358a c.LocalAuthenticator.create_system_users = True' /etc/jupyterhub/jupyterhub_config.py
-    sed -i '359a c.Authenticator.add_user_cmd = ['adduser', '--force-badname', '-q', '--gecos', '""', '--disabled-password']' /etc/jupyterhub/jupyterhub_config.py
-    sed -i '384a c.JupyterHub.proxy_class = 'jupyterhub.proxy.ConfigurableHTTPProxy'' /etc/jupyterhub/jupyterhub_config.py
-    sed -i '824a c.Authenticator.admin_users = {"sonic"}' /etc/jupyterhub/jupyterhub_config.py
-    sed -i '929a c.Spawner.default_url = '/lab'' /etc/jupyterhub/jupyterhub_config.py
+
+      sed -i '625a c.JupyterHub.port = 8000'                        /etc/jupyterhub/jupyterhub_config.py
+      sed -i '656a c.JupyterHub.proxy_class = 'jupyterhub.proxy.ConfigurableHTTPProxy'' /etc/jupyterhub/jupyterhub_config.py
+      sed -i '1260a c.Authenticator.admin_users = {"sonic"}'        /etc/jupyterhub/jupyterhub_config.py
+      sed -i '976a c.Spawner.default_url = '/lab''                  /etc/jupyterhub/jupyterhub_config.py
+
+      sed -i '1450a c.LocalAuthenticator.create_system_users = True' /etc/jupyterhub/jupyterhub_config.py
+      sed -i '1451a c.Authenticator.add_user_cmd = ['adduser', '--force-badname', '-q', '--gecos', '""', '--disabled-password']' /etc/jupyterhub/jupyterhub_config.py
+
     ## jupyterhub service 설정 파일 복사
-    mv /root/LAS/jupyterhub.service /lib/systemd/system/
-    mv /root/LAS/jupyterhub /etc/init.d/
+    mv /root/LAS/jupyterhub.service  /lib/systemd/system/
+    mv /root/LAS/jupyterhub          /etc/init.d/
+
     chmod 777 /lib/systemd/system/jupyterhub.service >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-    chmod 755 /etc/init.d/jupyterhub >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-    systemctl daemon-reload >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-    systemctl enable jupyterhub.service >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-    systemctl restart jupyterhub.service >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-    R CMD BATCH /root/LAS/r_jupyterhub.R >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+    chmod 755 /etc/init.d/jupyterhub                 >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+
+    systemctl daemon-reload                          >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+    systemctl enable jupyterhub.service              >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+    systemctl restart jupyterhub.service             >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+
+    R CMD BATCH /root/LAS/r_jupyterhub.R             >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
+
     echo "" | tee -a /root/install_log.txt
     echo "JupyterHub Setting Files Copy Complete" | tee -a /root/install_log.txt
   else
@@ -1144,6 +1257,7 @@ then
       wget https://docs.broadcom.com/docs-and-downloads/raid-controllers/raid-controllers-common-files/17.05.00.02_Linux-64_MSM.gz >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
       tar zxf 17.05.00.02_Linux-64_MSM.gz >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
       cd /tmp/raid_manager/disk/ && ./install.csh -a >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
+
       systemctl daemon-reload >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
       systemctl enable vivaldiframeworkd.service >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
       systemctl start vivaldiframeworkd.service >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
@@ -1151,7 +1265,7 @@ then
       echo "" | tee -a /root/install_log.txt
       echo "MSM install complete" | tee -a /root/install_log.txt
     ;;
-    ubuntu1604 | ubuntu1804 | ubuntu2004 )
+    ubuntu1604 | ubuntu1804 | ubuntu2004 | ubuntu2204 )
       echo "" | tee -a /root/install_log.txt
       echo "MSM install start" | tee -a /root/install_log.txt
       mkdir /tmp/raid_manager
@@ -1224,11 +1338,11 @@ if [ $? != 0 ]
 then
   echo "" | tee -a /root/install_log.txt
   echo "OMSA install start" | tee -a /root/install_log.txt
-  ## OMSA Port
-  firewall-cmd --add-port=1311/tcp  --permanent >> /root/install_log.txt 2>> /root/log_err.txt
-  firewall-cmd --reload >> /root/install_log.txt 2>> /root/log_err.txt
   case $OS in
     centos7 | rocky8 )
+      ## OMSA Port
+      firewall-cmd --add-port=1311/tcp  --permanent >> /root/install_log.txt 2>> /root/log_err.txt
+      firewall-cmd --reload >> /root/install_log.txt 2>> /root/log_err.txt
       perl -p -i -e '$.==20 and print "exclude = libsmbios smbios-utils-bin\n"' /etc/yum.repos.d/CentOS-Base.repo
       wget http://linux.dell.com/repo/hardware/dsu/bootstrap.cgi -O  ./dellomsainstall.sh >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
       sed -i -e "s/enabled=1/enabled=0/g" ./dellomsainstall.sh 
@@ -1248,7 +1362,7 @@ then
     ubuntu1604 )
       ## OMSA port
       ufw allow 1311/tcp >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      echo 'deb http://linux.dell.com/repo/community/openmanage/911/xenial xenial main'  >  /etc/apt/sources.list.d/linux.dell.com.sources.list
+      echo 'deb http://linux.dell.com/repo/community/openmanage/940/xenial xenial main'  >  /etc/apt/sources.list.d/linux.dell.com.sources.list
       wget http://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
       apt-key add 0x1285491434D8786F.asc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
       apt-get -y update >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
@@ -1280,10 +1394,10 @@ then
       echo "" | tee -a /root/install_log.txt
       echo "OMSA install complete" | tee -a /root/install_log.txt
     ;;
-    ubuntu2004 )
+    ubuntu2004 | ubuntu2204 )
       ## OMSA port
       ufw allow 1311/tcp >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      echo 'deb http://linux.dell.com/repo/community/openmanage/950/focal focal main'  > /etc/apt/sources.list.d/linux.dell.com.sources.list
+      echo 'deb http://linux.dell.com/repo/community/openmanage/10300/focal focal main'  > /etc/apt/sources.list.d/linux.dell.com.sources.list
       wget http://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
       apt-key add 0x1285491434D8786F.asc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
       apt-get -y update >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
@@ -1325,7 +1439,7 @@ case $OS in
     sed -i '13a bash /root/LAS/Check_List.sh' /etc/rc.local
     systemctl set-default  multi-user.target | tee -a /root/install_log.txt
   ;;
-  ubuntu1804 | ubuntu2004 )
+  ubuntu1804 | ubuntu2004 | ubuntu2204 )
     sed -i '1a bash /root/LAS/Check_List.sh' /etc/rc.local
     systemctl set-default  multi-user.target | tee -a /root/install_log.txt
   ;;
