@@ -355,7 +355,7 @@ case $OS in
     then
       apt-get update >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       sleep 2
-      apt-get -y install vim nfs-common rdate xauth firefox gcc make tmux wget figlet net-tools >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      apt-get -y install vim nfs-common xauth firefox gcc make tmux wget figlet net-tools >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       apt-get -y install xfsprogs ntfs-3g aptitude lvm2 dstat curl npm locate  >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       sleep 2
       apt-get -y install dconf-editor gnome-panel gnome-settings-daemon metacity nautilus gnome-terminal >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
@@ -363,6 +363,7 @@ case $OS in
       sleep 2
       apt-get install -y smartmontools  >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       apt-get install -y ubuntu-desktop >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      apt-get install -y rdate >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       #불필요한 서비스 disable
       systemctl disable bluetooth.service      >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       systemctl disable iscsi.service          >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
