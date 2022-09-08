@@ -1336,11 +1336,11 @@ if [ $? != 0 ]
 then
   echo "" | tee -a /root/install_log.txt
   echo "OMSA install start" | tee -a /root/install_log.txt
-  ## OMSA Port
-  firewall-cmd --add-port=1311/tcp  --permanent >> /root/install_log.txt 2>> /root/log_err.txt
-  firewall-cmd --reload >> /root/install_log.txt 2>> /root/log_err.txt
   case $OS in
     centos7 | rocky8 )
+      ## OMSA Port
+      firewall-cmd --add-port=1311/tcp  --permanent >> /root/install_log.txt 2>> /root/log_err.txt
+      firewall-cmd --reload >> /root/install_log.txt 2>> /root/log_err.txt
       perl -p -i -e '$.==20 and print "exclude = libsmbios smbios-utils-bin\n"' /etc/yum.repos.d/CentOS-Base.repo
       wget http://linux.dell.com/repo/hardware/dsu/bootstrap.cgi -O  ./dellomsainstall.sh >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
       sed -i -e "s/enabled=1/enabled=0/g" ./dellomsainstall.sh 
@@ -1437,7 +1437,7 @@ case $OS in
     sed -i '13a bash /root/LAS/Check_List.sh' /etc/rc.local
     systemctl set-default  multi-user.target | tee -a /root/install_log.txt
   ;;
-  ubuntu1804 | ubuntu2004 )
+  ubuntu1804 | ubuntu2004 | ubuntu2204 )
     sed -i '1a bash /root/LAS/Check_List.sh' /etc/rc.local
     systemctl set-default  multi-user.target | tee -a /root/install_log.txt
   ;;
