@@ -19,7 +19,7 @@ then
   echo "Copyright by Dasandata.co.ltd" | tee -a /root/install_log.txt
   echo "http://www.dasandata.co.kr" | tee -a /root/install_log.txt
   echo "" | tee -a /root/install_log.txt
-  echo "Linux_Automatic_Script Install Start" | tee -a /root/install_log.txt
+  echo "Linux_Automatic_Script Install Start (Ver: 2209)" | tee -a /root/install_log.txt
   echo "" | tee -a /root/install_log.txt
   echo "CUDA Version Select" | tee -a /root/install_log.txt
   case $OSCHECK in 
@@ -349,13 +349,13 @@ case $OS in
     echo "" | tee -a /root/install_log.txt
     echo "$OS Package Install" | tee -a /root/install_log.txt
     ## Package 설치를 ipmi 여부로 Server와 PC를 나눠서 진행
-    dpkg -l | grep -i htop &> /dev/null
+    dpkg -l | grep -i rdate &> /dev/null
     if [ $? != 0 ]
     then
       apt-get update >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       sleep 2
       apt-get -y install vim nfs-common rdate xauth firefox gcc make tmux wget figlet net-tools >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      apt-get -y install xfsprogs ntfs-3g aptitude lvm2 dstat curl npm mlocate  >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      apt-get -y install xfsprogs ntfs-3g aptitude lvm2 dstat curl npm locate  >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       sleep 2
       apt-get -y install dconf-editor gnome-panel gnome-settings-daemon metacity nautilus gnome-terminal >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       apt-get -y install libzmq3-dev libcurl4-openssl-dev libxml2-dev snapd ethtool htop dnsutils >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
