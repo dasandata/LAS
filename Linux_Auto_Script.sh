@@ -461,7 +461,7 @@ sleep 3
 echo "" | tee -a /root/install_log.txt
 
 # 8. 파이썬 설치
-pip -V &> /dev/null
+pip3 -V &> /dev/null
 if [ $? != 0 ]
 then
   case $OS in
