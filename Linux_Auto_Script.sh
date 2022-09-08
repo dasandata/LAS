@@ -179,7 +179,7 @@ fi
 # ubuntu 2204 만 cloud-init 제거
 case $OS in
   ubuntu2204 )
-    echo "cloud-init remove on ubuntu 2204."  | tee -a /root/install_log.txt
+    echo "cloud-init remove on $OS."  | tee -a /root/install_log.txt
     echo 'datasource_list: [ None ]' |  tee /etc/cloud/cloud.cfg.d/90_dpkg.cfg
     apt-get -y purge cloud-init      | tee -a /root/install_log.txt
     rm -rf /etc/cloud/  /var/lib/cloud/
