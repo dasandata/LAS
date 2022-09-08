@@ -1032,10 +1032,10 @@ then
       echo "libcudnn Install Start" | tee -a /root/install_log.txt
       if [[ $CUDAV == *11* ]]
       then
-        apt-get -y install libcudnn8* >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
+        apt-get -y install libcudnn8*    >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
         apt-get -y install libcublas-dev >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
       else
-        apt-get -y install libcudnn7* >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
+        apt-get -y install libcudnn7*    >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
         apt-get -y install libcublas-dev >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
       fi
       echo "" | tee -a /root/install_log.txt
@@ -1045,7 +1045,7 @@ then
       echo "" | tee -a /root/install_log.txt
       echo "libcudnn Install Start" | tee -a /root/install_log.txt
       apt-get -y install nvidia-cuda-toolkit >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
-      apt-get -y install libcudnn8* >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
+      apt-get -y install libcudnn8*          >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "libcudnn Install complete" | tee -a /root/install_log.txt
     ;;
