@@ -615,8 +615,8 @@ then
       echo "Python Package Install"
       pip install --upgrade numpy scipy  nose  matplotlib  pandas  keras tensorflow-gpu >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       pip install scipy==1.2.2 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip3 install --upgrade numpy scipy nose matplotlib pandas keras tensorflow-gpu >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip3 install numpy==1.16.0 h5py==2.10.0 cryptography==3.3.2 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install --upgrade numpy scipy nose matplotlib pandas keras tensorflow-gpu    >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install numpy==1.20.3 h5py==2.10.0 cryptography==3.3.2 python-dateutil=2.8.2 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       pip install --upgrade torch torchvision  >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       pip3 install --upgrade torch torchvision >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       echo "" | tee -a /root/install_log.txt
