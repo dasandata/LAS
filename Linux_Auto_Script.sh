@@ -243,7 +243,8 @@ case $OS in
       sleep 2
       yum install -y epel-release >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       sleep 2
-      yum install -y ethtool pciutils openssh mlocate nfs-utils rdate xauth firefox nautilus wget bind-utils >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      yum install -y rdate >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      yum install -y ethtool pciutils openssh mlocate nfs-utils xauth firefox nautilus wget bind-utils >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       yum install -y tcsh tree lshw tmux kernel-headers kernel-devel gcc make gcc-c++ snapd yum-utils >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       yum install -y cmake ntfs-3g dstat perl perl-CPAN perl-core net-tools openssl-devel git-lfs vim >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       sleep 2
