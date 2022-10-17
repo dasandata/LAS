@@ -946,6 +946,10 @@ then
         fi
         CUDAV="${CUDAV/./-}"
         sleep 1
+
+        rpm --import http://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/D42D0685.pub
+        yum -y install kmod-nvidia-latest-dkms
+
         yum -y install cuda-$CUDAV >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
         sleep 1
         nvidia-smi -pm 1 >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt

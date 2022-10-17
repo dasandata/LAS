@@ -359,6 +359,10 @@ yum -y install openmotif*
 
 ```bash
 # CUDA 설치
+
+rpm --import http://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/D42D0685.pub
+yum -y install kmod-nvidia-latest-dkms
+
 yum -y install cuda-$CUDAV
 
 # profile에 PATH 설정시에는 cuda-11-1의 형식이 아닌 cuda-11.1 같은 형식으로 변경되어야 합니다.
