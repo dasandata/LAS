@@ -243,10 +243,11 @@ case $OS in
       sleep 2
       yum install -y epel-release >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       sleep 2
-      yum install -y rdate >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      yum install -y rdate                                                                             >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       yum install -y ethtool pciutils openssh mlocate nfs-utils xauth firefox nautilus wget bind-utils >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      yum install -y tcsh tree lshw tmux kernel-headers kernel-devel gcc make gcc-c++ snapd yum-utils >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      yum install -y cmake ntfs-3g dstat perl perl-CPAN perl-core net-tools openssl-devel git-lfs vim >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      yum install -y tcsh tree lshw tmux kernel-headers kernel-devel gcc make gcc-c++ yum-utils       >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      yum install -y cmake dstat perl perl-CPAN perl-core net-tools openssl-devel git-lfs vim         >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      yum install -y git bash-completion smartmontools                                                >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       sleep 2
       dmidecode | grep -i ipmi &> /dev/null
       if [ $? = 0 ]
@@ -269,7 +270,7 @@ case $OS in
       yum install -y glibc-devel libstdc++ libstdc++-devel >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       sleep 2
       sed -i -e "s/\]$/\]\npriority=5/g" /etc/yum.repos.d/epel.repo >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      yum install -y htop ntfs-3g figlet smartmontools >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      yum install -y htop ntfs-3g snapd figlet >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "The package install complete" | tee -a /root/install_log.txt
     else
