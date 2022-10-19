@@ -162,7 +162,7 @@ cat /etc/selinux/config | grep "SELINUX=disabled"
 ```bash
 yum -y update
 yum install -y epel-release
-yum install -y ethtool pciutils openssh mlocate nfs-utils rdate xauth firefox nautilus wget bind-utils
+yum install -y ethtool pciutils openssh mlocate nfs-utils xauth firefox nautilus wget bind-utils
 yum install -y tcsh tree lshw tmux kernel-headers kernel-devel gcc make gcc-c++ snapd yum-utils
 yum install -y cmake ntfs-3g dstat perl perl-CPAN perl-core net-tools openssl-devel git-lfs vim
 
