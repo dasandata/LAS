@@ -134,7 +134,7 @@ echo "options nouveau modeset=0" >> /etc/modprobe.d/blacklist.conf
 # 변경된 내용으로 initramfs 및 grub 재설정
 dracut  -f
 grub2-mkconfig -o /boot/grub2/grub.cfg
-grub2-mkconfig -o /boot/efi/EFI/centos/grub.cfg
+grub2-mkconfig -o /boot/efi/EFI/rocky/grub.cfg
 ```
 
 
