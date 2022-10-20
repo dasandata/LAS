@@ -149,6 +149,7 @@ then
       dracut  -f >> /root/install_log.txt 2>> /root/log_err.txt
       grub2-mkconfig -o /boot/grub2/grub.cfg >> /root/install_log.txt 2>> /root/log_err.txt
       grub2-mkconfig -o /boot/efi/EFI/centos/grub.cfg >> /root/install_log.txt 2>> /root/log_err.txt
+      grub2-mkconfig -o /boot/efi/EFI/rocky/grub.cfg  >> /root/install_log.txt 2>> /root/log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "Nouveau and Grub Setting complete" | tee -a /root/install_log.txt
     ;;
