@@ -222,7 +222,7 @@ echo $HISTSIZE
 
 ```bash
 yum install -y chrony 
-sed -i 's/pool 2.pool.ntp.org iburst/pool kr.pool.ntp.org iburst/' /etc/chrony.conf 
+sed -i 's/pool 2.rocky.pool.ntp.org iburst/pool kr.pool.ntp.org iburst/' /etc/chrony.conf 
 systemctl enable chronyd 
 systemctl start  chronyd 
 chronyc sources 
