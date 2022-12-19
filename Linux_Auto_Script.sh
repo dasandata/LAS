@@ -722,6 +722,7 @@ echo "" | tee -a /root/install_log.txt
 sleep 3
 echo "" | tee -a /root/install_log.txt
 
+: << 'END'
 # 11. 사용자 생성 테스트
 ls /home/ | grep -i dasan &> /dev/null
 if [ $? != 0 ]
@@ -750,6 +751,7 @@ fi
 echo "" | tee -a /root/install_log.txt
 sleep 3
 echo "" | tee -a /root/install_log.txt
+END
 
 # 12. H/W 사양 체크
 cat /root/HWcheck.txt &> /dev/null
