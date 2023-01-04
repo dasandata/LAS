@@ -423,7 +423,8 @@ if [ $? != 0 ]
     echo "# Add Timestamp to .bash_history "  >> /etc/profile
     echo 'export HISTTIMEFORMAT="20%y/%m/%d %T "'  >> /etc/profile
     echo "export PS1='\[\e[1;46;30m\][\u@\h:\W]\\$\[\e[m\] '"  >> /root/.bashrc
-    echo "export PS1='\[\e[1;47;30m\][\u@\h:\W]\\$\[\e[m\] '"  >> /home/sonic/.bashrc
+    # echo "export PS1='\[\e[1;47;30m\][\u@\h:\W]\\$\[\e[m\] '"  >> /home/sonic/.bashrc
+    echo "export PS1='\[\e[1;47;30m\][\u@\h:\W]\\$\[\e[m\] '"  >> /home/kds/.bashrc
     source  /etc/profile
     source  /root/.bashrc
     echo $HISTSIZE >> /root/install_log.txt 2>> /root/log_err.txt
