@@ -55,3 +55,24 @@ firewall-cmd --zone=public --permanent --add-service=http
 
 1.1.1.1/1523 (UDP/IN) -> LOCAL 접근 허용 
 firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address 1.1.1.1 port="1523" protocol="udp" accept'
+
+ssh용 7777 TCP 포트 추가 PUBLIC 존
+firewall-cmd --permanent --add-port 7777/tcp
+
+jupiter용 9090 TCP 포트 추가 PUBLIC 존
+firewall-cmd --permanent --add-port 9090/tcp
+
+MASQUERADE 설정
+firewall-cmd --zone=external --change-interface=[ext Interface name]
+
+MASQUERADE 활성
+firewall-cmd --zone=external --add-masquerade
+
+MASQUERADE 비활성
+firewall-cmd --zone=external --remove-masquerade
+
+특정IP 차단
+firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address=[REJECT IP] reject'
+
+특정IP 차단 해제
+firewall-cmd --permanent --remove-rich-rule='rule family="ipv4" source address=[REJECT IP REMOVE] reject'
