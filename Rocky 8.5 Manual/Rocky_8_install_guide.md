@@ -168,7 +168,7 @@ yum install -y cmake ntfs-3g dstat perl perl-CPAN perl-core net-tools openssl-de
 
 # GUI 패키지 설치
 yum -y groupinstall "Server with GUI"
-yum -y groupinstall "Graphical Adminstration Tools" 
+yum -y groupinstall "Graphical Administration Tools" 
 yum -y groups install "Development Tools" 
 yum install -y glibc-devel libstdc++ libstdc++-devel
 yum install -y htop ntfs-3g figlet smartmontools
