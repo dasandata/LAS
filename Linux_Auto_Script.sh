@@ -266,7 +266,8 @@ case $OS in
       else
         yum -y groupinstall "Server with GUI" >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       fi
-      yum -y groupinstall "Graphical Adminstration Tools" >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      # yum -y groupinstall "Graphical Adminstration Tools" >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
+      yum -y groupinstall "Graphical Administration Tools" >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       yum -y groups install "Development Tools" >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       yum install -y glibc-devel libstdc++ libstdc++-devel >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
       sleep 2
