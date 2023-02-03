@@ -167,7 +167,7 @@ yum install -y cmake ntfs-3g dstat perl perl-CPAN perl-core net-tools openssl-de
 
 # GUI 관련 Tool 설치
 yum -y groupinstall "GNOME Desktop" 
-yum -y groupinstall "Graphical Adminstration Tools" 
+yum -y groupinstall "Graphical Administration Tools" 
 yum install -y glibc-static yum-plugin-priorities 
 yum -y groups install "Development Tools"
 yum install -y glibc-static glibc-devel libstdc++ libstdc++-devel
