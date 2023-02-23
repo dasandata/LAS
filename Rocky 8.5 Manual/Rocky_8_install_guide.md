@@ -209,7 +209,7 @@ echo " "                                >>  /etc/profile
 echo "# Add Timestamp to .bash_history "                    >>  /etc/profile
 echo 'export HISTTIMEFORMAT="20%y/%m/%d %T "'               >>  /etc/profile
 echo "export PS1='\[\e[1;46;30m\][\u@\h:\W]\\$\[\e[m\] '"   >>  /root/.bashrc
-echo "export PS1='\[\e[1;47;30m\][\u@\h:\W]\\$\[\e[m\] '"   >>  /home/sonic/.bashrc
+echo "export PS1='\[\e[1;47;30m\][\u@\h:\W]\\$\[\e[m\] '"   >>  /home/kds/.bashrc
 
 # 변경사항 적용 및 불러오기
 source  /etc/profile
@@ -393,7 +393,7 @@ sed -i '356a c.JupyterHub.port = 8000' /etc/jupyterhub/jupyterhub_config.py
 sed -i '358a c.LocalAuthenticator.create_system_users = True' /etc/jupyterhub/jupyterhub_config.py
 sed -i '359a c.Authenticator.add_user_cmd = ['adduser', '--force-badname', '-q', '--gecos', '""', '--disabled-password']' /etc/jupyterhub/jupyterhub_config.py
 sed -i '384a c.JupyterHub.proxy_class = 'jupyterhub.proxy.ConfigurableHTTPProxy'' /etc/jupyterhub/jupyterhub_config.py
-sed -i '824a c.Authenticator.admin_users = {"sonic"}' /etc/jupyterhub/jupyterhub_config.py
+sed -i '824a c.Authenticator.admin_users = {"kds"}' /etc/jupyterhub/jupyterhub_config.py
 sed -i '929a c.Spawner.default_url = '/lab'' /etc/jupyterhub/jupyterhub_config.py
 
 ## jupyterhub service 설정 파일 복사
@@ -432,7 +432,7 @@ cd
 #### ## Dell 서버의 경우 원격 제어를 위한 OMSA (OpenManage Server Administrator) 를 설치 합니다.
 
 ```bash
-perl -p -i -e '$.==20 and print "exclude = libsmbios smbios-utils-bin\n"' /etc/yum.repos.d/CentOS-Base.repo
+perl -p -i -e '$.==20 and print "exclude = libsmbios smbios-utils-bin\n"' /etc/yum.repos.d/Rokcy-Base.repo
 wget http://linux.dell.com/repo/hardware/dsu/bootstrap.cgi -O  ./dellomsainstall.sh
 sed -i -e "s/enabled=1/enabled=0/g" ./dellomsainstall.sh 
 bash ./dellomsainstall.sh
