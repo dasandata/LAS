@@ -387,7 +387,7 @@ mkdir /etc/jupyterhub
 jupyterhub --generate-config -f                               /etc/jupyterhub/jupyterhub_config.py 
 sed -i '625a c.JupyterHub.port = 8000'                        /etc/jupyterhub/jupyterhub_config.py
 sed -i '656a c.JupyterHub.proxy_class = 'jupyterhub.proxy.ConfigurableHTTPProxy'' /etc/jupyterhub/jupyterhub_config.py
-sed -i '1260a c.Authenticator.admin_users = {"sonic"}'        /etc/jupyterhub/jupyterhub_config.py
+sed -i '1260a c.Authenticator.admin_users = {"kds"}'        /etc/jupyterhub/jupyterhub_config.py
 sed -i '976a c.Spawner.default_url = '/lab''                  /etc/jupyterhub/jupyterhub_config.py
 
 sed -i '1450a c.LocalAuthenticator.create_system_users = True' /etc/jupyterhub/jupyterhub_config.py
