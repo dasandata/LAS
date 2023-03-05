@@ -235,8 +235,10 @@ perl -pi -e 's/python3/python/'   /usr/local/bin/pip
 # Python 2.7 의 경우 지원이 종료된다는 경고 문구가 표시됩니다.
 pip  install  numpy  scipy  nose  matplotlib  pandas  keras 
 pip3 install  numpy  scipy  nose  matplotlib  pandas  keras 
-pip  install  --upgrade tensorflow-gpu==1.13.1 
-pip3 install  --upgrade tensorflow-gpu==1.13.1 
+#pip  install  --upgrade tensorflow-gpu==1.13.1 
+#pip3 install  --upgrade tensorflow-gpu==1.13.1 
+pip  install  --upgrade tensorflow
+pip3  install  --upgrade tensorflow-gpu==1.13.1
 pip3 install  --upgrade cryptography==3.3.2 
 pip3 install  --upgrade optimuspyspark  
 pip3 install  --upgrade testresources 
