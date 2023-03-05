@@ -235,7 +235,8 @@ pip3 install --upgrade pip
 
 ```bash
 # Python 3.10에 사용할 패키지 설치
-pip3 install --upgrade numpy scipy nose matplotlib pandas keras h5py cryptography tensorflow-gpu 
+#pip3 install --upgrade numpy scipy nose matplotlib pandas keras h5py cryptography tensorflow-gpu 
+pip3 install --upgrade numpy scipy nose matplotlib pandas keras h5py cryptography tensorflow
 pip3 install --upgrade torch torchvision
 ```
 
