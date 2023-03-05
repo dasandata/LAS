@@ -497,7 +497,8 @@ then
       echo "Python Package Install" | tee -a /root/install_log.txt
       python3 -m pip install --upgrade pip >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       python3 -m pip install numpy scipy nose matplotlib pandas keras >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      python3 -m pip install --upgrade tensorflow-gpu==1.13.1 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      #python3 -m pip install --upgrade tensorflow-gpu==1.13.1 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      python3 -m pip install --upgrade tensorflow >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       python3 -m pip install torch torchvision >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "Python Package Install complete" | tee -a /root/install_log.txt
@@ -575,7 +576,8 @@ then
       rm -rf /usr/share/doc/python-enum34-1.0.4* >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       rm -rf /usr/lib/python2.7/site-packages/enum34-1.0.4-py2.7.egg-info >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       pip  install --upgrade setuptools==40 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip3 install --upgrade tensorflow-gpu==1.13.1 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      #pip3 install --upgrade tensorflow-gpu==1.13.1 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install --upgrade tensorflow >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       pip3 install --upgrade setuptools >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       pip  install torch torchvision >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       pip3 install torch torchvision >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
@@ -588,8 +590,10 @@ then
       echo "Python Package Install" | tee -a /root/install_log.txt
       pip2 install  numpy   scipy  nose  matplotlib  pandas  keras >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       pip3 install  numpy   scipy  nose  matplotlib  pandas  keras >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip2 install  --upgrade tensorflow-gpu==1.13.1 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip3 install  --upgrade tensorflow-gpu==1.13.1 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      #pip2 install  --upgrade tensorflow-gpu==1.13.1 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      #pip3 install  --upgrade tensorflow-gpu==1.13.1 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip2 install  --upgrade tensorflow >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install  --upgrade tensorflow >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       pip2 install  --upgrade setuptools >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       pip3 install  --upgrade setuptools >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       pip3 install --upgrade optimuspyspark  >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
@@ -605,8 +609,10 @@ then
       echo "Python Package Install" | tee -a /root/install_log.txt
       pip install  numpy   scipy  nose  matplotlib  pandas  keras >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       pip3 install  numpy   scipy  nose  matplotlib  pandas  keras >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip install  --upgrade tensorflow-gpu==1.13.1 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip3 install  --upgrade tensorflow-gpu==1.13.1 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      #pip install  --upgrade tensorflow-gpu==1.13.1 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      #pip3 install  --upgrade tensorflow-gpu==1.13.1 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip install  --upgrade tensorflow >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install  --upgrade tensorflow >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       pip3 install --upgrade cryptography==3.3.2 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       pip3 install --upgrade optimuspyspark  >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       pip3 install --upgrade testresources >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
@@ -618,9 +624,11 @@ then
     ubuntu2004 )
       echo "" | tee -a /root/install_log.txt
       echo "Python Package Install"
-      pip install --upgrade numpy scipy  nose  matplotlib  pandas  keras tensorflow-gpu >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip install --upgrade numpy scipy  nose  matplotlib  pandas  keras tensorflow >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      #pip install --upgrade numpy scipy  nose  matplotlib  pandas  keras tensorflow-gpu >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       pip install scipy==1.2.2 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip3 install --upgrade numpy scipy nose matplotlib pandas keras tensorflow-gpu    >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install --upgrade numpy scipy nose matplotlib pandas keras tensorflow >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      #pip3 install --upgrade numpy scipy nose matplotlib pandas keras tensorflow-gpu    >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       pip3 install numpy==1.20.3 h5py==2.10.0 cryptography==3.3.2 python-dateutil=2.8.2 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       pip install --upgrade torch torchvision  >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       pip3 install --upgrade torch torchvision >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
@@ -630,7 +638,8 @@ then
     ubuntu2204 )
       echo "" | tee -a /root/install_log.txt
       echo "Python Package Install"
-      pip3 install --upgrade numpy scipy nose matplotlib pandas keras h5py cryptography tensorflow-gpu  >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      pip3 install --upgrade numpy scipy nose matplotlib pandas keras h5py cryptography tensorflow >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
+      #pip3 install --upgrade numpy scipy nose matplotlib pandas keras h5py cryptography tensorflow-gpu  >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       pip3 install --upgrade torch torchvision >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
       echo "" | tee -a /root/install_log.txt
       echo "Python Package Install complete" | tee -a /root/install_log.txt
