@@ -245,7 +245,8 @@ yum -y install python36-devel
 # Python 3.6에 사용할 패키지 설치
 python3 -m pip install --upgrade pip 
 python3 -m pip install numpy scipy nose matplotlib pandas keras 
-python3 -m pip install --upgrade tensorflow-gpu==1.13.1 
+#python3 -m pip install --upgrade tensorflow-gpu==1.13.1 
+python3 -m pip install --upgrade tensorflow
 python3 -m pip install torch torchvision 
 ```
 
