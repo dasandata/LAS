@@ -238,9 +238,11 @@ perl -pi -e 's/python3/python/'   /usr/local/bin/pip
 ```bash
 # Python 2.7 , 3.6에 사용할 패키지 설치
 # Python 2.7 의 경우 지원이 종료된다는 경고 문구가 표시됩니다.
-pip install --upgrade numpy scipy  nose  matplotlib  pandas  keras tensorflow-gpu
+#pip install --upgrade numpy scipy  nose  matplotlib  pandas  keras tensorflow-gpu
+pip install --upgrade numpy scipy  nose  matplotlib  pandas  keras tensorflow
 pip install scipy==1.2.2
-pip3 install --upgrade numpy scipy nose matplotlib pandas keras tensorflow-gpu
+#pip3 install --upgrade numpy scipy nose matplotlib pandas keras tensorflow-gpu
+pip3 install --upgrade numpy scipy nose matplotlib pandas keras tensorflow
 pip3 install numpy==1.20.3 h5py==2.10.0 cryptography==3.3.2 python-dateutil=2.8.2
 pip install --upgrade torch torchvision 
 pip3 install --upgrade torch torchvision
