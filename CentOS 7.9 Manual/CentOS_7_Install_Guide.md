@@ -265,7 +265,8 @@ rm -rf /usr/lib/python2.7/site-packages/enum34-1.0.4-py2.7.egg-info
 #pip install   --upgrade tensorflow-gpu==1.13.1
 pip install   --upgrade setuptools==40
 pip3 install  --upgrade setuptools
-pip3 install  --upgrade tensorflow-gpu==1.13.1
+#pip3 install  --upgrade tensorflow-gpu==1.13.1
+pip3 install --upgrade tensorflow
 pip install   torch torchvision
 pip3 install  torch torchvision
 pip3 install  --upgrade optimuspyspark
