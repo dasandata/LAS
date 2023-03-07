@@ -243,7 +243,7 @@ pip install --upgrade numpy scipy  nose  matplotlib  pandas  keras tensorflow
 pip install scipy==1.2.2
 #pip3 install --upgrade numpy scipy nose matplotlib pandas keras tensorflow-gpu
 pip3 install --upgrade numpy scipy nose matplotlib pandas keras tensorflow
-pip3 install numpy==1.20.3 h5py==2.10.0 cryptography==3.3.2 python-dateutil=2.8.2
+pip3 install numpy==1.20.3 h5py==2.10.0 cryptography==3.3.2 python-dateutil==2.8.2
 pip install --upgrade torch torchvision 
 pip3 install --upgrade torch torchvision
 ```
