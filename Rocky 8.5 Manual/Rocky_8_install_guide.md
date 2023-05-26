@@ -433,7 +433,7 @@ cd
 #### ## Dell 서버의 경우 원격 제어를 위한 OMSA (OpenManage Server Administrator) 를 설치 합니다.
 
 ```bash
-perl -p -i -e '$.==20 and print "exclude = libsmbios smbios-utils-bin\n"' /etc/yum.repos.d/Rokcy-Base.repo
+perl -p -i -e '$.==20 and print "exclude = libsmbios smbios-utils-bin\n"' /etc/yum.repos.d/Rocky-Base.repo
 wget http://linux.dell.com/repo/hardware/dsu/bootstrap.cgi -O  ./dellomsainstall.sh
 sed -i -e "s/enabled=1/enabled=0/g" ./dellomsainstall.sh 
 bash ./dellomsainstall.sh
