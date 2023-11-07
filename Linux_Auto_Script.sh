@@ -425,7 +425,7 @@ if [ $? != 0 ]
     echo 'export HISTTIMEFORMAT="20%y/%m/%d %T "'  >> /etc/profile
     echo "export PS1='\[\e[1;46;30m\][\u@\h:\W]\\$\[\e[m\] '"  >> /root/.bashrc
     # echo "export PS1='\[\e[1;47;30m\][\u@\h:\W]\\$\[\e[m\] '"  >> /home/sonic/.bashrc
-    echo "export PS1='\[\e[1;47;30m\][\u@\h:\W]\\$\[\e[m\] '"  >> /home/kds/.bashrc
+    echo "export PS1='\[\e[1;47;30m\][\u@\h:\W]\\$\[\e[m\] '"  >> /home/mario/.bashrc
     source  /etc/profile
     source  /root/.bashrc
     echo $HISTSIZE >> /root/install_log.txt 2>> /root/log_err.txt
@@ -1188,7 +1188,7 @@ then
 
       sed -i '625a c.JupyterHub.port = 8000'                        /etc/jupyterhub/jupyterhub_config.py
       sed -i '656a c.JupyterHub.proxy_class = 'jupyterhub.proxy.ConfigurableHTTPProxy'' /etc/jupyterhub/jupyterhub_config.py
-      sed -i '1260a c.Authenticator.admin_users = {"kds"}'        /etc/jupyterhub/jupyterhub_config.py
+      sed -i '1260a c.Authenticator.admin_users = {"mario"}'        /etc/jupyterhub/jupyterhub_config.py
       sed -i '976a c.Spawner.default_url = '/lab''                  /etc/jupyterhub/jupyterhub_config.py
 
       sed -i '1450a c.LocalAuthenticator.create_system_users = True' /etc/jupyterhub/jupyterhub_config.py
