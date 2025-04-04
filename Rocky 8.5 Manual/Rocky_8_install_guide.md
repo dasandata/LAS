@@ -383,7 +383,7 @@ yum -y install rstudio-server-rhel-2022.02.0-443-x86_64.rpm
 ## jupyter install
 python3 -m pip install jupyterhub jupyterlab notebook 
 curl -sL https://rpm.nodesource.com/setup_16.x | sudo -E bash - 
-sed -i '/failover/d'  /etc/yum.repos.d/nodesource-el8.repo 
+sed -i '/failover/d'  /etc/yum.repos.d/nodesource-nodejs.repo
 yum -y install nodejs 
 npm install -g configurable-http-proxy
 
@@ -394,7 +394,7 @@ sed -i '356a c.JupyterHub.port = 8000' /etc/jupyterhub/jupyterhub_config.py
 sed -i '358a c.LocalAuthenticator.create_system_users = True' /etc/jupyterhub/jupyterhub_config.py
 sed -i '359a c.Authenticator.add_user_cmd = ['adduser', '--force-badname', '-q', '--gecos', '""', '--disabled-password']' /etc/jupyterhub/jupyterhub_config.py
 sed -i '384a c.JupyterHub.proxy_class = 'jupyterhub.proxy.ConfigurableHTTPProxy'' /etc/jupyterhub/jupyterhub_config.py
-sed -i '824a c.Authenticator.admin_users = {"kds"}' /etc/jupyterhub/jupyterhub_config.py
+sed -i '824a c.Authenticator.admin_users = {"temp_id"}' /etc/jupyterhub/jupyterhub_config.py
 sed -i '929a c.Spawner.default_url = '/lab'' /etc/jupyterhub/jupyterhub_config.py
 
 ## jupyterhub service 설정 파일 복사
