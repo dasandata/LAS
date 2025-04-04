@@ -201,7 +201,7 @@ export HISTTIMEFORMAT="20%y/%m/%d %T "
 EOF
 
 echo "export PS1='\[\e[1;46;30m\][\u@\h:\W]\\$\[\e[m\] '"   >>  /root/.bashrc
-decho "export PS1='\[\e[1;47;30m\][\u@\h:\W]\\$\[\e[m\] '"   >>  /home/temp_id/.bashrc
+echo "export PS1='\[\e[1;47;30m\][\u@\h:\W]\\$\[\e[m\] '"   >>  /home/temp_id/.bashrc
 
 # 변경사항 적용 및 불러오기
 source  /etc/profile
