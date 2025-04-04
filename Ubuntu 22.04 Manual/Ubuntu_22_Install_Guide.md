@@ -201,8 +201,7 @@ export HISTTIMEFORMAT="20%y/%m/%d %T "
 EOF
 
 echo "export PS1='\[\e[1;46;30m\][\u@\h:\W]\\$\[\e[m\] '"   >>  /root/.bashrc
-# echo "export PS1='\[\e[1;47;30m\][\u@\h:\W]\\$\[\e[m\] '"   >>  /home/sonic/.bashrc
-echo "export PS1='\[\e[1;47;30m\][\u@\h:\W]\\$\[\e[m\] '"   >>  /home/kds/.bashrc
+decho "export PS1='\[\e[1;47;30m\][\u@\h:\W]\\$\[\e[m\] '"   >>  /home/temp_id/.bashrc
 
 # 변경사항 적용 및 불러오기
 source  /etc/profile
@@ -388,7 +387,7 @@ mkdir /etc/jupyterhub
 jupyterhub --generate-config -f                               /etc/jupyterhub/jupyterhub_config.py 
 sed -i '625a c.JupyterHub.port = 8000'                        /etc/jupyterhub/jupyterhub_config.py
 sed -i '656a c.JupyterHub.proxy_class = 'jupyterhub.proxy.ConfigurableHTTPProxy'' /etc/jupyterhub/jupyterhub_config.py
-sed -i '1260a c.Authenticator.admin_users = {"kds"}'        /etc/jupyterhub/jupyterhub_config.py
+sed -i '1260a c.Authenticator.admin_users = {"temp_id"}'        /etc/jupyterhub/jupyterhub_config.py
 sed -i '976a c.Spawner.default_url = '/lab''                  /etc/jupyterhub/jupyterhub_config.py
 
 sed -i '1450a c.LocalAuthenticator.create_system_users = True' /etc/jupyterhub/jupyterhub_config.py
