@@ -18,7 +18,6 @@ echo "시스템 정보 및 OS를 탐지합니다..."
 VENDOR=$(dmidecode -s system-manufacturer | awk '{print$1}')
 NIC=$(ip -o -4 route show to default | awk '{print $5}')
 
-# 신뢰성 있는 OS 정보 탐지
 if [ -f /etc/os-release ]; then
     . /etc/os-release
     OS_ID=$ID
@@ -79,7 +78,6 @@ else
 fi
 
 # --- 3. 부팅 스크립트(rc.local) 설정 ---
-# 참고: 최신 systemd 시스템에서는 rc.local 대신 전용 systemd service를 생성하는 것이 권장됩니다.
 if [ ! -f /etc/rc.local ]; then
     echo "rc.local 설정을 시작합니다." | tee -a "$INSTALL_LOG"
     case "$OS_ID" in
@@ -169,18 +167,9 @@ case "$OS_FULL_ID" in
 esac
 echo "기본 패키지 설치 완료." | tee -a "$INSTALL_LOG"
 
-# 이하 스크립트는 원본의 구조를 따르며, 최신 OS에 맞게 필요한 부분을 수정/검증해야 합니다.
-# (예: 방화벽, 사용자 설정, Python 패키지, CUDA/CUDNN, 딥러닝 패키지 설치 등)
-# 모든 과정은 많은 테스트가 필요하며, 특히 드라이버와 라이브러리 버전 호환성 확인이 중요합니다.
-
 echo "---"
-echo "기본적인 시스템 설정 및 패키지 설치 스크립트의 현대화가 완료되었습니다." | tee -a "$INSTALL_LOG"
-echo "이후 과정(CUDA, 딥러닝 패키지 등)은 시스템 환경에 맞춰 추가적인 검증이 필요합니다." | tee -a "$INSTALL_LOG"
-echo "스크립트가 재부팅을 요청할 수 있습니다." | tee -a "$INSTALL_LOG"
 
-# ... (원본 스크립트의 7번 이후 항목들을 여기에 현대화하여 추가) ...
 
-# 예시: 10. 방화벽 설정 현대화
 echo "방화벽 설정을 시작합니다." | tee -a "$INSTALL_LOG"
 case "$OS_ID" in
     ubuntu)
