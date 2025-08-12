@@ -284,40 +284,87 @@ if [ ! -f /root/HWcheck.txt ]; then
     touch /root/HWcheck.txt
 
     {
-        echo "=====  H/W Check Start ====="
-        echo "=====  System ====="
+        echo "############################################################"
+        echo "#               H/W SPECIFICATION CHECK RESULT             #"
+        echo "############################################################"
+        echo ""
+        
+        echo "==================== [ System Information ] ===================="
         dmidecode --type system | grep -v "^$\|#\|SMBIOS\|Handle\|Not"
-        echo "===== CPU ====="
+        echo ""
+
+        echo "==================== [ CPU Information ] ===================="
         lscpu | grep -v "Flags\|NUMA"
-        echo "===== Memory Devices ====="
+        echo ""
+
+        echo "==================== [ Memory Devices ] ===================="
         dmidecode --type 16 | grep -v "dmidecode\|SMBIOS\|Handle"
+        echo ""
         dmidecode --type memory | grep "Number Of Devices\|Size\|Locator\|Clock\|DDR\|Rank" | grep -v "No\|Unknown"
-        cat /proc/meminfo | grep MemTotal
+        echo ""
+        echo "MemTotal from /proc/meminfo:"
+        grep MemTotal /proc/meminfo
+        echo ""
+        echo "Free/Used Memory:"
         free -h
-        echo "===== PCIe ====="
+        echo ""
+
+        echo "==================== [ PCIe Devices ] ===================="
+        echo "VGA:"
         lspci | grep -i vga
+        echo ""
+        echo "NVIDIA:"
         lspci | grep -i nvidia
+        echo ""
+        echo "NIC (dmidecode):"
         dmidecode | grep NIC
+        echo ""
+        echo "Communication Controllers:"
         lspci | grep -i communication
+        echo ""
+        echo "NIC (dmesg):"
         dmesg | grep NIC
-        echo "===== Power Supply ====="
+        echo ""
+
+        echo "==================== [ Power Supply Units ] ===================="
         dmidecode --type 39 | grep "System\|Name:\|Capacity"
-        echo "===== Disk & Partition ====="
+        echo ""
+
+        echo "==================== [ Disk & Partitions ] ===================="
         blkid
-        echo "===== OS release & kernel ====="
+        echo ""
+
+        echo "==================== [ OS Release & Kernel ] ===================="
         uname -a
-    } >> /root/HWcheck.txt
+        echo ""
+
+        echo "############################################################"
+        echo "#                  H/W CHECK END                           #"
+        echo "############################################################"
+    } > /root/HWcheck.txt
 
     echo "" | tee -a "$INSTALL_LOG"
     echo "=====  H/W Check Complete =====" | tee -a "$INSTALL_LOG"
+
+    # 출력
+    echo ""
+    echo "===== H/W CHECK RESULT ====="
+    cat /root/HWcheck.txt
+    echo "============================"
 else
     echo "" | tee -a "$INSTALL_LOG"
     echo "H/W check has already been completed." | tee -a "$INSTALL_LOG"
+
+    echo ""
+    echo "===== EXISTING H/W CHECK RESULT ====="
+    cat /root/HWcheck.txt
+    echo "====================================="
 fi
 
 echo "" | tee -a "$INSTALL_LOG"
-sleep 10
+sleep 5
 echo "" | tee -a "$INSTALL_LOG"
+
 
 # --- GPU 체크 및 CPU/GPU 서버 버전 분기 ---
 if ! lspci | grep -iq nvidia; then
