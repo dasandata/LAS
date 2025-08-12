@@ -161,7 +161,7 @@ case "$OS_FULL_ID" in
     rocky8|rocky9|almalinux9)
         dnf -y install epel-release >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         dnf -y groupinstall "Server with GUI" "Development Tools" >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        dnf -y install  epel-release
+        dnf -y install  epel-release >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         dnf -y install \
         ethtool pciutils openssh mlocate nfs-utils xauth firefox nautilus wget bind-utils \
         tcsh tree lshw tmux kernel-headers kernel-devel gcc make gcc-c++ yum-utils \
@@ -202,6 +202,189 @@ case "$OS_ID" in
         ;;
 esac
 echo "방화벽 설정 완료." | tee -a "$INSTALL_LOG"
+
+# --- 7. 프로필(alias, history, 프롬프트 등) 설정 ---
+echo "프로필(alias 및 히스토리, 프롬프트) 설정을 시작합니다." | tee -a "$INSTALL_LOG"
+
+if ! grep -q "Dasandata" /etc/profile; then
+    {
+        echo ""
+        echo "# Add by Dasandata"
+        echo "alias vi='vim'"
+        echo "alias ls='ls --color=auto'"
+        echo "alias ll='ls -lh'"
+        echo "alias grep='grep --color=auto'"
+        echo ""
+        echo "# Add Timestamp to .bash_history"
+        echo 'export HISTTIMEFORMAT="20%y/%m/%d %T "'
+    } >> /etc/profile
+
+    # 루트와 일부 계정의 프롬프트 설정(원하는 계정 추가)
+    echo "export PS1='\[\e[1;46;30m\][\u@\h:\W]\\$\[\e[m\] '" >> /root/.bashrc
+    if [ -d /home/kds ]; then
+        echo "export PS1='\[\e[1;47;30m\][\u@\h:\W]\\$\[\e[m\] '" >> /home/temp_id/.bashrc
+    fi
+
+    source /etc/profile
+    source /root/.bashrc
+
+    echo "" | tee -a "$INSTALL_LOG"
+    echo "프로필 설정 완료." | tee -a "$INSTALL_LOG"
+else
+    echo "" | tee -a "$INSTALL_LOG"
+    echo "프로필 설정이 이미 적용되어 있습니다." | tee -a "$INSTALL_LOG"
+fi
+
+echo "" | tee -a "$INSTALL_LOG"
+sleep 3
+echo "" | tee -a "$INSTALL_LOG"
+
+# --- 8. 서버 시간 동기화 ---
+echo "서버 시간 동기화 설정을 시작합니다." | tee -a "$INSTALL_LOG"
+
+TIME_LOG="$LOG_DIR/Time_Setting_log.txt"
+TIME_ERR="$LOG_DIR/Time_Setting_log_err.txt"
+
+case "$OS_FULL_ID" in
+    rocky8)
+        dnf install -y chrony >> "$TIME_LOG" 2>> "$TIME_ERR"
+        sed -i 's/pool 2.pool.ntp.org iburst/pool kr.pool.ntp.org iburst/' /etc/chrony.conf
+        systemctl enable chronyd >> "$TIME_LOG" 2>> "$TIME_ERR"
+        systemctl start chronyd >> "$TIME_LOG" 2>> "$TIME_ERR"
+        chronyc sources >> "$TIME_LOG" 2>> "$TIME_ERR"
+        timedatectl >> "$TIME_LOG" 2>> "$TIME_ERR"
+        clock --systohc >> "$TIME_LOG" 2>> "$TIME_ERR"
+        date >> "$TIME_LOG" 2>> "$TIME_ERR"
+        hwclock >> "$TIME_LOG" 2>> "$TIME_ERR"
+        ;;
+    ubuntu22|ubuntu24|rocky9|almalinux9)
+        echo "OS 내장 시간동기화 서비스 사용 (systemd-timesyncd 또는 chrony)" | tee -a "$TIME_LOG"
+        timedatectl set-ntp true >> "$TIME_LOG" 2>> "$TIME_ERR"
+        timedatectl >> "$TIME_LOG" 2>> "$TIME_ERR"
+        date >> "$TIME_LOG" 2>> "$TIME_ERR"
+        hwclock --systohc >> "$TIME_LOG" 2>> "$TIME_ERR"
+        ;;
+    *)
+        echo "Start time setting (rdate/hwclock)" | tee -a "$TIME_LOG"
+        rdate -s time.bora.net >> "$TIME_LOG" 2>> "$TIME_ERR"
+        hwclock --systohc >> "$TIME_LOG" 2>> "$TIME_ERR"
+        date >> "$TIME_LOG" 2>> "$TIME_ERR"
+        hwclock >> "$TIME_LOG" 2>> "$TIME_ERR"
+        ;;
+esac
+
+echo "" | tee -a "$INSTALL_LOG"
+echo "서버 시간 동기화 설정 완료." | tee -a "$INSTALL_LOG"
+sleep 3
+echo "" | tee -a "$INSTALL_LOG"
+
+# --- 9. H/W 사양 체크 ---
+if [ ! -f /root/HWcheck.txt ]; then
+    echo "===== H/W Check Start =====" | tee -a "$INSTALL_LOG"
+    touch /root/HWcheck.txt
+
+    {
+        echo "=====  H/W Check Start ====="
+        echo "=====  System ====="
+        dmidecode --type system | grep -v "^$\|#\|SMBIOS\|Handle\|Not"
+        echo "===== CPU ====="
+        lscpu | grep -v "Flags\|NUMA"
+        echo "===== Memory Devices ====="
+        dmidecode --type 16 | grep -v "dmidecode\|SMBIOS\|Handle"
+        dmidecode --type memory | grep "Number Of Devices\|Size\|Locator\|Clock\|DDR\|Rank" | grep -v "No\|Unknown"
+        cat /proc/meminfo | grep MemTotal
+        free -h
+        echo "===== PCIe ====="
+        lspci | grep -i vga
+        lspci | grep -i nvidia
+        dmidecode | grep NIC
+        lspci | grep -i communication
+        dmesg | grep NIC
+        echo "===== Power Supply ====="
+        dmidecode --type 39 | grep "System\|Name:\|Capacity"
+        echo "===== Disk & Partition ====="
+        blkid
+        echo "===== OS release & kernel ====="
+        uname -a
+    } >> /root/HWcheck.txt
+
+    echo "" | tee -a "$INSTALL_LOG"
+    echo "=====  H/W Check Complete =====" | tee -a "$INSTALL_LOG"
+else
+    echo "" | tee -a "$INSTALL_LOG"
+    echo "H/W check has already been completed." | tee -a "$INSTALL_LOG"
+fi
+
+echo "" | tee -a "$INSTALL_LOG"
+sleep 10
+echo "" | tee -a "$INSTALL_LOG"
+
+# --- GPU 체크 및 CPU/GPU 서버 버전 분기 ---
+if ! lspci | grep -iq nvidia; then
+    echo "" | tee -a "$INSTALL_LOG"
+    echo "Complete basic setup" | tee -a "$INSTALL_LOG"
+
+    case "$OS_FULL_ID" in
+        rocky8|rocky9|almalinux9)
+            if ! dmidecode | grep -iq ipmi; then
+                echo "" | tee -a "$INSTALL_LOG"
+                echo "End of CPU version LAS" | tee -a "$INSTALL_LOG"
+                if ! grep -q "bash /root/LAS/Check_List.sh" /etc/rc.d/rc.local; then
+                    sed -i '13a bash /root/LAS/Check_List.sh' /etc/rc.d/rc.local
+                fi
+                systemctl set-default graphical.target >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+                reboot
+            else
+                echo "" | tee -a "$INSTALL_LOG"
+                echo "The server version continues." | tee -a "$INSTALL_LOG"
+                if [ ! -f /root/nvidia.txt ]; then
+                    touch /root/nvidia.txt
+                    reboot
+                fi
+            fi
+            ;;
+
+        ubuntu2004|ubuntu2204|ubuntu22|ubuntu24)
+            if ! dmidecode | grep -iq ipmi; then
+                echo "" | tee -a "$INSTALL_LOG"
+                echo "End of CPU version LAS" | tee -a "$INSTALL_LOG"
+                if ! grep -q "bash /root/LAS/Check_List.sh" /etc/rc.local; then
+                    sed -i '1a bash /root/LAS/Check_List.sh' /etc/rc.local
+                fi
+                systemctl set-default graphical.target >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+                reboot
+            else
+                echo "" | tee -a "$INSTALL_LOG"
+                echo "The server version continues." | tee -a "$INSTALL_LOG"
+                if [ ! -f /root/nvidia.txt ]; then
+                    touch /root/nvidia.txt
+                    reboot
+                fi
+            fi
+            ;;
+
+        *)
+            # 기타 OS는 별도 처리 없음
+            ;;
+    esac
+else
+    echo "" | tee -a "$INSTALL_LOG"
+    echo "GPU Settings Start." | tee -a "$INSTALL_LOG"
+    if [ ! -f /root/nvidia.txt ]; then
+        touch /root/nvidia.txt
+        reboot
+    fi
+fi
+
+sleep 3
+
+# --- GPU 없으면 Skip 표시 ---
+if grep -q "No" /root/cudaversion.txt; then
+    OS="Skip this server as it has no GPU."
+else
+    echo ""
+fi
+
 
 echo "모든 과정이 완료되었습니다. 시스템을 재부팅합니다." | tee -a "$INSTALL_LOG"
 # reboot
