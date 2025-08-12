@@ -161,8 +161,13 @@ case "$OS_FULL_ID" in
     rocky8|rocky9|almalinux9)
         dnf -y install epel-release >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         dnf -y groupinstall "Server with GUI" "Development Tools" >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        dnf -y install vim nfs-utils rdate curl git wget figlet net-tools htop dstat \
-        gnome-tweaks smartmontools python3-pip python3-devel >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        dnf -y install  epel-release
+        dnf -y install \
+        ethtool pciutils openssh mlocate nfs-utils xauth firefox nautilus wget bind-utils \
+        tcsh tree lshw tmux kernel-headers kernel-devel gcc make gcc-c++ yum-utils \
+        cmake dstat perl perl-CPAN perl-core net-tools openssl-devel git-lfs vim  \
+        git bash-completion smartmontools ipmitool tar chrony htop \
+        >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         ;;
 esac
 echo "기본 패키지 설치 완료." | tee -a "$INSTALL_LOG"
