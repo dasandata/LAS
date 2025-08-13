@@ -104,15 +104,14 @@ fi
 
 
 # --- 4. Nouveau 비활성화 및 GRUB 설정 ---
-if ! grep -q "ipv6.disable=1" /etc/default/grub; then
+if lsmod | grep -q "^nouveau"; then
     echo "Nouveau 드라이버 비활성화 및 GRUB 설정을 시작합니다." | tee -a "$INSTALL_LOG"
-    echo "blacklist nouveau" >> /etc/modprobe.d/blacklist-nouveau.conf
+    
+    # nouveau 모듈 블랙리스트 설정
+    echo "blacklist nouveau" > /etc/modprobe.d/blacklist-nouveau.conf
     echo "options nouveau modeset=0" >> /etc/modprobe.d/blacklist-nouveau.conf
 
-    # GRUB 설정 수정
-    sed -i 's/GRUB_CMDLINE_LINUX="\(.*\)"/GRUB_CMDLINE_LINUX="ipv6.disable=1 \1"/g' /etc/default/grub
-    sed -i -e 's/ quiet//g' -e 's/ splash//g' /etc/default/grub
-
+    # OS별 initramfs 및 GRUB 설정 적용
     case "$OS_ID" in
         ubuntu)
             update-initramfs -u >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
@@ -121,14 +120,18 @@ if ! grep -q "ipv6.disable=1" /etc/default/grub; then
         rocky|almalinux)
             dracut -f >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
             grub2-mkconfig -o /boot/grub2/grub.cfg >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-            # EFI 시스템용 경로 추가
-            [ -f /boot/efi/EFI/"$OS_ID"/grub.cfg ] && grub2-mkconfig -o /boot/efi/EFI/"$OS_ID"/grub.cfg >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+            # EFI 시스템이면 추가 GRUB 설정
+            if [ -f /boot/efi/EFI/"$OS_ID"/grub.cfg ]; then
+                grub2-mkconfig -o /boot/efi/EFI/"$OS_ID"/grub.cfg >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+            fi
             ;;
     esac
+
     echo "GRUB 설정 완료. 재부팅 후 적용됩니다." | tee -a "$INSTALL_LOG"
 else
-    echo "GRUB 설정이 이미 완료되었습니다." | tee -a "$INSTALL_LOG"
+    echo "Nouveau 모듈이 이미 비활성화 또는 로드되지 않았습니다. 별도 작업 없이 넘어갑니다." | tee -a "$INSTALL_LOG"
 fi
+
 
 # --- 5. 시스템 설정 (SELinux, Repository) ---
 echo "시스템 설정을 시작합니다." | tee -a "$INSTALL_LOG"
@@ -278,7 +281,31 @@ echo "서버 시간 동기화 설정 완료." | tee -a "$INSTALL_LOG"
 sleep 3
 echo "" | tee -a "$INSTALL_LOG"
 
-# --- 9. H/W 사양 체크 ---
+# --- 9. Python & pip 설치 ---
+echo "Python 3 및 pip 설치를 시작합니다." | tee -a "$INSTALL_LOG"
+
+if ! command -v pip3 &>/dev/null; then
+    case "$OS_FULL_ID" in
+        rocky8|rocky9|rocky10|almalinux8|almalinux9|almalinux10)
+            dnf -y install python3 python3-pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+            ;;
+        ubuntu2004|ubuntu2204|ubuntu2404)
+            apt-get update >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+            apt-get -y install python3 python3-pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+            ;;
+        *)
+            echo "지원하지 않는 OS 또는 버전입니다: $OS_FULL_ID" | tee -a "$INSTALL_LOG"
+            ;;
+    esac
+
+    python3 -m pip install --upgrade pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+else
+    echo "pip3가 이미 설치되어 있습니다." | tee -a "$INSTALL_LOG"
+fi
+
+echo "Python 3 및 pip 설치 완료" | tee -a "$INSTALL_LOG"
+
+# --- 10. H/W 사양 체크 ---
 if [ ! -f /root/HWcheck.txt ]; then
     echo "===== H/W Check Start =====" | tee -a "$INSTALL_LOG"
     touch /root/HWcheck.txt
@@ -430,6 +457,385 @@ if grep -q "No" /root/cudaversion.txt; then
     OS="Skip this server as it has no GPU."
 else
     echo ""
+fi
+
+
+# 11. CUDA, CUDNN Repo 설치 (필요 OS만 지원)
+ls /usr/local/ | grep cuda &> /dev/null
+if [ $? != 0 ]; then
+  case $OS_FULL_ID in
+    rocky8|almalinux8)
+      dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64/cuda-rhel8.repo >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
+      wget https://developer.download.nvidia.com/compute/machine-learning/repos/rhel8/x86_64/nvidia-machine-learning-repo-rhel8-1.0.0-1.x86_64.rpm >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
+      dnf -y install nvidia-machine-learning-repo-rhel8-1.0.0-1.x86_64.rpm >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
+      dnf -y install libXi-devel mesa-libGLU-devel libXmu-devel libX11-devel freeglut-devel libXm* openmotif* >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
+      ;;
+    rocky9|almalinux9)
+      dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64/cuda-rhel9.repo >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
+      dnf -y install libXi-devel mesa-libGLU-devel libXmu-devel libX11-devel freeglut-devel libXm* openmotif* >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
+      ;;
+    rocky10|almalinux10)
+      dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel10/x86_64/cuda-rhel10.repo >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
+      dnf -y install libXi-devel mesa-libGLU-devel libXmu-devel libX11-devel freeglut-devel libXm* openmotif* >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
+      ;;
+    ubuntu2004|ubuntu2204|ubuntu2404)
+      apt-get -y install sudo gnupg >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
+      wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu${OS_VERSION_MAJOR}04/x86_64/3bf863cc.pub -O /usr/share/keyrings/cuda-archive-keyring.gpg >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
+      echo "deb [signed-by=/usr/share/keyrings/cuda-archive-keyring.gpg] https://developer.download.nvidia.com/compute/cuda/repos/ubuntu${OS_VERSION_MAJOR}04/x86_64/ /" > /etc/apt/sources.list.d/nvidia-cuda.list
+      apt-get update >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
+      ;;
+    *)
+      echo "CUDA,CUDNN repo not installed for this OS: $OS_FULL_ID" | tee -a /root/install_log.txt
+      ;;
+  esac
+else
+  echo "The CUDA REPO has already been installed." | tee -a /root/install_log.txt
+fi
+
+echo "" | tee -a /root/install_log.txt
+sleep 3
+echo "" | tee -a /root/install_log.txt
+
+# 12. CUDA 설치 및 PATH 설정
+ls /usr/local/ | grep cuda >> /root/install_log.txt 2>> /root/log_err.txt
+if [ $? != 0 ]; then
+  CUDAV=$(cat /root/cudaversion.txt)
+  if [ "$CUDAV" = "No-GPU" ]; then
+    echo "No-GPU: not install cuda" >> /root/install_log.txt 2>> /root/log_err.txt
+  else
+    CUDAV_U="${CUDAV/-/.}"
+    case $OS_FULL_ID in
+      rocky8|almalinux8|rocky9|almalinux9|rocky10|almalinux10)
+        echo "CUDA $CUDAV 설치 시작" | tee -a /root/install_log.txt
+        if ! grep -q "ADD Cuda" /etc/profile; then
+          echo "" >> /etc/profile
+          echo "### ADD Cuda $CUDAV_U PATH" >> /etc/profile
+          echo "export PATH=/usr/local/cuda-$CUDAV_U/bin:/usr/local/cuda-$CUDAV_U/include:\$PATH" >> /etc/profile
+          echo "export LD_LIBRARY_PATH=/usr/local/cuda-$CUDAV_U/lib64:/usr/local/cuda/extras/CUPTI/:\$LD_LIBRARY_PATH" >> /etc/profile
+          echo "export CUDA_HOME=/usr/local/cuda-$CUDAV_U" >> /etc/profile
+          echo "export CUDA_INC_DIR=/usr/local/cuda-$CUDAV_U/include" >> /etc/profile
+        fi
+        sleep 1
+        dnf -y install cuda-$CUDAV >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
+        sleep 1
+        nvidia-smi -pm 1 >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
+        systemctl enable nvidia-persistenced >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
+        source /etc/profile
+        source /root/.bashrc
+        echo "CUDA $CUDAV 설치 완료" | tee -a /root/install_log.txt
+      ;;
+      ubuntu2004|ubuntu2204|ubuntu2404)
+        echo "CUDA $CUDAV 설치 시작" | tee -a /root/install_log.txt
+        if ! grep -q "ADD Cuda" /etc/profile; then
+          echo "" >> /etc/profile
+          echo "### ADD Cuda $CUDAV_U PATH" >> /etc/profile
+          echo "export PATH=/usr/local/cuda-$CUDAV_U/bin:/usr/local/cuda-$CUDAV_U/include:\$PATH" >> /etc/profile
+          echo "export LD_LIBRARY_PATH=/usr/local/cuda-$CUDAV_U/lib64:/usr/local/cuda/extras/CUPTI/:\$LD_LIBRARY_PATH" >> /etc/profile
+          echo "export CUDA_HOME=/usr/local/cuda-$CUDAV_U" >> /etc/profile
+          echo "export CUDA_INC_DIR=/usr/local/cuda-$CUDAV_U/include" >> /etc/profile
+        fi
+        sleep 1
+        apt-get -y install cuda-$CUDAV >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
+        sleep 1
+        nvidia-smi -pm 1 >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
+        systemctl enable nvidia-persistenced >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
+        source /etc/profile
+        source /root/.bashrc
+        echo "CUDA $CUDAV 설치 완료" | tee -a /root/install_log.txt
+      ;;
+      *)
+        echo "CUDA not install: $OS_FULL_ID" | tee -a /root/install_log.txt
+      ;;
+    esac
+  fi
+else
+  echo "The CUDA has already been installed." | tee -a /root/install_log.txt
+fi
+
+echo "" | tee -a /root/install_log.txt
+sleep 3
+echo "" | tee -a /root/install_log.txt
+
+# --- 13. CUDNN 9 설치 ---
+echo "CUDNN 9 설치를 시작합니다." | tee -a "$INSTALL_LOG"
+
+CUDAV=$(cat /root/cudaversion.txt 2>/dev/null)
+if [ -z "$CUDAV" ] || [ "$CUDAV" = "No-GPU" ]; then
+    echo "No GPU 또는 CUDA 버전 미설정 상태입니다. CUDNN 설치를 건너뜁니다." | tee -a "$INSTALL_LOG"
+else
+    if [[ "$CUDAV" == *"-"* ]]; then
+        CUDA_MAJOR=${CUDAV%%-*}
+    else
+        CUDA_MAJOR=$CUDAV
+    fi
+    
+    case "$OS_FULL_ID" in
+        rocky8|rocky9|almalinux9|rocky10|almalinux10)
+            echo " CUDNN 설치 (CUDA $CUDAV_DOTTED) 시작" | tee -a "$INSTALL_LOG"
+            dnf -y install \
+                cudnn9-cuda-${CUDA_MAJOR} \
+                libcudnn9-devel-cuda-${CUDA_MAJOR} \
+                libcudnn9-headers-cuda-${CUDA_MAJOR} \
+                libcudnn9-samples \
+                >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
+            echo "CUDNN 설치 완료" | tee -a "$INSTALL_LOG"
+            ;;
+
+        ubuntu2004|ubuntu2204|ubuntu2404)
+            echo " CUDNN 9 설치 (CUDA $CUDAV_DOTTED) 시작" | tee -a "$INSTALL_LOG"
+            apt-get -y install \
+                libcudnn9-cuda-${CUDA_MAJOR} \
+                libcudnn9-dev-cuda-${CUDA_MAJOR} \
+                libcudnn9-headers-cuda-${CUDA_MAJOR} \
+                libcudnn9-samples \
+                >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
+            echo "CUDNN 설치 완료" | tee -a "$INSTALL_LOG"
+            ;;
+
+        *)
+            echo "지원하지 않는 OS 또는 버전입니다: $OS_FULL_ID" | tee -a "$INSTALL_LOG"
+            ;;
+    esac
+fi
+
+# --- 16. R 및 RStudio Server 설치 ---
+echo "R 및 RStudio Server 설치를 시작합니다." | tee -a "$INSTALL_LOG"
+
+case "$OS_FULL_ID" in
+    rocky8|almalinux8)
+        dnf config-manager --set-enabled powertools >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        dnf -y install R libcurl-devel libxml2-devel >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        wget -O /tmp/rstudio-server-latest.rpm \
+            https://download2.rstudio.org/server/rhel8/x86_64/rstudio-server-rhel-2025.05.1-513-x86_64.rpm \
+            >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        dnf -y install /tmp/rstudio-server-latest.rpm >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        rm -f /tmp/rstudio-server-latest.rpm
+        ;;
+    rocky9|almalinux9|rocky10|almalinux10)
+        dnf config-manager --set-enabled crb >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        dnf -y install R libcurl-devel libxml2-devel >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        wget -O /tmp/rstudio-server-latest.rpm \
+        https://download2.rstudio.org/server/rhel9/x86_64/rstudio-server-rhel-2025.05.1-513-x86_64.rpm \
+            >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        dnf -y install /tmp/rstudio-server-latest.rpm >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        rm -f /tmp/rstudio-server-latest.rpm
+        ;;
+    ubuntu2004)
+        apt-get update >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        apt-get -y install r-base libcurl4-openssl-dev libxml2-dev >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        wget -O /tmp/rstudio-server-latest.deb \
+            wget https://download2.rstudio.org/server/focal/amd64/rstudio-server-2025.05.1-513-amd64.deb \
+            >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        apt-get -y install /tmp/rstudio-server-latest.deb >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        rm -f /tmp/rstudio-server-latest.deb
+        ;;
+    ubuntu2204)
+        apt-get update >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        apt-get -y install r-base libcurl4-openssl-dev libxml2-dev >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        wget -O /tmp/rstudio-server-latest.deb \
+            https://download2.rstudio.org/server/jammy/amd64/rstudio-server-2025.05.1-513-amd64.deb \
+            >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        apt-get -y install /tmp/rstudio-server-latest.deb >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        rm -f /tmp/rstudio-server-latest.deb
+        ;;
+    ubuntu2404)
+        apt-get update >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        apt-get -y install r-base libcurl4-openssl-dev libxml2-dev >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        wget -O /tmp/rstudio-server-latest.deb \
+            https://download2.rstudio.org/server/jammy/amd64/rstudio-server-2025.05.1-513-amd64.deb \
+            >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        apt-get -y install /tmp/rstudio-server-latest.deb >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        rm -f /tmp/rstudio-server-latest.deb
+        ;;
+    *)
+        echo "지원하지 않는 OS 또는 버전입니다: $OS_FULL_ID" | tee -a "$INSTALL_LOG"
+        ;;
+esac
+
+echo "R 및 RStudio Server 설치 완료" | tee -a "$INSTALL_LOG"
+
+
+# --- 17. JupyterHub & JupyterLab 설치 및 설정 ---
+echo "JupyterHub, JupyterLab 설치를 시작합니다." | tee -a "$INSTALL_LOG"
+
+rpm -e --nodeps python3-requests >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+python3 -m pip install --upgrade pip setuptools wheel >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+python3 -m pip install jupyterhub jupyterlab notebook >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+
+# Node.js 16 설치
+case "$OS_FULL_ID" in
+    ubuntu2004|ubuntu2204|ubuntu2404)
+        curl -fsSL https://rpm.nodesource.com/setup_20.x | bash - >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        apt-get -y install nodejs >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        ;;
+    rocky8|almalinux8|rocky9|almalinux9|rocky10|almalinux10)
+        curl -fsSL https://rpm.nodesource.com/setup_20.x | bash - >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        sed -i '/failover/d' /etc/yum.repos.d/nodesource-nodejs.repo
+        dnf -y install nodejs >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        ;;
+esac
+
+npm install -g configurable-http-proxy >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+
+# JupyterHub 설정
+JUPYTER_CONFIG_DIR="/etc/jupyterhub"
+JUPYTER_CONFIG_FILE="$JUPYTER_CONFIG_DIR/jupyterhub_config.py"
+mkdir -p "$JUPYTER_CONFIG_DIR"
+
+if [ ! -f "$JUPYTER_CONFIG_FILE" ]; then
+    jupyterhub --generate-config -f "$JUPYTER_CONFIG_FILE" >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+fi
+
+grep -Fq "c.Spawner.default_url = '/lab'" "$JUPYTER_CONFIG_FILE" || \
+    echo "c.Spawner.default_url = '/lab'     # jupyterlab 환경으로 보이도록" >> "$JUPYTER_CONFIG_FILE"
+grep -Fq "c.Authenticator.allow_all = True" "$JUPYTER_CONFIG_FILE" || \
+    echo "c.Authenticator.allow_all = True   # 모든 사용자가 접속하도록" >> "$JUPYTER_CONFIG_FILE"
+
+# JupyterHub systemd 서비스 등록
+JUPYTER_SERVICE_FILE="/etc/systemd/system/jupyterhub.service"
+if [ ! -f "$JUPYTER_SERVICE_FILE" ]; then
+    cat <<EOF > "$JUPYTER_SERVICE_FILE"
+[Unit]
+Description=JupyterHub
+After=network.target
+
+[Service]
+User=root
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=$(command -v jupyterhub) -f $JUPYTER_CONFIG_FILE
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    systemctl daemon-reload
+    systemctl enable jupyterhub.service
+    systemctl start jupyterhub.service
+fi
+
+echo "JupyterHub, JupyterLab 설치 및 서비스 등록 완료" | tee -a "$INSTALL_LOG"
+
+
+# --- LSA 설치 및 설정 스크립트 ---
+
+echo "===== LSA 설치 시작 ====="
+
+# 작업 디렉터리 생성 및 이동
+mkdir -p /root/LSA
+cd /root/LSA
+
+# Broadcom LSA ZIP 다운로드 및 압축 해제
+wget https://docs.broadcom.com/docs-and-downloads/008.012.007.000_MR7.32_LSA_Linux.zip
+
+unzip -o 008.012.007.000_MR7.32_LSA_Linux.zip
+cd webgui_rel
+unzip -o LSA_Linux.zip
+ls -l
+
+# gcc_8.3.x 폴더로 이동 후 install.sh 자동 실행
+cd ../gcc_8.3.x
+yes | ./install.sh -s
+
+echo "=== LSA install.sh 완료 ==="
+
+# ----- LsiSASH 스크립트 별도 디렉터리에 배치 -----
+mkdir -p /etc/lsisash
+if [ -f LsiSASH ]; then
+    cp -f LsiSASH /etc/lsisash/LsiSASH
+    chmod +x /etc/lsisash/LsiSASH
+else
+    echo "[WARN] LsiSASH 스크립트를 찾을 수 없습니다. /etc/lsisash에 수동 복사 필요" 
+fi
+
+# OS별 방화벽 설정
+case "$OS_FULL_ID" in
+    rocky8|rocky9|rocky10|almalinux8|almalinux9|almalinux10)
+        firewall-cmd --zone=public --add-service=http --permanent
+        firewall-cmd --zone=public --add-port=2463/tcp --permanent
+        firewall-cmd --reload
+        ;;
+    ubuntu2004|ubuntu2204|ubuntu2404)
+        ufw allow http
+        ufw allow 2463/tcp
+        ufw reload
+        ;;
+esac
+
+# ----- systemd 서비스 생성 (/etc/lsisash 경로 사용) -----
+SYSTEMD_FILE="/etc/systemd/system/lsisash.service"
+if [ ! -f "$SYSTEMD_FILE" ]; then
+    cat <<EOF > "$SYSTEMD_FILE"
+[Unit]
+Description=Start LsiSASH service at boot
+After=network.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/etc/lsisash/LsiSASH start
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    systemctl daemon-reload
+    systemctl enable lsisash.service
+    systemctl start lsisash.service
+    echo "lsisash.service 서비스 등록 및 시작 완료"
+else
+    echo "lsisash.service 서비스가 이미 존재합니다."
+fi
+
+echo "===== LSA 설치 및 설정 완료 ====="
+
+
+# --- 19. Dell OMSA 설치 ---
+echo "OMSA 설치를 시작합니다." | tee -a "$INSTALL_LOG"
+
+if ! systemctl is-active --quiet dsm_om_connsvc; then
+    case "$OS_FULL_ID" in
+        rocky8|almalinux8|rocky9|almalinux9|rocky10|almalinux10)
+            echo "RHEL 계열 OMSA 설치" | tee -a "$INSTALL_LOG"
+            firewall-cmd --permanent --add-port=1311/tcp
+            firewall-cmd --reload
+
+            wget http://linux.dell.com/repo/hardware/dsu/bootstrap.cgi -O ./dellomsainstall.sh
+            sed -i -e "s/enabled=1/enabled=0/g" ./dellomsainstall.sh
+            yes | bash ./dellomsainstall.sh
+
+            dnf -y install --enablerepo=dell-system-update_dependent srvadmin-all openssl-devel
+
+            systemctl daemon-reload
+            systemctl enable dsm_om_connsvc
+            systemctl start dsm_om_connsvc
+            ;;
+        ubuntu2004|ubuntu2204|ubuntu2404)
+            echo "Ubuntu 계열 OMSA 설치" | tee -a "$INSTALL_LOG"
+            ufw allow 1311/tcp
+
+            echo 'deb http://linux.dell.com/repo/community/openmanage/10300/focal focal main' \
+                > /etc/apt/sources.list.d/linux.dell.com.sources.list
+            wget http://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc
+            apt-key add 0x1285491434D8786F.asc
+            apt-get -y update
+            apt-get -y install srvadmin-all
+
+            if [ ! -f /usr/lib/x86_64-linux-gnu/libssl.so ]; then
+                ln -s /usr/lib/x86_64-linux-gnu/libssl.so.1.1 /usr/lib/x86_64-linux-gnu/libssl.so
+            fi
+
+            systemctl daemon-reload
+            systemctl enable dsm_sa_datamgrd.service
+            systemctl enable dsm_om_connsvc
+            systemctl start dsm_sa_datamgrd.service
+            systemctl start dsm_om_connsvc
+            ;;
+        *)
+            echo "지원하지 않는 OS: $OS_FULL_ID" | tee -a "$INSTALL_LOG"
+            ;;
+    esac
+else
+    echo "OMSA가 이미 설치되어 있습니다." | tee -a "$INSTALL_LOG"
 fi
 
 
