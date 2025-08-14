@@ -91,7 +91,7 @@ if [ ! -f /etc/rc.local ]; then
 
     echo -e '#!/bin/sh -e\n' > "$RC_PATH"
     # 아래 라인에 부팅 시 실행할 스크립트를 추가합니다.
-    echo 'bash /root/LAS/Linux_Auto_Script.sh' >> "$RC_PATH"
+    echo 'bash /root/LAS/Linux_Auto_Script_copy.sh' >> "$RC_PATH"
     echo -e '\nexit 0' >> "$RC_PATH"
 
     chmod +x "$RC_PATH"
