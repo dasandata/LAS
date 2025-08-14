@@ -742,6 +742,7 @@ if ! systemctl is-active --quiet dsm_om_connsvc; then
             wget http://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc
             apt-key add 0x1285491434D8786F.asc
             apt -y update
+            pip install --upgrade pyOpenSSL cryptography
             apt -y install srvadmin-all
 
             #if [ ! -f /usr/lib/x86_64-linux-gnu/libssl.so ]; then
