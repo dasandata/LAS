@@ -838,6 +838,30 @@ else
     echo "OMSA가 이미 설치되어 있습니다." | tee -a "$INSTALL_LOG"
 fi
 
+echo "" | tee -a /root/install_log.txt
+sleep 3
+echo "" | tee -a /root/install_log.txt
 
-echo "모든 과정이 완료되었습니다. 시스템을 재부팅합니다." | tee -a "$INSTALL_LOG"
-# reboot
+## 스크립트 완료 정리 후 재부팅
+echo "" | tee -a /root/install_log.txt
+echo "LAS install complete" | tee -a /root/install_log.txt
+
+case "$OS_FULL_ID" in
+    rocky8|almalinux8)
+        sed -i '13a bash /root/LAS/Check_List.sh' /etc/rc.d/rc.local
+        systemctl set-default multi-user.target | tee -a /root/install_log.txt
+        ;;
+    rocky9|rocky10|almalinux9|almalinux10)
+        sed -i '13a bash /root/LAS/Check_List.sh' /etc/rc.d/rc.local
+        systemctl set-default multi-user.target | tee -a /root/install_log.txt
+        ;;
+    ubuntu2004|ubuntu2204|ubuntu2404)
+        sed -i '1a bash /root/LAS/Check_List.sh' /etc/rc.local
+        systemctl set-default multi-user.target | tee -a /root/install_log.txt
+        ;;
+    *)
+        echo "지원하지 않는 OS: $OS_FULL_ID" | tee -a /root/install_log.txt
+        ;;
+esac
+
+reboot
