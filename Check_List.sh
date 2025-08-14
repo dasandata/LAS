@@ -1,367 +1,169 @@
-#!/bin/sh
+#!/bin/bash
 # Copyright by Dasandata.co.ltd
 # http://www.dasandata.co.kr
-# Ver : 2209
+# Modernized Check List - 2025
 
-OSCHECK=$(cat /etc/os-release | head -1 | cut -d "=" -f 2 | tr -d "\"" | awk '{print$1}' | tr '[A-Z]' '[a-z]')
-VENDOR=$(dmidecode | grep -i manufacturer | awk '{print$2}' | head -1)
+LOGFILE="/root/Auto_Install_Log.txt"
+> "$LOGFILE"
 
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "You have run Check List Script"  | tee -a /root/Auto_Install_Log.txt
-echo "Copyright by Dasandata.co.ltd"  | tee -a /root/Auto_Install_Log.txt
-echo "https://www.dasandata.co.kr"  | tee -a /root/Auto_Install_Log.txt
-echo ""  | tee -a /root/Auto_Install_Log.txt
-# nouveau 끄기 및 grub 설정
-echo "##### 1. Nouveau, GRUB Check Start #####"  | tee -a /root/Auto_Install_Log.txt
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "=== IPv6 disable,splash quiet remove check ===" | tee -a /root/Auto_Install_Log.txt
-cat /etc/default/grub | grep LINUX  >> /root/Auto_Install_Log.txt
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "=== blacklist nouveau check ===" | tee -a /root/Auto_Install_Log.txt
-cat /etc/modprobe.d/blacklist.conf | grep "blacklist nouveau"  >> /root/Auto_Install_Log.txt
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "=== options nouveau modeset=0 check ===" | tee -a /root/Auto_Install_Log.txt
-cat /etc/modprobe.d/blacklist.conf | grep "options nouveau modeset=0"  >> /root/Auto_Install_Log.txt
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "##### Nouveau, GRUB Check Complete #####"  | tee -a /root/Auto_Install_Log.txt
-echo "" | tee -a /root/Auto_Install_Log.txt
-sleep 3
+echo ""  | tee -a "$LOGFILE"
+echo "You have run Check List Script"  | tee -a "$LOGFILE"
+echo "Copyright by Dasandata.co.ltd"  | tee -a "$LOGFILE"
+echo "https://www.dasandata.co.kr"    | tee -a "$LOGFILE"
+echo ""  | tee -a "$LOGFILE"
 
-# selinux 제거 및 저장소 변경 
-case $OSCHECK in 
-    centos | rocky )
-        echo ""  | tee -a /root/Auto_Install_Log.txt
-        echo "##### 2. SELINUX Check #####"  | tee -a /root/Auto_Install_Log.txt
-        echo ""  | tee -a /root/Auto_Install_Log.txt
-        echo "=== selinux = disable ==="  | tee -a /root/Auto_Install_Log.txt
-        getenforce  >> /root/Auto_Install_Log.txt
-        cat /etc/selinux/config | grep "^SELINUX="  >> /root/Auto_Install_Log.txt
-        echo ""  | tee -a /root/Auto_Install_Log.txt
-        echo "##### SELINUX Check Complete #####"  | tee -a /root/Auto_Install_Log.txt
+OS_ID="$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '"')"
+OS_VERSION_MAJOR="$(awk -F= '/^VERSION_ID=/{print $2}' /etc/os-release | cut -d. -f1 | tr -d '"')"
+OS_FULL_ID="${OS_ID}${OS_VERSION_MAJOR}"
+
+# 1. Nouveau 및 GRUB 체크
+echo "##### 1. Nouveau, GRUB Check Start #####"  | tee -a "$LOGFILE"
+if [ -f /etc/default/grub ]; then
+  cat /etc/default/grub | grep "linux" >> "$LOGFILE"
+fi
+echo "=== blacklist nouveau check ===" | tee -a "$LOGFILE"
+grep "blacklist nouveau" /etc/modprobe.d/*.conf 2>/dev/null >> "$LOGFILE"
+echo "=== options nouveau modeset=0 check ===" | tee -a "$LOGFILE"
+grep "options nouveau modeset=0" /etc/modprobe.d/*.conf 2>/dev/null >> "$LOGFILE"
+echo "##### Nouveau, GRUB Check Complete #####"  | tee -a "$LOGFILE"
+
+# 2. SELinux 및 저장소 미러/변경 체크
+case "$OS_ID" in
+  rocky|almalinux)
+    echo "##### 2. SELINUX Check #####"  | tee -a "$LOGFILE"
+    getenforce  >> "$LOGFILE"
+    grep "^SELINUX=" /etc/selinux/config >> "$LOGFILE"
+    echo "##### SELINUX Check Complete #####"  | tee -a "$LOGFILE"
     ;;
-    ubuntu )
-        echo ""  | tee -a /root/Auto_Install_Log.txt
-        echo "##### 2. Repository Check #####"  | tee -a /root/Auto_Install_Log.txt
-        echo ""  | tee -a /root/Auto_Install_Log.txt
-        echo "=== mirror.kakao.com ==="  | tee -a /root/Auto_Install_Log.txt
-        cat /etc/apt/sources.list | grep -v "#\|^$" | head -3  >> /root/Auto_Install_Log.txt
-        echo ""  | tee -a /root/Auto_Install_Log.txt
-        echo "##### Repository Check Complete #####"  | tee -a /root/Auto_Install_Log.txt
-    ;;
-    *)
+  ubuntu)
+    echo "##### 2. Repository Check #####"  | tee -a "$LOGFILE"
+    grep mirror.kakao.com /etc/apt/sources.list  >> "$LOGFILE"
+    echo "##### Repository Check Complete #####"  | tee -a "$LOGFILE"
     ;;
 esac
 
-sleep 3
-
-# 기본 패키지 설치
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "##### 3. Pacakage Install Check #####"  | tee -a /root/Auto_Install_Log.txt
-echo ""  | tee -a /root/Auto_Install_Log.txt
-case $OSCHECK in 
-    centos | rocky )
-        echo "=== Kernel Version Check ==="  | tee -a /root/Auto_Install_Log.txt
-        uname -r  >> /root/Auto_Install_Log.txt
-        echo "" | tee -a /root/Auto_Install_Log.txt
-        echo "=== epel,htop install ? ==="  | tee -a /root/Auto_Install_Log.txt
-        rpm -qa | grep htop  >> /root/Auto_Install_Log.txt
-        echo "" | tee -a /root/Auto_Install_Log.txt
-        echo "=== kernel-headers version Check ==="  | tee -a /root/Auto_Install_Log.txt
-        rpm -qa | grep kernel-headers  >> /root/Auto_Install_Log.txt
-        echo "" | tee -a /root/Auto_Install_Log.txt
-        echo "=== kernel-devel version Check ==="  | tee -a /root/Auto_Install_Log.txt
-        rpm -qa | grep kernel-devel  >> /root/Auto_Install_Log.txt
-        echo "" | tee -a /root/Auto_Install_Log.txt
+# 3. 기본 패키지 체크
+echo "##### 3. Package Install Check #####"  | tee -a "$LOGFILE"
+uname -r >> "$LOGFILE"
+# htop, kernel-headers, kernel-devel
+case "$OS_ID" in
+  rocky|almalinux)
+    rpm -qa | grep -E 'htop|kernel-headers|kernel-devel' >> "$LOGFILE"
     ;;
-    ubuntu )
-        echo "=== Kernel Version Check ==="  | tee -a /root/Auto_Install_Log.txt
-        uname -r  >> /root/Auto_Install_Log.txt
-        echo "" | tee -a /root/Auto_Install_Log.txt
-        echo "=== epel,htop install ? ==="  | tee -a /root/Auto_Install_Log.txt
-        dpkg -l | grep htop  >> /root/Auto_Install_Log.txt
-        echo "" | tee -a /root/Auto_Install_Log.txt
-        echo "=== kernel-headers Version Check ==="  | tee -a /root/Auto_Install_Log.txt
-        dpkg -l | grep -i linux-headers  >> /root/Auto_Install_Log.txt
-        echo "" | tee -a /root/Auto_Install_Log.txt
-    ;;
-    *)
+  ubuntu)
+    dpkg -l | grep -i htop >> "$LOGFILE"
+    dpkg -l | grep -i linux-headers >> "$LOGFILE"
     ;;
 esac
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "##### Pacakage Check Complete #####"  | tee -a /root/Auto_Install_Log.txt
+echo "##### Package Check Complete #####"  | tee -a "$LOGFILE"
 
-sleep 3
+# 4. 프로필/alias, 히스토리 체크
+echo "##### 4. Profile Check #####"  | tee -a "$LOGFILE"
+grep "Dasandata" /etc/profile >> "$LOGFILE"
+grep "alias vi='vim'" /etc/profile >> "$LOGFILE"
+grep "HISTTIMEFORMAT" /etc/profile >> "$LOGFILE"
+grep PS1 /root/.bashrc >> "$LOGFILE"
+echo "##### Profile Check Complete #####"  | tee -a "$LOGFILE"
 
-# 프로필 설정
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "##### 4. Profile Check #####"  | tee -a /root/Auto_Install_Log.txt
-case $OSCHECK in 
-    centos | rocky )
-        sed -n "77,\$p"  /etc/profile  >> /root/Auto_Install_Log.txt
+# 5. 시간동기화 체크
+echo "##### 5. Time Check #####"  | tee -a "$LOGFILE"
+date  >> "$LOGFILE"
+hwclock >> "$LOGFILE"
+timedatectl status >> "$LOGFILE" 2>/dev/null
+echo "##### Time Check Complete #####"  | tee -a "$LOGFILE"
+
+# 6. Python/Pip 체크
+echo "##### 6. Python & pip Version Check #####" | tee -a "$LOGFILE"
+/usr/bin/python3 -V >> "$LOGFILE" 2>&1
+python3 -m pip --version >> "$LOGFILE" 2>&1
+echo "##### Python Version Check Complete #####"  | tee -a "$LOGFILE"
+
+# 7. 방화벽 상태/포트 오픈 체크
+echo "##### 7. Firewall Check #####" | tee -a "$LOGFILE"
+case "$OS_ID" in
+  rocky|almalinux)
+    systemctl is-active firewalld >> "$LOGFILE"
+    firewall-cmd --list-all >> "$LOGFILE"
     ;;
-    ubuntu )
-        sed -n "28,\$p"  /etc/profile  >> /root/Auto_Install_Log.txt
-    ;;
-    *)
-    ;;
-esac
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "##### Profile Check Complete #####"  | tee -a /root/Auto_Install_Log.txt
-
-sleep 3
-
-# 서버 시간 동기화
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "##### 5. Time Check #####"  | tee -a /root/Auto_Install_Log.txt
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "=== Time ==="  | tee -a /root/Auto_Install_Log.txt
-date  >> /root/Auto_Install_Log.txt
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "=== H/W Time ==="  | tee -a /root/Auto_Install_Log.txt
-hwclock  >> /root/Auto_Install_Log.txt
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "##### Time Check Complete #####"  | tee -a /root/Auto_Install_Log.txt
-
-sleep 3
-
-# 파이썬 확인
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "##### 6. Python Version Check #####"  | tee -a /root/Auto_Install_Log.txt
-echo ""  | tee -a /root/Auto_Install_Log.txt
-/usr/bin/python3 -V >> /root/Auto_Install_Log.txt
-sleep 3
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "##### Python Version Check Complete #####"  | tee -a /root/Auto_Install_Log.txt
-
-sleep 3
-
-# 파이썬 패키지 확인
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "##### 7. Python Pacakage Install Check #####"  | tee -a /root/Auto_Install_Log.txt
-echo ""  | tee -a /root/Auto_Install_Log.txt
-pip list  >> /root/Auto_Install_Log.txt
-sleep 3
-echo ""  | tee -a /root/Auto_Install_Log.txt
-pip3 list >> /root/Auto_Install_Log.txt
-sleep 3
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "##### Python Pacakage Check Complete #####"  | tee -a /root/Auto_Install_Log.txt
-
-sleep 3
-
-# 방화벽 설정
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "##### 8. Firewall Check #####"  | tee -a /root/Auto_Install_Log.txt
-echo ""  | tee -a /root/Auto_Install_Log.txt
-case $OSCHECK in 
-    centos | rocky )
-        echo "=== firewall service Check ==="  | tee -a /root/Auto_Install_Log.txt
-        systemctl status firewalld  >> /root/Auto_Install_Log.txt
-        echo ""  | tee -a /root/Auto_Install_Log.txt
-        echo "=== firewall port Check ==="  | tee -a /root/Auto_Install_Log.txt
-        firewall-cmd --list-all >> /root/Auto_Install_Log.txt
-    ;;
-    ubuntu )
-        echo "=== firewall service Check ==="  | tee -a /root/Auto_Install_Log.txt
-        systemctl status ufw  >> /root/Auto_Install_Log.txt
-        echo ""  | tee -a /root/Auto_Install_Log.txt
-        echo "=== firewall port Check ==="  | tee -a /root/Auto_Install_Log.txt
-        ufw status  >> /root/Auto_Install_Log.txt
-    ;;
-    *)
+  ubuntu)
+    systemctl is-active ufw >> "$LOGFILE"
+    ufw status >> "$LOGFILE"
     ;;
 esac
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "##### Firewall Check Complete #####"  | tee -a /root/Auto_Install_Log.txt
+echo "##### Firewall Check Complete #####"  | tee -a "$LOGFILE"
 
-sleep 3
-
-# 사용자 생성 테스트
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "##### 9. User Add Check Start #####"  | tee -a /root/Auto_Install_Log.txt
-cat /etc/passwd | grep dasan  >> /root/Auto_Install_Log.txt
-cat /etc/shadow | grep dasan  >> /root/Auto_Install_Log.txt
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "##### User Add Check Complete #####"  | tee -a /root/Auto_Install_Log.txt
-
-sleep 3
-
-# H/W 사양 체크
-echo ""  | tee -a /root/Auto_Install_Log.txt
-cat /root/HWcheck.txt  >> /root/Auto_Install_Log.txt
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "##### H/W Check Complete #####"  | tee -a /root/Auto_Install_Log.txt
-
-sleep 3
-
-# MegaRaid Storage Manager 설치
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "##### 11. MSM Install Check Start #####"  | tee -a /root/Auto_Install_Log.txt
-echo ""  | tee -a /root/Auto_Install_Log.txt
-ls /usr/local/MegaRAID\ Storage\ Manager/  | grep startupui >> /root/Auto_Install_Log.txt
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "##### MSM Check Complete #####"  | tee -a /root/Auto_Install_Log.txt
-
-sleep 3
-
-# Dell OMSA 설치
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "##### 12. OMSA Install Check Start #####"  | tee -a /root/Auto_Install_Log.txt
-echo ""  | tee -a /root/Auto_Install_Log.txt
-racadm get system.ServerInfo  >> /root/Auto_Install_Log.txt
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "##### OMSA Check Complete #####"  | tee -a /root/Auto_Install_Log.txt
-
-# GPU 존재 여부에 따라 아래 체크리스트 실행
-lspci | grep -i nvidia  &> /dev/null
-if [ $? != 0 ]
-then
-    echo ""  | tee -a /root/Auto_Install_Log.txt
-    echo "##### Check List Complete #####"  | tee -a /root/Auto_Install_Log.txt
-    case $OSCHECK in 
-        centos | rocky )
-            sed -i '/root/d' /etc/rc.d/rc.local
-            sleep 3
-            rm -f nvidia-machine-learning-repo-rhel8-1.0.0-1.x86_64.rpm cuda-repo-rhel8-10.2.89-1.x86_64.rpm
-            sleep 3
-            systemctl restart rc-local.service
-            exit 0
-        ;;
-        ubuntu )
-            sleep 3
-            sed -i '/root/d' /etc/rc.local 
-            sleep 3
-            systemctl restart rc-local.service
-            exit 0
-        ;;
-        *)
-        ;;
-    esac
+# 8. HW 사양 체크리포트 첨부
+echo "##### 8. HW Spec Check #####"  | tee -a "$LOGFILE"
+if [ -f /root/HWcheck.txt ]; then
+  cat /root/HWcheck.txt >> "$LOGFILE"
 else
-    echo ""  | tee -a /root/Auto_Install_Log.txt
-    echo "##### GPU Check List Start #####"  | tee -a /root/Auto_Install_Log.txt
+  echo "[WARN] HWcheck.txt가 존재하지 않습니다." >> "$LOGFILE"
+fi
+echo "##### HW Spec Check Complete #####"  | tee -a "$LOGFILE"
+
+# 9. LSA(LsiSASH) 서비스 및 포트 상태
+echo "##### 9. LSA(LsiSASH) Service Check #####" | tee -a "$LOGFILE"
+systemctl status lsisash.service >> "$LOGFILE" 2>&1
+case "$OS_ID" in
+  rocky|almalinux)
+    firewall-cmd --list-ports | grep 2463 >> "$LOGFILE"
+    netstat -ntlp | grep 2463 >> "$LOGFILE" 2>/dev/null
+    ;;
+  ubuntu)
+    ufw status | grep 2463 >> "$LOGFILE"
+    ss -ntlp | grep 2463 >> "$LOGFILE" 2>/dev/null
+    ;;
+esac
+echo "##### LSA Check Complete #####" | tee -a "$LOGFILE"
+
+# 10. OMSA(Dell OpenManage) 서비스
+echo "##### 10. OMSA (OpenManage) Service Check #####" | tee -a "$LOGFILE"
+systemctl status dsm_om_connsvc >> "$LOGFILE" 2>&1
+case "$OS_ID" in
+  rocky|almalinux)
+    firewall-cmd --list-ports | grep 1311 >> "$LOGFILE"
+    ;;
+  ubuntu)
+    ufw status | grep 1311 >> "$LOGFILE"
+    ;;
+esac
+echo "##### OMSA Service Check Complete #####" | tee -a "$LOGFILE"
+
+# 11. R, RStudio, JupyterHub 서비스/설치 체크
+echo "##### 11. R/RStudio/JupyterLab Install & Service Check #####" | tee -a "$LOGFILE"
+case "$OS_ID" in
+  rocky|almalinux)
+    rpm -qa | grep R- | grep -v library >> "$LOGFILE"
+    rpm -qa | grep rstudio-server >> "$LOGFILE"
+    ;;
+  ubuntu)
+    dpkg -l | grep r-base >> "$LOGFILE"
+    dpkg -l | grep rstudio-server >> "$LOGFILE"
+    ;;
+esac
+systemctl status jupyterhub.service >> "$LOGFILE" 2>&1
+echo "##### R/RStudio/JupyterHub Check Complete #####" | tee -a "$LOGFILE"
+
+# 12. GPU 및 CUDA, CUDNN 체크(GPU 서버일 때)
+if lspci | grep -iq nvidia; then
+  echo "##### 12. GPU, CUDA, CUDNN Check #####" | tee -a "$LOGFILE"
+  nvidia-smi >> "$LOGFILE" 2>&1
+  nvcc -V >> "$LOGFILE" 2>&1
+  # CUDA/CUDNN lib 설치상태
+  case "$OS_ID" in
+    rocky|almalinux)
+      rpm -qa | grep cuda >> "$LOGFILE"
+      rpm -qa | grep libcudnn >> "$LOGFILE"
+      ;;
+    ubuntu)
+      dpkg -l | grep cuda >> "$LOGFILE"
+      dpkg -l | grep libcudnn >> "$LOGFILE"
+      ;;
+  esac
+  echo "##### GPU, CUDA, CUDNN Check Complete #####" | tee -a "$LOGFILE"
 fi
 
-
-sleep 3
-
-# CUDA,CUDNN Repo 설치
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "##### 13. CUDA, CUDNN Repo Check Start #####"  | tee -a /root/Auto_Install_Log.txt
-echo ""  | tee -a /root/Auto_Install_Log.txt
-case $OSCHECK in 
-    centos | rocky )
-        rpm -qa | grep nvidia  >> /root/Auto_Install_Log.txt
-        sleep 3
-        rpm -qa | grep cuda  >> /root/Auto_Install_Log.txt
-        sleep 3
-    ;;
-    ubuntu )
-        ls /etc/apt/sources.list.d/  >> /root/Auto_Install_Log.txt
-        sleep 3
-    ;;
-    *)
-    ;;
-esac
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "##### CUDA, CUDNN Repo Complete #####"  | tee -a /root/Auto_Install_Log.txt
-
-sleep 3
-
-# CUDA 설치 및 PATH 설정
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "##### 14. CUDA, CUDNN  Install Check Start #####"  | tee -a /root/Auto_Install_Log.txt
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "=== Nvidia Driver Check ==="  | tee -a /root/Auto_Install_Log.txt
-nvidia-smi  >> /root/Auto_Install_Log.txt
-sleep 3
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "=== GPU Install Check ==="  | tee -a /root/Auto_Install_Log.txt
-nvidia-smi -L  >> /root/Auto_Install_Log.txt
-sleep 3
-nvidia-smi  -a | grep "Serial Number" >> /root/Auto_Install_Log.txt
-echo ""  | tee -a /root/Auto_Install_Log.txt
-sleep 3
-echo "=== CUDA version Check ==="  | tee -a /root/Auto_Install_Log.txt
-nvcc -V  >> /root/Auto_Install_Log.txt
-sleep 3
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "=== CUDA Version Check Complete ==="  | tee -a /root/Auto_Install_Log.txt
-
-sleep 3
-
-# CUDNN 설치 및 PATH 설정
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "=== CUDNN Install Check Start ==="  | tee -a /root/Auto_Install_Log.txt
-echo ""  | tee -a /root/Auto_Install_Log.txt
-case $OSCHECK in 
-    centos | rocky )
-        rpm -qa | grep libcudnn*  >> /root/Auto_Install_Log.txt
-        sleep 3
-    ;;
-    ubuntu )
-        dpkg -l | grep libcudnn*  >> /root/Auto_Install_Log.txt
-        sleep 3
-    ;;
-    *)
-    ;;
-esac
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "=== CUDNN Check Complete ==="  | tee -a /root/Auto_Install_Log.txt
-echo "##### CUDA, CUDNN Install Check Complete #####"  | tee -a /root/Auto_Install_Log.txt
-sleep 3
-
-# 딥러닝 패키지 설치(R,R Server, JupyterHub, Pycharm)
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "##### 15. Deep Learning Install Check Start #####"  | tee -a /root/Auto_Install_Log.txt
-echo ""  | tee -a /root/Auto_Install_Log.txt
-case $OSCHECK in 
-    centos | rocky )
-        echo "=== R,R-Server Check ==="  | tee -a /root/Auto_Install_Log.txt
-        rpm -qa | grep rstudio  >> /root/Auto_Install_Log.txt
-        sleep 3
-        rpm -qa | grep r-base  >> /root/Auto_Install_Log.txt
-        sleep 3
-        echo ""  | tee -a /root/Auto_Install_Log.txt
-        echo "=== JupyterHUB service Check ==="  | tee -a /root/Auto_Install_Log.txt
-        systemctl status jupyterhub.service  >> /root/Auto_Install_Log.txt
-    ;;
-    ubuntu )
-        echo "=== R,R-Server Check ==="  | tee -a /root/Auto_Install_Log.txt
-        dpkg -l | grep rstudio  >> /root/Auto_Install_Log.txt
-        sleep 3
-        dpkg -l | grep r-base  >> /root/Auto_Install_Log.txt
-        sleep 3
-        echo ""  | tee -a /root/Auto_Install_Log.txt
-        echo "=== JupyterHUB service Check ==="  | tee -a /root/Auto_Install_Log.txt
-        systemctl status jupyterhub.service  >> /root/Auto_Install_Log.txt
-    ;;
-    *)
-    ;;
-esac
-echo ""  | tee -a /root/Auto_Install_Log.txt
-echo "##### Deep Learning Check Complete #####"  | tee -a /root/Auto_Install_Log.txt
-
-sleep 3
-
-echo ""
-case $OSCHECK in 
-    centos | rocky )
-        echo "##### GPU Check List Complete #####"  | tee -a /root/Auto_Install_Log.txt
-        sed -i '/root/d' /etc/rc.d/rc.local
-        sleep 3
-        rm -f nvidia-machine-learning-repo-rhel8-1.0.0-1.x86_64.rpm cuda-repo-rhel8-10.2.89-1.x86_64.rpm
-        sleep 3
-        systemctl restart rc-local.service
-        exit 0
-    ;;
-    ubuntu )
-        echo "##### GPU Check List Complete #####"  | tee -a /root/Auto_Install_Log.txt
-        sed -i '/root/d' /etc/rc.local
-        sleep 3
-        systemctl restart rc-local.service
-        exit 0
-    ;;
-    *)
-    ;;
-esac
+echo "" | tee -a "$LOGFILE"
+echo "##### 전체 체크리스트 완료 #####" | tee -a "$LOGFILE"
+echo "" | tee -a "$LOGFILE"
+echo "상세 내역은 $LOGFILE 파일을 확인하세요." | tee -a "$LOGFILE"
