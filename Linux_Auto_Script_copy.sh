@@ -90,7 +90,6 @@ if [ ! -f /etc/rc.local ]; then
     esac
 
     echo -e '#!/bin/sh -e\n' > "$RC_PATH"
-    # 아래 라인에 부팅 시 실행할 스크립트를 추가합니다.
     echo 'bash /root/LAS/Linux_Auto_Script_copy.sh' >> "$RC_PATH"
     echo -e '\nexit 0' >> "$RC_PATH"
 
@@ -107,11 +106,9 @@ fi
 if lsmod | grep -q "^nouveau"; then
     echo "Nouveau 드라이버 비활성화 및 GRUB 설정을 시작합니다." | tee -a "$INSTALL_LOG"
     
-    # nouveau 모듈 블랙리스트 설정
     echo "blacklist nouveau" > /etc/modprobe.d/blacklist-nouveau.conf
     echo "options nouveau modeset=0" >> /etc/modprobe.d/blacklist-nouveau.conf
 
-    # OS별 initramfs 및 GRUB 설정 적용
     case "$OS_ID" in
         ubuntu)
             update-initramfs -u >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
@@ -456,7 +453,6 @@ if ! lspci | grep -iq nvidia; then
             ;;
 
         *)
-            # 기타 OS는 별도 처리 없음
             ;;
     esac
 else
@@ -470,15 +466,23 @@ fi
 
 sleep 3
 
-# --- GPU 없으면 Skip 표시 ---
 if grep -q "No" /root/cudaversion.txt; then
     OS="Skip this server as it has no GPU."
 else
     echo ""
 fi
 
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS_ID=$ID
+    OS_VERSION_MAJOR=$(echo "$VERSION_ID" | cut -d. -f1)
+    OS_FULL_ID="${OS_ID}${OS_VERSION_MAJOR}"
+else
+    echo "OS 정보를 확인할 수 없습니다. /etc/os-release 없음" | tee -a /root/install_log.txt
+    exit 1
+fi
 
-# 11. CUDA, CUDNN Repo 설치 (필요 OS만 지원)
+# 11. CUDA, CUDNN Repo install
 ls /usr/local/ | grep cuda &> /dev/null
 if [ $? != 0 ]; then
   case $OS_FULL_ID in
@@ -514,7 +518,7 @@ echo "" | tee -a /root/install_log.txt
 sleep 3
 echo "" | tee -a /root/install_log.txt
 
-# 12. CUDA 설치 및 PATH 설정
+# 12. CUDA install / PATH setting
 ls /usr/local/ | grep cuda >> /root/install_log.txt 2>> /root/log_err.txt
 if [ $? != 0 ]; then
   CUDAV=$(cat /root/cudaversion.txt)
@@ -574,7 +578,7 @@ echo "" | tee -a /root/install_log.txt
 sleep 3
 echo "" | tee -a /root/install_log.txt
 
-# --- 13. CUDNN 9 설치 ---
+# --- 13. CUDNN 9 install ---
 echo "CUDNN 9 설치를 시작합니다." | tee -a "$INSTALL_LOG"
 
 CUDAV=$(cat /root/cudaversion.txt 2>/dev/null)
@@ -616,133 +620,15 @@ else
     esac
 fi
 
-# --- 16. R 및 RStudio Server 설치 ---
-echo "R 및 RStudio Server 설치를 시작합니다." | tee -a "$INSTALL_LOG"
-
-case "$OS_FULL_ID" in
-    rocky8|almalinux8)
-        dnf config-manager --set-enabled powertools >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        dnf -y install R libcurl-devel libxml2-devel >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        wget -O /tmp/rstudio-server-latest.rpm \
-            https://download2.rstudio.org/server/rhel8/x86_64/rstudio-server-rhel-2025.05.1-513-x86_64.rpm \
-            >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        dnf -y install /tmp/rstudio-server-latest.rpm >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        rm -f /tmp/rstudio-server-latest.rpm
-        ;;
-    rocky9|almalinux9|rocky10|almalinux10)
-        dnf config-manager --set-enabled crb >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        dnf -y install R libcurl-devel libxml2-devel >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        wget -O /tmp/rstudio-server-latest.rpm \
-        https://download2.rstudio.org/server/rhel9/x86_64/rstudio-server-rhel-2025.05.1-513-x86_64.rpm \
-            >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        dnf -y install /tmp/rstudio-server-latest.rpm >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        rm -f /tmp/rstudio-server-latest.rpm
-        ;;
-    ubuntu20)
-        apt update >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        apt -y install r-base libcurl4-openssl-dev libxml2-dev >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        wget -O /tmp/rstudio-server-latest.deb \
-            wget https://download2.rstudio.org/server/focal/amd64/rstudio-server-2025.05.1-513-amd64.deb \
-            >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        apt -y install /tmp/rstudio-server-latest.deb >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        rm -f /tmp/rstudio-server-latest.deb
-        ;;
-    ubuntu22)
-        apt update >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        apt -y install r-base libcurl4-openssl-dev libxml2-dev >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        wget -O /tmp/rstudio-server-latest.deb \
-            https://download2.rstudio.org/server/jammy/amd64/rstudio-server-2025.05.1-513-amd64.deb \
-            >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        apt -y install /tmp/rstudio-server-latest.deb >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        rm -f /tmp/rstudio-server-latest.deb
-        ;;
-    ubuntu24)
-        apt update >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        apt -y install r-base libcurl4-openssl-dev libxml2-dev >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        wget -O /tmp/rstudio-server-latest.deb \
-            https://download2.rstudio.org/server/jammy/amd64/rstudio-server-2025.05.1-513-amd64.deb \
-            >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        apt -y install /tmp/rstudio-server-latest.deb >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        rm -f /tmp/rstudio-server-latest.deb
-        ;;
-    *)
-        echo "지원하지 않는 OS 또는 버전입니다: $OS_FULL_ID" | tee -a "$INSTALL_LOG"
-        ;;
-esac
-
-echo "R 및 RStudio Server 설치 완료" | tee -a "$INSTALL_LOG"
 
 
-# --- 17. JupyterHub & JupyterLab 설치 및 설정 ---
-echo "JupyterHub, JupyterLab 설치를 시작합니다." | tee -a "$INSTALL_LOG"
-
-python3 -m pip install --upgrade pip setuptools wheel >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-python3 -m pip install jupyterhub jupyterlab notebook >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-
-# Node.js 16 설치
-case "$OS_FULL_ID" in
-    ubuntu20|ubuntu22|ubuntu24)
-        apt -y purge nodejs libnode72 >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        curl -fsSL https://deb.nodesource.com/setup_20.x | bash - >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        apt -y install nodejs default-jre >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        ;;
-    rocky8|almalinux8|rocky9|almalinux9|rocky10|almalinux10)
-        rpm -e --nodeps python3-requests >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        curl -fsSL https://e.nodesource.com/setup_20.x | bash - >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        sed -i '/failover/d' /etc/yum.repos.d/nodesource-nodejs.repo
-        dnf -y install nodejs >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        ;;
-esac
-
-npm install -g configurable-http-proxy >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-
-# JupyterHub 설정
-JUPYTER_CONFIG_DIR="/etc/jupyterhub"
-JUPYTER_CONFIG_FILE="$JUPYTER_CONFIG_DIR/jupyterhub_config.py"
-mkdir -p "$JUPYTER_CONFIG_DIR"
-
-if [ ! -f "$JUPYTER_CONFIG_FILE" ]; then
-    jupyterhub --generate-config -f "$JUPYTER_CONFIG_FILE" >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-fi
-
-grep -Fq "c.Spawner.default_url = '/lab'" "$JUPYTER_CONFIG_FILE" || \
-    echo "c.Spawner.default_url = '/lab'     # jupyterlab 환경으로 보이도록" >> "$JUPYTER_CONFIG_FILE"
-grep -Fq "c.Authenticator.allow_all = True" "$JUPYTER_CONFIG_FILE" || \
-    echo "c.Authenticator.allow_all = True   # 모든 사용자가 접속하도록" >> "$JUPYTER_CONFIG_FILE"
-
-# JupyterHub systemd 서비스 등록
-JUPYTER_SERVICE_FILE="/etc/systemd/system/jupyterhub.service"
-if [ ! -f "$JUPYTER_SERVICE_FILE" ]; then
-    cat <<EOF > "$JUPYTER_SERVICE_FILE"
-[Unit]
-Description=JupyterHub
-After=network.target
-
-[Service]
-User=root
-Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-ExecStart=$(command -v jupyterhub) -f $JUPYTER_CONFIG_FILE
-
-[Install]
-WantedBy=multi-user.target
-EOF
-    systemctl daemon-reload
-    systemctl enable jupyterhub.service
-    systemctl start jupyterhub.service
-fi
-
-echo "JupyterHub, JupyterLab 설치 및 서비스 등록 완료" | tee -a "$INSTALL_LOG"
-
-
-# --- LSA 설치 및 설정 스크립트 ---
+# ---14. LSA install ---
 
 echo "===== LSA 설치 시작 ====="
 
-# 작업 디렉터리 생성 및 이동
 mkdir -p /root/LSA
 cd /root/LSA
 
-# Broadcom LSA ZIP 다운로드 및 압축 해제
 wget https://docs.broadcom.com/docs-and-downloads/008.012.007.000_MR7.32_LSA_Linux.zip
 
 unzip -o 008.012.007.000_MR7.32_LSA_Linux.zip
@@ -776,7 +662,6 @@ esac
 cd
 echo "=== LSA 설치 스크립트 완료 ==="
 
-# ----- LsiSASH 스크립트 별도 디렉터리에 배치 -----
 mkdir -p /etc/lsisash
 mv /etc/init.d/LsiSASH /etc/lsisash/LsiSASH
 chmod +x /etc/lsisash/LsiSASH
@@ -784,7 +669,6 @@ chmod +x /etc/lsisash/LsiSASH
 fi
 
 
-# OS별 방화벽 설정
 case "$OS_FULL_ID" in
     rocky8|rocky9|rocky10|almalinux8|almalinux9|almalinux10)
         firewall-cmd --zone=public --add-service=http --permanent
@@ -798,7 +682,6 @@ case "$OS_FULL_ID" in
         ;;
 esac
 
-# ----- systemd 서비스 생성 (/etc/lsisash 경로 사용) -----
 SYSTEMD_FILE="/etc/systemd/system/lsisash.service"
 if [ ! -f "$SYSTEMD_FILE" ]; then
     cat <<EOF > "$SYSTEMD_FILE"
@@ -825,10 +708,12 @@ else
     echo "lsisash.service 서비스가 이미 존재합니다."
 fi
 
+cd
+rm -rf LSA
 echo "===== LSA 설치 및 설정 완료 ====="
 
 
-# --- 19. Dell OMSA 설치 ---
+# --- 19. Dell OMSA install ---
 echo "OMSA 설치를 시작합니다." | tee -a "$INSTALL_LOG"
 
 if ! systemctl is-active --quiet dsm_om_connsvc; then
@@ -881,7 +766,6 @@ echo "" | tee -a /root/install_log.txt
 sleep 3
 echo "" | tee -a /root/install_log.txt
 
-## 스크립트 완료 정리 후 재부팅
 echo "" | tee -a /root/install_log.txt
 echo "LAS install complete" | tee -a /root/install_log.txt
 
@@ -902,5 +786,20 @@ case "$OS_FULL_ID" in
         echo "지원하지 않는 OS: $OS_FULL_ID" | tee -a /root/install_log.txt
         ;;
 esac
+
+if [ -f /root/LAS/Check_List.sh ]; then
+    cat <<'EOF' >> /root/LAS/Check_List.sh
+
+case "$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '"' )" in
+    rocky|almalinux)
+        sed -i '/bash \/root\/LAS\/Check_List.sh/d' /etc/rc.d/rc.local
+        ;;
+    ubuntu)
+        sed -i '/bash \/root\/LAS\/Check_List.sh/d' /etc/rc.local
+        ;;
+esac
+EOF
+    chmod +x /root/LAS/Check_List.sh
+fi
 
 reboot
