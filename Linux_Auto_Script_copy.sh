@@ -140,24 +140,38 @@ case "$OS_ID" in
         if sestatus | grep -q "enabled"; then
             echo "SELinux를 disabled로 변경합니다." | tee -a "$INSTALL_LOG"
             setenforce 0
-            sed -i 's/SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config
+            sed -i 's/^SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config
         fi
         ;;
+
     ubuntu)
-        echo "Ubuntu APT 저장소를 mirror.kakao.com으로 변경합니다." | tee -a "$INSTALL_LOG"
-        sed -i 's/kr.archive.ubuntu.com/mirror.kakao.com/g' /etc/apt/sources.list
-        sed -i 's/security.ubuntu.com/mirror.kakao.com/g' /etc/apt/sources.list
-        apt-get update >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        case "$OS_FULL_ID" in
+            ubuntu24)
+                echo "Ubuntu 24.04 APT 저장소를 mirror.kakao.com으로 변경합니다." | tee -a "$INSTALL_LOG"
+                UBUNTU_SRC_FILE="/etc/apt/sources.list.d/ubuntu.sources"
+                if [ -f "$UBUNTU_SRC_FILE" ]; then
+                    sed -i 's|http://kr.archive.ubuntu.com/ubuntu/|http://mirror.kakao.com/ubuntu/|g' "$UBUNTU_SRC_FILE"
+                    sed -i 's|http://security.ubuntu.com/ubuntu/|http://mirror.kakao.com/ubuntu/|g' "$UBUNTU_SRC_FILE"
+                fi
+                ;;
+
+            ubuntu20|ubuntu22)
+                echo "Ubuntu $OS_VERSION_MAJOR.04 APT 저장소를 mirror.kakao.com으로 변경합니다." | tee -a "$INSTALL_LOG"
+                sed -i 's|kr.archive.ubuntu.com|mirror.kakao.com|g' /etc/apt/sources.list
+                sed -i 's|security.ubuntu.com|mirror.kakao.com|g' /etc/apt/sources.list
+                ;;
+        esac
+        apt update >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         ;;
 esac
-echo "시스템 설정 완료." | tee -a "$INSTALL_LOG"
 
+echo "시스템 설정 완료." | tee -a "$INSTALL_LOG"
 
 # --- 6. 기본 패키지 설치 ---
 echo "기본 패키지 설치를 시작합니다." | tee -a "$INSTALL_LOG"
 case "$OS_FULL_ID" in
-    ubuntu22|ubuntu24)
-        apt-get -y install build-essential vim nfs-common rdate curl git wget figlet net-tools htop dstat \
+    ubuntu20|ubuntu22|ubuntu24)
+        apt -y install build-essential vim nfs-common rdate curl git wget figlet net-tools htop dstat \
         gnome-tweaks ubuntu-desktop-minimal dconf-editor smartmontools \
         python3-pip python3-dev >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         ;;
@@ -249,30 +263,34 @@ TIME_LOG="$LOG_DIR/Time_Setting_log.txt"
 TIME_ERR="$LOG_DIR/Time_Setting_log_err.txt"
 
 case "$OS_FULL_ID" in
-    rocky8)
-        dnf install -y chrony >> "$TIME_LOG" 2>> "$TIME_ERR"
-        sed -i 's/pool 2.pool.ntp.org iburst/pool kr.pool.ntp.org iburst/' /etc/chrony.conf
-        systemctl enable chronyd >> "$TIME_LOG" 2>> "$TIME_ERR"
-        systemctl start chronyd >> "$TIME_LOG" 2>> "$TIME_ERR"
-        chronyc sources >> "$TIME_LOG" 2>> "$TIME_ERR"
-        timedatectl >> "$TIME_LOG" 2>> "$TIME_ERR"
-        clock --systohc >> "$TIME_LOG" 2>> "$TIME_ERR"
-        date >> "$TIME_LOG" 2>> "$TIME_ERR"
-        hwclock >> "$TIME_LOG" 2>> "$TIME_ERR"
+    rocky8|rocky9|rocky10|almalinux8|almalinux9|almalinux10)
+        dnf -y install chrony >> "$TIME_LOG" 2>> "$TIME_ERR"
+        # 기본 NTP 서버를 국내 kr.pool.ntp.org로 변경
+        sed -i 's|^server .*iburst|server kr.pool.ntp.org iburst|' /etc/chrony.conf
+        systemctl enable --now chronyd >> "$TIME_LOG" 2>> "$TIME_ERR"
+        # 시간대 한국 표준시로 설정
+        timedatectl set-timezone Asia/Seoul >> "$TIME_LOG" 2>> "$TIME_ERR"
+        chronyc makestep >> "$TIME_LOG" 2>> "$TIME_ERR"
+        chronyc sources -v >> "$TIME_LOG" 2>> "$TIME_ERR"
+        timedatectl status >> "$TIME_LOG" 2>> "$TIME_ERR"
+        date >> "$TIME_LOG"
+        hwclock --systohc >> "$TIME_LOG" 2>> "$TIME_ERR"
         ;;
-    ubuntu22|ubuntu24|rocky9|almalinux9)
-        echo "OS 내장 시간동기화 서비스 사용 (systemd-timesyncd 또는 chrony)" | tee -a "$TIME_LOG"
-        timedatectl set-ntp true >> "$TIME_LOG" 2>> "$TIME_ERR"
-        timedatectl >> "$TIME_LOG" 2>> "$TIME_ERR"
-        date >> "$TIME_LOG" 2>> "$TIME_ERR"
+    ubuntu20|ubuntu22|ubuntu24)
+        apt -y install chrony >> "$TIME_LOG" 2>> "$TIME_ERR"
+        # 기본 NTP 서버를 국내 kr.pool.ntp.org로 변경
+        sed -i 's|^pool .* iburst|pool kr.pool.ntp.org iburst|' /etc/chrony/chrony.conf
+        systemctl enable --now chrony >> "$TIME_LOG" 2>> "$TIME_ERR"
+        # 시간대 한국 표준시로 설정
+        timedatectl set-timezone Asia/Seoul >> "$TIME_LOG" 2>> "$TIME_ERR"
+        chronyc makestep >> "$TIME_LOG" 2>> "$TIME_ERR"
+        chronyc sources -v >> "$TIME_LOG" 2>> "$TIME_ERR"
+        timedatectl status >> "$TIME_LOG" 2>> "$TIME_ERR"
+        date >> "$TIME_LOG"
         hwclock --systohc >> "$TIME_LOG" 2>> "$TIME_ERR"
         ;;
     *)
-        echo "Start time setting (rdate/hwclock)" | tee -a "$TIME_LOG"
-        rdate -s time.bora.net >> "$TIME_LOG" 2>> "$TIME_ERR"
-        hwclock --systohc >> "$TIME_LOG" 2>> "$TIME_ERR"
-        date >> "$TIME_LOG" 2>> "$TIME_ERR"
-        hwclock >> "$TIME_LOG" 2>> "$TIME_ERR"
+        echo "지원하지 않는 OS 버전입니다. 시간 동기화를 건너뜁니다." | tee -a "$TIME_LOG"
         ;;
 esac
 
@@ -289,9 +307,9 @@ if ! command -v pip3 &>/dev/null; then
         rocky8|rocky9|rocky10|almalinux8|almalinux9|almalinux10)
             dnf -y install python3 python3-pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
             ;;
-        ubuntu2004|ubuntu2204|ubuntu2404)
-            apt-get update >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-            apt-get -y install python3 python3-pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+        ubuntu20|ubuntu22)
+            apt update >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
+            apt -y install python3 python3-pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
             ;;
         *)
             echo "지원하지 않는 OS 또는 버전입니다: $OS_FULL_ID" | tee -a "$INSTALL_LOG"
@@ -418,7 +436,7 @@ if ! lspci | grep -iq nvidia; then
             fi
             ;;
 
-        ubuntu2004|ubuntu2204|ubuntu22|ubuntu24)
+        ubuntu20|ubuntu22|ubuntu24)
             if ! dmidecode | grep -iq ipmi; then
                 echo "" | tee -a "$INSTALL_LOG"
                 echo "End of CPU version LAS" | tee -a "$INSTALL_LOG"
@@ -478,11 +496,11 @@ if [ $? != 0 ]; then
       dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel10/x86_64/cuda-rhel10.repo >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
       dnf -y install libXi-devel mesa-libGLU-devel libXmu-devel libX11-devel freeglut-devel libXm* openmotif* >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
       ;;
-    ubuntu2004|ubuntu2204|ubuntu2404)
-      apt-get -y install sudo gnupg >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
-      wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu${OS_VERSION_MAJOR}04/x86_64/3bf863cc.pub -O /usr/share/keyrings/cuda-archive-keyring.gpg >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
-      echo "deb [signed-by=/usr/share/keyrings/cuda-archive-keyring.gpg] https://developer.download.nvidia.com/compute/cuda/repos/ubuntu${OS_VERSION_MAJOR}04/x86_64/ /" > /etc/apt/sources.list.d/nvidia-cuda.list
-      apt-get update >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
+    ubuntu20|ubuntu22|ubuntu24)
+      apt -y install sudo gnupg >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt           
+      apt-key adv --fetch-keys "https://developer.download.nvidia.com/compute/cuda/repos/"${OS_FULL_ID}04"/x86_64/3bf863cc.pub" >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
+      sh -c 'echo "deb https://developer.download.nvidia.com/compute/cuda/repos/'${OS_FULL_ID}04'/x86_64 /" > /etc/apt/sources.list.d/nvidia-cuda.list' >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
+      apt update >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
       ;;
     *)
       echo "CUDA,CUDNN repo not installed for this OS: $OS_FULL_ID" | tee -a /root/install_log.txt
@@ -524,7 +542,7 @@ if [ $? != 0 ]; then
         source /root/.bashrc
         echo "CUDA $CUDAV 설치 완료" | tee -a /root/install_log.txt
       ;;
-      ubuntu2004|ubuntu2204|ubuntu2404)
+      ubuntu20|ubuntu22|ubuntu24)
         echo "CUDA $CUDAV 설치 시작" | tee -a /root/install_log.txt
         if ! grep -q "ADD Cuda" /etc/profile; then
           echo "" >> /etc/profile
@@ -535,7 +553,7 @@ if [ $? != 0 ]; then
           echo "export CUDA_INC_DIR=/usr/local/cuda-$CUDAV_U/include" >> /etc/profile
         fi
         sleep 1
-        apt-get -y install cuda-$CUDAV >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
+        apt -y install cuda-$CUDAV >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
         sleep 1
         nvidia-smi -pm 1 >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
         systemctl enable nvidia-persistenced >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
@@ -571,7 +589,7 @@ else
     
     case "$OS_FULL_ID" in
         rocky8|rocky9|almalinux9|rocky10|almalinux10)
-            echo " CUDNN 설치 (CUDA $CUDAV_DOTTED) 시작" | tee -a "$INSTALL_LOG"
+            echo " CUDNN 설치 시작" | tee -a "$INSTALL_LOG"
             dnf -y install \
                 cudnn9-cuda-${CUDA_MAJOR} \
                 libcudnn9-devel-cuda-${CUDA_MAJOR} \
@@ -581,9 +599,9 @@ else
             echo "CUDNN 설치 완료" | tee -a "$INSTALL_LOG"
             ;;
 
-        ubuntu2004|ubuntu2204|ubuntu2404)
-            echo " CUDNN 9 설치 (CUDA $CUDAV_DOTTED) 시작" | tee -a "$INSTALL_LOG"
-            apt-get -y install \
+        ubuntu20|ubuntu22|ubuntu24)
+            echo " CUDNN 9 설치 시작" | tee -a "$INSTALL_LOG"
+            apt -y install \
                 libcudnn9-cuda-${CUDA_MAJOR} \
                 libcudnn9-dev-cuda-${CUDA_MAJOR} \
                 libcudnn9-headers-cuda-${CUDA_MAJOR} \
@@ -620,31 +638,31 @@ case "$OS_FULL_ID" in
         dnf -y install /tmp/rstudio-server-latest.rpm >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         rm -f /tmp/rstudio-server-latest.rpm
         ;;
-    ubuntu2004)
-        apt-get update >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        apt-get -y install r-base libcurl4-openssl-dev libxml2-dev >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+    ubuntu20)
+        apt update >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        apt -y install r-base libcurl4-openssl-dev libxml2-dev >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         wget -O /tmp/rstudio-server-latest.deb \
             wget https://download2.rstudio.org/server/focal/amd64/rstudio-server-2025.05.1-513-amd64.deb \
             >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        apt-get -y install /tmp/rstudio-server-latest.deb >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        apt -y install /tmp/rstudio-server-latest.deb >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         rm -f /tmp/rstudio-server-latest.deb
         ;;
-    ubuntu2204)
-        apt-get update >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        apt-get -y install r-base libcurl4-openssl-dev libxml2-dev >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+    ubuntu22)
+        apt update >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        apt -y install r-base libcurl4-openssl-dev libxml2-dev >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         wget -O /tmp/rstudio-server-latest.deb \
             https://download2.rstudio.org/server/jammy/amd64/rstudio-server-2025.05.1-513-amd64.deb \
             >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        apt-get -y install /tmp/rstudio-server-latest.deb >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        apt -y install /tmp/rstudio-server-latest.deb >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         rm -f /tmp/rstudio-server-latest.deb
         ;;
-    ubuntu2404)
-        apt-get update >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        apt-get -y install r-base libcurl4-openssl-dev libxml2-dev >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+    ubuntu24)
+        apt update >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        apt -y install r-base libcurl4-openssl-dev libxml2-dev >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         wget -O /tmp/rstudio-server-latest.deb \
             https://download2.rstudio.org/server/jammy/amd64/rstudio-server-2025.05.1-513-amd64.deb \
             >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        apt-get -y install /tmp/rstudio-server-latest.deb >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        apt -y install /tmp/rstudio-server-latest.deb >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         rm -f /tmp/rstudio-server-latest.deb
         ;;
     *)
@@ -658,18 +676,19 @@ echo "R 및 RStudio Server 설치 완료" | tee -a "$INSTALL_LOG"
 # --- 17. JupyterHub & JupyterLab 설치 및 설정 ---
 echo "JupyterHub, JupyterLab 설치를 시작합니다." | tee -a "$INSTALL_LOG"
 
-rpm -e --nodeps python3-requests >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
 python3 -m pip install --upgrade pip setuptools wheel >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
 python3 -m pip install jupyterhub jupyterlab notebook >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
 
 # Node.js 16 설치
 case "$OS_FULL_ID" in
-    ubuntu2004|ubuntu2204|ubuntu2404)
-        curl -fsSL https://rpm.nodesource.com/setup_20.x | bash - >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        apt-get -y install nodejs >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+    ubuntu20|ubuntu22|ubuntu24)
+        apt -y purge nodejs libnode72 >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        curl -fsSL https://deb.nodesource.com/setup_20.x | bash - >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        apt -y install nodejs default-jre >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         ;;
     rocky8|almalinux8|rocky9|almalinux9|rocky10|almalinux10)
-        curl -fsSL https://rpm.nodesource.com/setup_20.x | bash - >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        rpm -e --nodeps python3-requests >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        curl -fsSL https://e.nodesource.com/setup_20.x | bash - >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         sed -i '/failover/d' /etc/yum.repos.d/nodesource-nodejs.repo
         dnf -y install nodejs >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         ;;
@@ -731,20 +750,39 @@ cd webgui_rel
 unzip -o LSA_Linux.zip
 ls -l
 
-# gcc_8.3.x 폴더로 이동 후 install.sh 자동 실행
-cd ../gcc_8.3.x
-yes | ./install.sh -s
+cd gcc_8.3.x
+case "$OS_ID" in
+    rocky|almalinux)
+        if [ -f install.sh ]; then
+            yes | ./install.sh -s
+            echo "Rocky/AlmaLinux: install.sh 실행 완료" | tee -a "$INSTALL_LOG"
+        else
+            echo "[WARN] install.sh 파일이 없습니다." | tee -a "$INSTALL_LOG"
+        fi
+        ;;
+    ubuntu)
+        if [ -f install_deb.sh ]; then
+            yes | ./install_deb.sh -s
+            echo "Ubuntu: install_deb.sh 실행 완료" | tee -a "$INSTALL_LOG"
+        else
+            echo "[WARN] install_deb.sh 파일이 없습니다." | tee -a "$INSTALL_LOG"
+        fi
+        ;;
+    *)
+        echo "[WARN] 지원하지 않는 OS: $OS_ID" | tee -a "$INSTALL_LOG"
+        ;;
+esac
 
-echo "=== LSA install.sh 완료 ==="
+cd
+echo "=== LSA 설치 스크립트 완료 ==="
 
 # ----- LsiSASH 스크립트 별도 디렉터리에 배치 -----
 mkdir -p /etc/lsisash
-if [ -f LsiSASH ]; then
-    cp -f LsiSASH /etc/lsisash/LsiSASH
-    chmod +x /etc/lsisash/LsiSASH
-else
-    echo "[WARN] LsiSASH 스크립트를 찾을 수 없습니다. /etc/lsisash에 수동 복사 필요" 
+mv /etc/init.d/LsiSASH /etc/lsisash/LsiSASH
+chmod +x /etc/lsisash/LsiSASH
+
 fi
+
 
 # OS별 방화벽 설정
 case "$OS_FULL_ID" in
@@ -753,7 +791,7 @@ case "$OS_FULL_ID" in
         firewall-cmd --zone=public --add-port=2463/tcp --permanent
         firewall-cmd --reload
         ;;
-    ubuntu2004|ubuntu2204|ubuntu2404)
+    ubuntu20|ubuntu22|ubuntu24)
         ufw allow http
         ufw allow 2463/tcp
         ufw reload
@@ -781,6 +819,7 @@ EOF
     systemctl daemon-reload
     systemctl enable lsisash.service
     systemctl start lsisash.service
+    systemctl status lsisash.service
     echo "lsisash.service 서비스 등록 및 시작 완료"
 else
     echo "lsisash.service 서비스가 이미 존재합니다."
@@ -809,7 +848,7 @@ if ! systemctl is-active --quiet dsm_om_connsvc; then
             systemctl enable dsm_om_connsvc
             systemctl start dsm_om_connsvc
             ;;
-        ubuntu2004|ubuntu2204|ubuntu2404)
+        ubuntu20|ubuntu22|ubuntu24)
             echo "Ubuntu 계열 OMSA 설치" | tee -a "$INSTALL_LOG"
             ufw allow 1311/tcp
 
@@ -817,12 +856,12 @@ if ! systemctl is-active --quiet dsm_om_connsvc; then
                 > /etc/apt/sources.list.d/linux.dell.com.sources.list
             wget http://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc
             apt-key add 0x1285491434D8786F.asc
-            apt-get -y update
-            apt-get -y install srvadmin-all
+            apt -y update
+            apt -y install srvadmin-all
 
-            if [ ! -f /usr/lib/x86_64-linux-gnu/libssl.so ]; then
-                ln -s /usr/lib/x86_64-linux-gnu/libssl.so.1.1 /usr/lib/x86_64-linux-gnu/libssl.so
-            fi
+            #if [ ! -f /usr/lib/x86_64-linux-gnu/libssl.so ]; then
+            #    ln -s /usr/lib/x86_64-linux-gnu/libssl.so.1.1 /usr/lib/x86_64-linux-gnu/libssl.so
+            #fi
 
             systemctl daemon-reload
             systemctl enable dsm_sa_datamgrd.service
@@ -855,7 +894,7 @@ case "$OS_FULL_ID" in
         sed -i '13a bash /root/LAS/Check_List.sh' /etc/rc.d/rc.local
         systemctl set-default multi-user.target | tee -a /root/install_log.txt
         ;;
-    ubuntu2004|ubuntu2204|ubuntu2404)
+    ubuntu20|ubuntu22|ubuntu24)
         sed -i '1a bash /root/LAS/Check_List.sh' /etc/rc.local
         systemctl set-default multi-user.target | tee -a /root/install_log.txt
         ;;
