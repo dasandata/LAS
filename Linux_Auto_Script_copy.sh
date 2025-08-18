@@ -235,7 +235,7 @@ if ! grep -q "Dasandata" /etc/profile; then
 
     # 루트와 일부 계정의 프롬프트 설정(원하는 계정 추가)
     echo "export PS1='\[\e[1;46;30m\][\u@\h:\W]\\$\[\e[m\] '" >> /root/.bashrc
-    if [ -d /home/kds ]; then
+    if [ -d /home/temp_id ]; then
         echo "export PS1='\[\e[1;47;30m\][\u@\h:\W]\\$\[\e[m\] '" >> /home/temp_id/.bashrc
     fi
 
