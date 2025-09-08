@@ -192,30 +192,44 @@ echo "---"
 echo "방화벽 설정을 시작합니다." | tee -a "$INSTALL_LOG"
 case "$OS_ID" in
     ubuntu)
-        if ! ufw status | grep -q "active"; then
+        if ufw status | grep -q "Status: inactive"; then
+            yes | ufw enable >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        fi
+
+        if ufw status | grep -q "Status: active"; then
             ufw allow 22/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
             ufw allow 7777/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # 변경될 SSH 포트
             ufw allow 8000/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # JupyterHub
             ufw allow 8787/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # RStudio Server
-            yes | ufw enable >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
             sed -i 's/#Port 22/Port 7777/g' /etc/ssh/sshd_config
             systemctl restart sshd
+        else
+            echo "ERROR: ufw is not active. Skipping configuration." >> "$ERROR_LOG"
         fi
         ;;
+
     rocky|almalinux)
-        if ! firewall-cmd --state | grep -q "running"; then
-             systemctl enable --now firewalld
+        if ! systemctl is-active --quiet firewalld; then
+             systemctl enable --now firewalld >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         fi
-        firewall-cmd --permanent --add-port=7777/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # 변경될 SSH 포트
-        firewall-cmd --permanent --add-port=8000/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # JupyterHub
-        firewall-cmd --permanent --add-port=8787/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # RStudio Server
-        firewall-cmd --reload >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        sed -i 's/#Port 22/Port 7777/g' /etc/ssh/sshd_config
-        sed -i 's/PermitRootLogin yes/PermitRootLogin no/g' /etc/ssh/sshd_config
-        systemctl restart sshd
+
+        if systemctl is-active --quiet firewalld; then
+            firewall-cmd --permanent --add-port=22/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+            firewall-cmd --permanent --add-port=7777/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # 변경될 SSH 포트
+            firewall-cmd --permanent --add-port=8000/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # JupyterHub
+            firewall-cmd --permanent --add-port=8787/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # RStudio Server
+            firewall-cmd --reload >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+            
+            sed -i 's/#Port 22/Port 7777/g' /etc/ssh/sshd_config
+            sed -i 's/PermitRootLogin yes/PermitRootLogin no/g' /etc/ssh/sshd_config
+            systemctl restart sshd
+        else
+            echo "ERROR: firewalld is not running. Skipping configuration." >> "$ERROR_LOG"
+        fi
         ;;
 esac
 echo "방화벽 설정 완료." | tee -a "$INSTALL_LOG"
+
 
 # --- 7. 프로필(alias, history, 프롬프트 등) 설정 ---
 echo "프로필(alias 및 히스토리, 프롬프트) 설정을 시작합니다." | tee -a "$INSTALL_LOG"
@@ -666,7 +680,6 @@ mkdir -p /etc/lsisash
 mv /etc/init.d/LsiSASH /etc/lsisash/LsiSASH
 chmod +x /etc/lsisash/LsiSASH
 
-fi
 
 
 case "$OS_FULL_ID" in
