@@ -571,8 +571,9 @@ if [ $? != 0 ]; then
           echo "export CUDA_INC_DIR=/usr/local/cuda-$CUDAV_U/include" >> /etc/profile
         fi
         sleep 1
-        apt -y install cuda-$CUDAV >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
+        apt -y install cuda-toolkit-$CUDAV >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
         sleep 1
+        ubuntu-drivers autoinstall >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
         nvidia-smi -pm 1 >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
         systemctl enable nvidia-persistenced >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
         source /etc/profile
@@ -746,7 +747,7 @@ if ! systemctl is-active --quiet dsm_om_connsvc; then
             systemctl enable dsm_om_connsvc
             systemctl start dsm_om_connsvc
             ;;
-        ubuntu20|ubuntu22|ubuntu24)
+        ubuntu20)
             echo "Ubuntu 계열 OMSA 설치" | tee -a "$INSTALL_LOG"
             ufw allow 1311/tcp
 
@@ -768,6 +769,29 @@ if ! systemctl is-active --quiet dsm_om_connsvc; then
             systemctl start dsm_sa_datamgrd.service
             systemctl start dsm_om_connsvc
             ;;
+        ubuntu22|ubuntu24)
+            echo "Ubuntu 계열 OMSA 설치" | tee -a "$INSTALL_LOG"
+            ufw allow 1311/tcp
+
+            echo 'deb http://linux.dell.com/repo/community/openmanage/10300/focal focal main' \
+                > /etc/apt/sources.list.d/linux.dell.com.sources.list
+            wget http://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc
+            apt-key add 0x1285491434D8786F.asc
+            apt -y update
+            wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+            dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+            apt -y install srvadmin-all
+
+            #if [ ! -f /usr/lib/x86_64-linux-gnu/libssl.so ]; then
+            #    ln -s /usr/lib/x86_64-linux-gnu/libssl.so.1.1 /usr/lib/x86_64-linux-gnu/libssl.so
+            #fi
+
+            systemctl daemon-reload
+            systemctl enable dsm_sa_datamgrd.service
+            systemctl enable dsm_om_connsvc
+            systemctl start dsm_sa_datamgrd.service
+            systemctl start dsm_om_connsvc
+
         *)
             echo "지원하지 않는 OS: $OS_FULL_ID" | tee -a "$INSTALL_LOG"
             ;;
