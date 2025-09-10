@@ -78,29 +78,67 @@ else
 fi
 
 # --- 3. 부팅 스크립트(rc.local) 설정 ---
-if [ ! -f /etc/rc.local ]; then
+if ! grep -q 'Linux_Auto_Script_copy.sh' /etc/rc.local /etc/rc.d/rc.local 2>/dev/null; then
     echo "rc.local 설정을 시작합니다." | tee -a "$INSTALL_LOG"
+    
+    # OS에 따라 rc.local 경로 설정
     case "$OS_ID" in
         ubuntu)
             RC_PATH="/etc/rc.local"
             ;;
         rocky|almalinux)
+            mkdir -p /etc/rc.d
             RC_PATH="/etc/rc.d/rc.local"
+            ;;
+        *)
+            echo "지원하지 않는 OS이므로 rc.local 설정을 건너뜁니다: $OS_ID" | tee -a "$ERROR_LOG"
+            exit 1
             ;;
     esac
 
-    echo -e '#!/bin/sh -e\n' > "$RC_PATH"
-    echo 'bash /root/LAS/Linux_Auto_Script_copy.sh' >> "$RC_PATH"
-    echo -e '\nexit 0' >> "$RC_PATH"
+    # rc.local 파일이 없다면 기본 틀 생성
+    if [ ! -f "$RC_PATH" ]; then
+        echo "#!/bin/sh -e" > "$RC_PATH"
+        echo "" >> "$RC_PATH"
+        echo "exit 0" >> "$RC_PATH"
+        chmod +x "$RC_PATH"
+    fi
 
-    chmod +x "$RC_PATH"
+    # 'exit 0' 앞에 스크립트 실행 명령 추가 (중복 방지)
+    if ! grep -q 'Linux_Auto_Script_copy.sh' "$RC_PATH"; then
+        sed -i '/^exit 0/i bash /root/LAS/Linux_Auto_Script_copy.sh\n' "$RC_PATH"
+    fi
+
+    # rc.local을 위한 systemd 서비스 파일 생성
+    RC_SERVICE_FILE="/etc/systemd/system/rc-local.service"
+    if [ ! -f "$RC_SERVICE_FILE" ]; then
+        echo "systemd용 rc-local.service 파일을 생성합니다." | tee -a "$INSTALL_LOG"
+        cat <<EOF > "$RC_SERVICE_FILE"
+[Unit]
+Description=/etc/rc.local Compatibility
+ConditionPathExists=$RC_PATH
+
+[Service]
+Type=forking
+ExecStart=$RC_PATH start
+TimeoutSec=0
+StandardOutput=journal+console
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF
+        systemctl daemon-reload
+    fi
+    
+    # 서비스 활성화 및 시작
     systemctl enable rc-local.service >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
     systemctl start rc-local.service >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+
     echo "rc.local 설정 완료." | tee -a "$INSTALL_LOG"
 else
-    echo "rc.local 파일이 이미 존재합니다." | tee -a "$INSTALL_LOG"
+    echo "rc.local에 스크립트가 이미 설정되어 있습니다." | tee -a "$INSTALL_LOG"
 fi
-
 
 # --- 4. Nouveau 비활성화 및 GRUB 설정 ---
 if lsmod | grep -q "^nouveau"; then
@@ -792,7 +830,6 @@ if ! systemctl is-active --quiet dsm_om_connsvc; then
             systemctl start dsm_sa_datamgrd.service
             systemctl start dsm_om_connsvc
 
-        *)
             echo "지원하지 않는 OS: $OS_FULL_ID" | tee -a "$INSTALL_LOG"
             ;;
     esac
@@ -807,37 +844,32 @@ echo "" | tee -a /root/install_log.txt
 echo "" | tee -a /root/install_log.txt
 echo "LAS install complete" | tee -a /root/install_log.txt
 
-case "$OS_FULL_ID" in
-    rocky8|almalinux8)
-        sed -i '13a bash /root/LAS/Check_List.sh' /etc/rc.d/rc.local
-        systemctl set-default multi-user.target | tee -a /root/install_log.txt
+# --- 최종 설정 및 정리 ---
+echo "LAS 설치가 완료되었습니다." | tee -a "$INSTALL_LOG"
+echo "최종 설정 및 재부팅 전 정리 작업을 시작합니다." | tee -a "$INSTALL_LOG"
+
+# 기본 부팅 타겟을 multi-user (텍스트 모드)로 설정
+systemctl set-default multi-user.target | tee -a "$INSTALL_LOG"
+
+# OS에 따라 rc.local 경로 확인
+case "$OS_ID" in
+    ubuntu)
+        RC_PATH="/etc/rc.local"
         ;;
-    rocky9|rocky10|almalinux9|almalinux10)
-        sed -i '13a bash /root/LAS/Check_List.sh' /etc/rc.d/rc.local
-        systemctl set-default multi-user.target | tee -a /root/install_log.txt
-        ;;
-    ubuntu20|ubuntu22|ubuntu24)
-        sed -i '1a bash /root/LAS/Check_List.sh' /etc/rc.local
-        systemctl set-default multi-user.target | tee -a /root/install_log.txt
+    rocky|almalinux)
+        RC_PATH="/etc/rc.d/rc.local"
         ;;
     *)
-        echo "지원하지 않는 OS: $OS_FULL_ID" | tee -a /root/install_log.txt
+        RC_PATH=""
         ;;
 esac
 
-if [ -f /root/LAS/Check_List.sh ]; then
-    cat <<'EOF' >> /root/LAS/Check_List.sh
-
-case "$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '"' )" in
-    rocky|almalinux)
-        sed -i '/bash \/root\/LAS\/Check_List.sh/d' /etc/rc.d/rc.local
-        ;;
-    ubuntu)
-        sed -i '/bash \/root\/LAS\/Check_List.sh/d' /etc/rc.local
-        ;;
-esac
-EOF
-    chmod +x /root/LAS/Check_List.sh
+# rc.local 파일에서 자동 실행 항목을 삭제하여 다음 부팅 시 실행 방지
+if [ -n "$RC_PATH" ] && [ -f "$RC_PATH" ]; then
+    echo "$RC_PATH 파일에서 자동 실행 항목을 삭제합니다." | tee -a "$INSTALL_LOG"
+    sed -i '/bash \/root\/LAS\/Linux_Auto_Script_copy.sh/d' "$RC_PATH"
 fi
 
+echo "모든 설정이 완료되었습니다. 시스템을 재부팅합니다." | tee -a "$INSTALL_LOG"
+sleep 3
 reboot
