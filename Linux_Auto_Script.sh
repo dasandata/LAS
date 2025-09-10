@@ -1,1469 +1,876 @@
-#!/bin/sh
+#!/usr/bin/env bash
+#
 # Copyright by Dasandata.co.ltd
 # http://www.dasandata.co.kr
-# Ver : 2209
+#
+# Modernized Version: 2025-07-10
+# Target OS: Ubuntu 22.04/24.04, Rocky Linux 8/9, AlmaLinux 9
+#
 
-# 1. 변수 선언
-## Dell or Supermicro 확인
-VENDOR=$(dmidecode | grep -i manufacturer | awk '{print$2}' | head -1)
-## Network Interface
-NIC=$(ip a | grep 'state UP' | cut -d ":" -f 2 | tr -d ' ')
-## centos, ubuntu 구별 변수 선언
-OSCHECK=$(cat /etc/os-release | head -1 | cut -d "=" -f 2 | tr -d "\"" | awk '{print$1}' | tr '[A-Z]' '[a-z]')
+# --- 스크립트 실행 전 확인 ---
+if [ "$(id -u)" -ne 0 ]; then
+  echo "이 스크립트는 root 권한으로 실행해야 합니다."
+  exit 1
+fi
 
-## CUDA 버전 선택 후 파일에 저장
-ls /root/cudaversion.txt &> /dev/null
-if [ $? != 0 ]
-then
-  echo "You have run Linux_Automatic_Script" | tee -a /root/install_log.txt
-  echo "Copyright by Dasandata.co.ltd" | tee -a /root/install_log.txt
-  echo "http://www.dasandata.co.kr" | tee -a /root/install_log.txt
-  echo "" | tee -a /root/install_log.txt
-  echo "Linux_Automatic_Script Install Start (Ver: 2209)" | tee -a /root/install_log.txt
-  echo "" | tee -a /root/install_log.txt
-  echo "CUDA Version Select" | tee -a /root/install_log.txt
-  case $OSCHECK in 
-    centos )
-      until [ $CUDAV != ' ' ]
-      do
-        PS3='Please Select one : '
-        select CUDAV in 10-0 10-1 10-2 11-0 11-1 11-2 11-3 11-4 11-5 No-GPU; do echo "Select CUDA Version : $CUDAV" ; break; done
-      done 
-      echo $CUDAV > /root/cudaversion.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "Cuda Version Select complete" | tee -a /root/install_log.txt
-    ;;
-    rocky )
-      until [ $CUDAV != ' ' ]
-      do
-        PS3='Please Select one : '
-        select CUDAV in 11-0 11-1 11-2 11-3 11-4 11-5 No-GPU; do echo "Select CUDA Version : $CUDAV" ; break; done
-      done 
-      echo $CUDAV > /root/cudaversion.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "Cuda Version Select complete" | tee -a /root/install_log.txt
-    ;;
-    ubuntu )
-      OS=$(lsb_release -isr |  tr -d "." | sed -e '{N;s/\n//}' | tr '[A-Z]' '[a-z]')
-      if [ $OS = "ubuntu2204" ]
-      then
-        until [ $CUDAV != ' ' ]
-        do
-          PS3='Please Select one : '
-          select CUDAV in 11-7 No-GPU ; do echo "Select CUDA Version : $CUDAV" ; break; done
+# --- 1. 변수 선언 및 OS 탐지 ---
+echo "시스템 정보 및 OS를 탐지합니다..."
+VENDOR=$(dmidecode -s system-manufacturer | awk '{print$1}')
+NIC=$(ip -o -4 route show to default | awk '{print $5}')
+
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS_ID=$ID
+    OS_VERSION_MAJOR=$(echo "$VERSION_ID" | cut -d. -f1)
+    OS_FULL_ID="${OS_ID}${OS_VERSION_MAJOR}"
+else
+    echo "OS 정보를 확인할 수 없습니다. /etc/os-release 파일이 없습니다." | tee -a $LOG_DIR/install_log.txt
+    exit 1
+fi
+
+LOG_DIR="/root/dasan_LOGS"
+mkdir -p "$LOG_DIR"
+INSTALL_LOG="$LOG_DIR/install.log"
+ERROR_LOG="$LOG_DIR/error.log"
+
+echo "스크립트 실행 로그는 $LOG_DIR 에 저장됩니다."
+
+# --- 2. CUDA 버전 선택 ---
+if [ ! -f $LOG_DIR/cudaversion.txt ]; then
+    echo "CUDA 버전 선택을 시작합니다." | tee -a "$INSTALL_LOG"
+    CUDA_OPTIONS=""
+    case "$OS_FULL_ID" in
+        ubuntu24)
+            CUDA_OPTIONS="12-5 12-6 12-8 12-9 No-GPU"
+            ;;
+        ubuntu22)
+            CUDA_OPTIONS="11-8 12-5 12-6 12-8 12-9 No-GPU"
+            ;;
+        rocky9|almalinux9)
+            CUDA_OPTIONS="12-5 12-6 12-8 12-9 No-GPU"
+            ;;
+        rocky8)
+            CUDA_OPTIONS="11-8 12-5 12-6 12-8 12-9 No-GPU"
+            ;;
+        *)
+            CUDA_OPTIONS="11-8 12-5 12-6 12-8 12-9 No-GPU"
+            ;;
+    esac
+
+    if [ -n "$CUDA_OPTIONS" ]; then
+        PS3='설치할 CUDA 버전을 선택하세요: '
+        select CUDAV in $CUDA_OPTIONS; do
+            if [[ " ${CUDA_OPTIONS[*]} " =~ " ${CUDAV} " ]]; then
+                echo "선택한 CUDA 버전: $CUDAV" | tee -a "$INSTALL_LOG"
+                echo "$CUDAV" > $LOG_DIR/cudaversion.txt
+                break
+            else
+                echo "잘못된 선택입니다. 다시 시도하세요."
+            fi
         done
-        echo $CUDAV > /root/cudaversion.txt
-      else if [ $OS = "ubuntu2004" ]
-      then
-        until [ $CUDAV != ' ' ]
-        do
-          PS3='Please Select one : '
-          select CUDAV in 11-0 11-1 11-2 11-3 11-4 11-5 No-GPU ; do echo "Select CUDA Version : $CUDAV" ; break; done
-        done
-        echo $CUDAV > /root/cudaversion.txt
-      else
-        until [ $CUDAV != ' ' ]
-        do
-          PS3='Please Select one : '
-          select CUDAV in 10-0 10-1 10-2 11-0 11-1 11-2 11-3 No-GPU ; do echo "Select CUDA Version : $CUDAV" ; break; done
-        done
-        echo $CUDAV > /root/cudaversion.txt
-      fi
-        echo "" | tee -a /root/install_log.txt
-        echo "Cuda Version Select complete" | tee -a /root/install_log.txt
-      fi
-    ;;
-    *)
-    ;;
-  esac
+    else
+        echo "지원되는 OS가 아니므로 CUDA 버전을 선택할 수 없습니다." | tee -a "$INSTALL_LOG"
+        echo "No-GPU" > $LOG_DIR/cudaversion.txt
+    fi
+    echo "CUDA 버전 선택 완료." | tee -a "$INSTALL_LOG"
 else
-  echo "" | tee -a /root/install_log.txt
-  echo "CUDA Version select is already" | tee -a /root/install_log.txt
+    echo "CUDA 버전이 이미 선택되었습니다." | tee -a "$INSTALL_LOG"
 fi
 
-echo "" | tee -a /root/install_log.txt
-sleep 3
-echo "" | tee -a /root/install_log.txt
+# --- 3. 부팅 스크립트(rc.local) 설정 ---
+if ! grep -q 'Linux_Auto_Script.sh' /etc/rc.local /etc/rc.d/rc.local 2>/dev/null; then
+    echo "rc.local 설정을 시작합니다." | tee -a "$INSTALL_LOG"
+    
+    # OS에 따라 rc.local 경로 설정
+    case "$OS_ID" in
+        ubuntu)
+            RC_PATH="/etc/rc.local"
+            ;;
+        rocky|almalinux)
+            mkdir -p /etc/rc.d
+            RC_PATH="/etc/rc.d/rc.local"
+            ;;
+        *)
+            echo "지원하지 않는 OS이므로 rc.local 설정을 건너뜁니다: $OS_ID" | tee -a "$ERROR_LOG"
+            exit 1
+            ;;
+    esac
 
-# 2. rc.local 생성 및 변경
-ls /root/log_err.txt &> /dev/null
-if [ $? != 0 ]
-then
-  ## 에러를 저장할 파일 생성
-  touch /root/log_err.txt
-  echo "" | tee -a /root/install_log.txt
-  echo "rc.local Setting start" | tee -a /root/install_log.txt
-  case $OSCHECK in
-    centos | rocky )
-      ## centos는 이미 rc.local이 존재하여 실행될 파일값만 넣어준다.
-      chmod +x /etc/rc.d/rc.local
-      systemctl enable rc-local.service
-      sed -i '13a bash /root/LAS/Linux_Auto_Script.sh' /etc/rc.d/rc.local
-      echo "rc.local setting complete" | tee -a /root/install_log.txt
-    ;;
-    ubuntu )
-      OS=$(lsb_release -isr |  tr -d "." | sed -e '{N;s/\n//}' | tr '[A-Z]' '[a-z]')
-      sleep 3
-      ## Ubuntu16만 이미 rc.local이 존재하여 나눠서 작업
-      if [ $OS = "ubuntu1604" ]
-      then
-        sed -i '13a bash /root/LAS/Linux_Auto_Script.sh' /etc/rc.local
-      else
-        echo -e  '#!/bin/sh -e \nexit 0' | tee -a /etc/rc.local
-        chmod +x /etc/rc.local
-        systemctl restart rc-local.service >> /root/install_log.txt 2>> /root/log_err.txt
-        systemctl status rc-local.service >> /root/install_log.txt 2>> /root/log_err.txt
-        sed -i '1a bash /root/LAS/Linux_Auto_Script.sh' /etc/rc.local
-        echo "" | tee -a /root/install_log.txt
-        echo "rc.local setting complete" | tee -a /root/install_log.txt
-      fi
-    ;;
-    *)
-    ;;
-  esac
+    # rc.local 파일이 없다면 기본 틀 생성
+    if [ ! -f "$RC_PATH" ]; then
+        echo "#!/bin/sh -e" > "$RC_PATH"
+        echo "" >> "$RC_PATH"
+        echo "exit 0" >> "$RC_PATH"
+        chmod +x "$RC_PATH"
+    fi
+
+    # 'exit 0' 앞에 스크립트 실행 명령 추가 (중복 방지)
+    if ! grep -q 'Linux_Auto_Script.sh' "$RC_PATH"; then
+        sed -i '/^exit 0/i bash /root/LAS/Linux_Auto_Script.sh\n' "$RC_PATH"
+    fi
+
+    # rc.local을 위한 systemd 서비스 파일 생성
+    RC_SERVICE_FILE="/etc/systemd/system/rc-local.service"
+    if [ ! -f "$RC_SERVICE_FILE" ]; then
+        echo "systemd용 rc-local.service 파일을 생성합니다." | tee -a "$INSTALL_LOG"
+        cat <<EOF > "$RC_SERVICE_FILE"
+[Unit]
+Description=/etc/rc.local Compatibility
+ConditionPathExists=$RC_PATH
+
+[Service]
+Type=forking
+ExecStart=$RC_PATH start
+TimeoutSec=0
+StandardOutput=journal+console
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF
+        systemctl daemon-reload
+    fi
+    
+    # 서비스 활성화 및 시작
+    systemctl enable rc-local.service >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+    systemctl start rc-local.service >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+
+    echo "rc.local 설정 완료." | tee -a "$INSTALL_LOG"
 else
-  echo "" | tee -a /root/install_log.txt
-  echo "The rc.local file already exists." | tee -a /root/install_log.txt
+    echo "rc.local에 스크립트가 이미 설정되어 있습니다." | tee -a "$INSTALL_LOG"
 fi
 
-echo "" | tee -a /root/install_log.txt
-sleep 3
-echo "" | tee -a /root/install_log.txt
+# --- 4. Nouveau 비활성화 및 GRUB 설정 ---
+if lsmod | grep -q "^nouveau"; then
+    echo "Nouveau 드라이버 비활성화 및 GRUB 설정을 시작합니다." | tee -a "$INSTALL_LOG"
+    
+    echo "blacklist nouveau" > /etc/modprobe.d/blacklist-nouveau.conf
+    echo "options nouveau modeset=0" >> /etc/modprobe.d/blacklist-nouveau.conf
 
-# 3. nouveau 끄기 및 grub 설정
-cat /etc/default/grub | grep ipv6.disable &> /dev/null
-if [ $? = 1 ]
-then
-  echo "" | tee -a /root/install_log.txt
-  echo "Nouveau Disable and Grub Settings Start." | tee -a /root/install_log.txt
-  case $OSCHECK in
-    centos | rocky )
-      echo "" | tee -a /root/install_log.txt
-      echo "CentOS Grub Setting Start." | tee -a /root/install_log.txt
-      sed -i  's/rhgb//'   /etc/default/grub
-      sed -i  's/quiet//'  /etc/default/grub
-      sed -i  's/GRUB_CMDLINE_LINUX="/GRUB_CMDLINE_LINUX="ipv6.disable=1 /' /etc/default/grub
-      sed -i  '/IPV6/d' /etc/sysconfig/network-scripts/ifcfg-${NIC}
-      echo "blacklist nouveau" >>         /etc/modprobe.d/blacklist.conf
-      echo "options nouveau modeset=0" >> /etc/modprobe.d/blacklist.conf
-      dracut  -f >> /root/install_log.txt 2>> /root/log_err.txt
-      grub2-mkconfig -o /boot/grub2/grub.cfg >> /root/install_log.txt 2>> /root/log_err.txt
-      grub2-mkconfig -o /boot/efi/EFI/centos/grub.cfg >> /root/install_log.txt 2>> /root/log_err.txt
-      grub2-mkconfig -o /boot/efi/EFI/rocky/grub.cfg  >> /root/install_log.txt 2>> /root/log_err.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "Nouveau and Grub Setting complete" | tee -a /root/install_log.txt
-    ;;
-    ubuntu )
-      OS=$(lsb_release -isr |  tr -d "." | sed -e '{N;s/\n//}' | tr '[A-Z]' '[a-z]')
-      echo "" | tee -a /root/install_log.txt
-      echo "$OS Grub Setting Start." | tee -a /root/install_log.txt
-      systemctl set-default  multi-user.target >> /root/install_log.txt 2>> /root/log_err.txt
-      echo "blacklist nouveau"         >> /etc/modprobe.d/blacklist.conf
-      echo "options nouveau modeset=0" >> /etc/modprobe.d/blacklist.conf
-      perl -pi -e 's/splash//' /etc/default/grub
-      perl -pi -e 's/quiet//'  /etc/default/grub
-      perl -pi -e  's/^GRUB_CMDLINE_LINUX="/GRUB_CMDLINE_LINUX="ipv6.disable=1 /'  /etc/default/grub
-      perl -pi -e  's/^GRUB_HIDDEN_TIMEOUT=/#GRUB_HIDDEN_TIMEOUT=/'                /etc/default/grub
-      update-initramfs -u && update-grub2 >> /root/install_log.txt 2>> /root/log_err.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "Nouveau and Grub Setting complete" | tee -a /root/install_log.txt
-    ;;
-    *)
-      echo "" | tee -a /root/install_log.txt
-    ;;
-  esac
+    case "$OS_ID" in
+        ubuntu)
+            update-initramfs -u >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+            update-grub >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+            ;;
+        rocky|almalinux)
+            dracut -f >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+            grub2-mkconfig -o /boot/grub2/grub.cfg >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+            # EFI 시스템이면 추가 GRUB 설정
+            if [ -f /boot/efi/EFI/"$OS_ID"/grub.cfg ]; then
+                grub2-mkconfig -o /boot/efi/EFI/"$OS_ID"/grub.cfg >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+            fi
+            ;;
+    esac
+
+    echo "GRUB 설정 완료. 재부팅 후 적용됩니다." | tee -a "$INSTALL_LOG"
 else
-  echo "" | tee -a /root/install_log.txt
-  echo "Nouveau Disable and Grub Settings has already been complete." | tee -a /root/install_log.txt
+    echo "Nouveau 모듈이 이미 비활성화 또는 로드되지 않았습니다. 별도 작업 없이 넘어갑니다." | tee -a "$INSTALL_LOG"
 fi
 
-# ubuntu 2204 만 cloud-init 제거
-case $OS in
-  ubuntu2204 )
-    echo "cloud-init remove on $OS."  | tee -a /root/install_log.txt
-    echo 'datasource_list: [ None ]' |  tee /etc/cloud/cloud.cfg.d/90_dpkg.cfg
-    apt-get -y purge cloud-init      | tee -a /root/install_log.txt
-    rm -rf /etc/cloud/  /var/lib/cloud/
+
+# --- 5. 시스템 설정 (SELinux, Repository) ---
+echo "시스템 설정을 시작합니다." | tee -a "$INSTALL_LOG"
+case "$OS_ID" in
+    rocky|almalinux)
+        if sestatus | grep -q "enabled"; then
+            echo "SELinux를 disabled로 변경합니다." | tee -a "$INSTALL_LOG"
+            setenforce 0
+            sed -i 's/^SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config
+        fi
+        ;;
+
+    ubuntu)
+        case "$OS_FULL_ID" in
+            ubuntu24)
+                echo "Ubuntu 24.04 APT 저장소를 mirror.kakao.com으로 변경합니다." | tee -a "$INSTALL_LOG"
+                UBUNTU_SRC_FILE="/etc/apt/sources.list.d/ubuntu.sources"
+                if [ -f "$UBUNTU_SRC_FILE" ]; then
+                    sed -i 's|http://kr.archive.ubuntu.com/ubuntu/|http://mirror.kakao.com/ubuntu/|g' "$UBUNTU_SRC_FILE"
+                    sed -i 's|http://security.ubuntu.com/ubuntu/|http://mirror.kakao.com/ubuntu/|g' "$UBUNTU_SRC_FILE"
+                fi
+                ;;
+
+            ubuntu20|ubuntu22)
+                echo "Ubuntu $OS_VERSION_MAJOR.04 APT 저장소를 mirror.kakao.com으로 변경합니다." | tee -a "$INSTALL_LOG"
+                sed -i 's|kr.archive.ubuntu.com|mirror.kakao.com|g' /etc/apt/sources.list
+                sed -i 's|security.ubuntu.com|mirror.kakao.com|g' /etc/apt/sources.list
+                ;;
+        esac
+        apt update >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        ;;
 esac
 
+echo "시스템 설정 완료." | tee -a "$INSTALL_LOG"
 
-echo "" | tee -a /root/install_log.txt
-sleep 3
-echo "" | tee -a /root/install_log.txt
+# --- 6. 기본 패키지 설치 ---
+echo "기본 패키지 설치를 시작합니다." | tee -a "$INSTALL_LOG"
+case "$OS_FULL_ID" in
+    ubuntu20|ubuntu22|ubuntu24)
+        apt -y install build-essential vim nfs-common rdate curl git wget figlet net-tools htop dstat \
+        gnome-tweaks ubuntu-desktop-minimal dconf-editor smartmontools \
+        python3-pip python3-dev >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        ;;
+    rocky8|rocky9|almalinux9)
+        dnf -y install epel-release >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        dnf -y groupinstall "Server with GUI" "Development Tools" >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        dnf -y install  epel-release >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        dnf -y install \
+        ethtool pciutils openssh mlocate nfs-utils xauth firefox nautilus wget bind-utils \
+        tcsh tree lshw tmux kernel-headers kernel-devel gcc make gcc-c++ yum-utils \
+        cmake dstat perl perl-CPAN perl-core net-tools openssl-devel git-lfs vim  \
+        git bash-completion smartmontools ipmitool tar chrony htop \
+        >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        ;;
+esac
+echo "기본 패키지 설치 완료." | tee -a "$INSTALL_LOG"
 
-# 4. selinux 제거 및 저장소 변경
-case $OSCHECK in
-  centos | rocky )
-    OS=$(cat /etc/redhat-release | awk '{print$1,$4}' | cut -d "." -f 1 | tr -d " " | tr '[A-Z]' '[a-z]')
-    echo "" | tee -a /root/install_log.txt
-    echo "OS is $OS" | tee -a /root/install_log.txt
-    ## SELINUX Disabled 작업
-    SELINUX=$(getenforce)
-    if [ $SELINUX = "Disabled" ]
-    then
-      echo "" | tee -a /root/install_log.txt
-      echo "SELINUX is already turned off." | tee -a /root/install_log.txt
-    else
-      echo "" | tee -a /root/install_log.txt
-      echo "Changed SELINUX to disabled." | tee -a /root/install_log.txt
-      setenforce 0
-      sed -i 's/SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config
+echo "---"
+
+
+echo "방화벽 설정을 시작합니다." | tee -a "$INSTALL_LOG"
+case "$OS_ID" in
+    ubuntu)
+        if ufw status | grep -q "Status: inactive"; then
+            yes | ufw enable >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        fi
+
+        if ufw status | grep -q "Status: active"; then
+            ufw allow 22/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+            ufw allow 7777/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # 변경될 SSH 포트
+            ufw allow 8000/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # JupyterHub
+            ufw allow 8787/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # RStudio Server
+            sed -i 's/#Port 22/Port 7777/g' /etc/ssh/sshd_config
+            systemctl restart sshd
+        else
+            echo "ERROR: ufw is not active. Skipping configuration." >> "$ERROR_LOG"
+        fi
+        ;;
+
+    rocky|almalinux)
+        if ! systemctl is-active --quiet firewalld; then
+             systemctl enable --now firewalld >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        fi
+
+        if systemctl is-active --quiet firewalld; then
+            firewall-cmd --permanent --add-port=22/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+            firewall-cmd --permanent --add-port=7777/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # 변경될 SSH 포트
+            firewall-cmd --permanent --add-port=8000/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # JupyterHub
+            firewall-cmd --permanent --add-port=8787/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # RStudio Server
+            firewall-cmd --reload >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+            
+            sed -i 's/#Port 22/Port 7777/g' /etc/ssh/sshd_config
+            sed -i 's/PermitRootLogin yes/PermitRootLogin no/g' /etc/ssh/sshd_config
+            systemctl restart sshd
+        else
+            echo "ERROR: firewalld is not running. Skipping configuration." >> "$ERROR_LOG"
+        fi
+        ;;
+esac
+echo "방화벽 설정 완료." | tee -a "$INSTALL_LOG"
+
+
+# --- 7. 프로필(alias, history, 프롬프트 등) 설정 ---
+echo "프로필(alias 및 히스토리, 프롬프트) 설정을 시작합니다." | tee -a "$INSTALL_LOG"
+
+if ! grep -q "Dasandata" /etc/profile; then
+    {
+        echo ""
+        echo "# Add by Dasandata"
+        echo "alias vi='vim'"
+        echo "alias ls='ls --color=auto'"
+        echo "alias ll='ls -lh'"
+        echo "alias grep='grep --color=auto'"
+        echo ""
+        echo "# Add Timestamp to .bash_history"
+        echo 'export HISTTIMEFORMAT="20%y/%m/%d %T "'
+    } >> /etc/profile
+
+    # 루트와 일부 계정의 프롬프트 설정(원하는 계정 추가)
+    echo "export PS1='\[\e[1;46;30m\][\u@\h:\W]\\$\[\e[m\] '" >> /root/.bashrc
+    if [ -d /home/temp_id ]; then
+        echo "export PS1='\[\e[1;47;30m\][\u@\h:\W]\\$\[\e[m\] '" >> /home/temp_id/.bashrc
     fi
-  ;;
-  ubuntu )
-    OS=$(lsb_release -isr |  tr -d "." | sed -e '{N;s/\n//}' | tr '[A-Z]' '[a-z]')
-    echo "" | tee -a /root/install_log.txt
-    echo "OS is $OS" | tee -a /root/install_log.txt
-    echo "" | tee -a /root/install_log.txt
-    echo "Repository Change" | tee -a /root/install_log.txt
-    perl -pi -e 's/kr.archive.ubuntu.com/mirror.kakao.com/g' /etc/apt/sources.list
-    perl -pi -e 's/security.ubuntu.com/mirror.kakao.com/g' /etc/apt/sources.list
-    echo "" | tee -a /root/install_log.txt
-    cat /etc/apt/sources.list | grep -v "#\|^$" >> /root/install_log.txt
-  ;;
-  *)
-    echo "" | tee -a /root/install_log.txt
-    echo "OS Check is Failed" | tee -a /root/install_log.txt
-  ;;
+
+    source /etc/profile
+    source /root/.bashrc
+
+    echo "" | tee -a "$INSTALL_LOG"
+    echo "프로필 설정 완료." | tee -a "$INSTALL_LOG"
+else
+    echo "" | tee -a "$INSTALL_LOG"
+    echo "프로필 설정이 이미 적용되어 있습니다." | tee -a "$INSTALL_LOG"
+fi
+
+echo "" | tee -a "$INSTALL_LOG"
+sleep 3
+echo "" | tee -a "$INSTALL_LOG"
+
+# --- 8. 서버 시간 동기화 ---
+echo "서버 시간 동기화 설정을 시작합니다." | tee -a "$INSTALL_LOG"
+
+TIME_LOG="$LOG_DIR/Time_Setting_log.txt"
+TIME_ERR="$LOG_DIR/Time_Setting_log_err.txt"
+
+case "$OS_FULL_ID" in
+    rocky8|rocky9|rocky10|almalinux8|almalinux9|almalinux10)
+        dnf -y install chrony >> "$TIME_LOG" 2>> "$TIME_ERR"
+        # 기본 NTP 서버를 국내 kr.pool.ntp.org로 변경
+        sed -i 's|^server .*iburst|server kr.pool.ntp.org iburst|' /etc/chrony.conf
+        systemctl enable --now chronyd >> "$TIME_LOG" 2>> "$TIME_ERR"
+        # 시간대 한국 표준시로 설정
+        timedatectl set-timezone Asia/Seoul >> "$TIME_LOG" 2>> "$TIME_ERR"
+        chronyc makestep >> "$TIME_LOG" 2>> "$TIME_ERR"
+        chronyc sources -v >> "$TIME_LOG" 2>> "$TIME_ERR"
+        timedatectl status >> "$TIME_LOG" 2>> "$TIME_ERR"
+        date >> "$TIME_LOG"
+        hwclock --systohc >> "$TIME_LOG" 2>> "$TIME_ERR"
+        ;;
+    ubuntu20|ubuntu22|ubuntu24)
+        apt -y install chrony >> "$TIME_LOG" 2>> "$TIME_ERR"
+        # 기본 NTP 서버를 국내 kr.pool.ntp.org로 변경
+        sed -i 's|^pool .* iburst|pool kr.pool.ntp.org iburst|' /etc/chrony/chrony.conf
+        systemctl enable --now chrony >> "$TIME_LOG" 2>> "$TIME_ERR"
+        # 시간대 한국 표준시로 설정
+        timedatectl set-timezone Asia/Seoul >> "$TIME_LOG" 2>> "$TIME_ERR"
+        chronyc makestep >> "$TIME_LOG" 2>> "$TIME_ERR"
+        chronyc sources -v >> "$TIME_LOG" 2>> "$TIME_ERR"
+        timedatectl status >> "$TIME_LOG" 2>> "$TIME_ERR"
+        date >> "$TIME_LOG"
+        hwclock --systohc >> "$TIME_LOG" 2>> "$TIME_ERR"
+        ;;
+    *)
+        echo "지원하지 않는 OS 버전입니다. 시간 동기화를 건너뜁니다." | tee -a "$TIME_LOG"
+        ;;
 esac
 
-echo "" | tee -a /root/install_log.txt
+echo "" | tee -a "$INSTALL_LOG"
+echo "서버 시간 동기화 설정 완료." | tee -a "$INSTALL_LOG"
 sleep 3
-echo "" | tee -a /root/install_log.txt
+echo "" | tee -a "$INSTALL_LOG"
 
-# 5. 기본 패키지 설치
-case $OS in
-  centos7 | rocky8 )
-    echo "" | tee -a /root/install_log.txt
-    echo "$OS Package Install" | tee -a /root/install_log.txt
-    ## Package 설치를 ipmi 여부로 Server와 PC를 나눠서 진행
-    rpm -qa | grep -i htop &> /dev/null
-    if [ $? != 0 ]
-    then
-      yum -y update >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      sleep 2
-      yum install -y epel-release >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      sleep 2
-      yum install -y rdate                                                                             >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      yum install -y ethtool pciutils openssh mlocate nfs-utils xauth firefox nautilus wget bind-utils >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      yum install -y tcsh tree lshw tmux kernel-headers kernel-devel gcc make gcc-c++ yum-utils       >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      yum install -y cmake dstat perl perl-CPAN perl-core net-tools openssl-devel git-lfs vim         >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      yum install -y git bash-completion smartmontools                                                >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      sleep 2
-      dmidecode | grep -i ipmi &> /dev/null
-      if [ $? = 0 ]
-      then
-        yum install -y ipmitool >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      else
-        echo "" | tee -a /root/install_log.txt
-        echo "PC,Workstation do not install ipmitool" | tee -a /root/install_log.txt
-      fi
-      echo ""
-      if [ $OS = "centos7" ]
-      then
-        yum -y groupinstall "GNOME Desktop" >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-        yum install -y glibc-static yum-plugin-priorities >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      else
-        yum -y groupinstall "Server with GUI" >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      fi
-      # yum -y groupinstall "Graphical Adminstration Tools" >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      yum -y groupinstall "Graphical Administration Tools" >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      yum -y groups install "Development Tools" >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      yum install -y glibc-devel libstdc++ libstdc++-devel >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      sleep 2
-      sed -i -e "s/\]$/\]\npriority=5/g" /etc/yum.repos.d/epel.repo >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      yum install -y htop ntfs-3g snapd figlet >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "The package install complete" | tee -a /root/install_log.txt
-    else
-      echo "" | tee -a /root/install_log.txt
-      echo "The package has already been installed." | tee -a /root/install_log.txt
-    fi
-    #불필요한 서비스 disable
-    systemctl disable bluetooth.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-    systemctl disable iscsi.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-    systemctl disable ksm.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-    systemctl disable ksmtuned.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-    systemctl disable libstoragemgmt.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-    systemctl disable libvirtd.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-    systemctl disable spice-vdagentd.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-    systemctl disable vmtoolsd.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-    systemctl disable ModemManager.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-    systemctl disable cups.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-    systemctl disable cups-browsed.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-    if [ $OS = "centos7" ]
-    then
-      systemctl disable NetworkManager.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl stop    NetworkManager.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable NetworkManager-dispatcher.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable NetworkManager-wait-online.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-    else
-      echo "" | tee -a /root/install_log.txt
-    fi
-  ;;
-  ubuntu1604 | ubuntu1804 | ubuntu2004 )
-    echo "" | tee -a /root/install_log.txt
-    echo "$OS Package Install" | tee -a /root/install_log.txt
-    ## Package 설치를 ipmi 여부로 Server와 PC를 나눠서 진행
-    dpkg -l | grep -i htop &> /dev/null
-    if [ $? != 0 ]
-    then
-      apt-get update >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      sleep 2
-      apt-get -y install vim nfs-common rdate xauth firefox gcc make tmux wget figlet >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      apt-get -y install net-tools xfsprogs ntfs-3g aptitude dstat curl python mlocate >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      sleep 2
-      apt-get -y install ubuntu-desktop dconf-editor gnome-panel gnome-settings-daemon metacity nautilus gnome-terminal >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      apt-get -y install libzmq3-dev libcurl4-openssl-dev libxml2-dev snapd lvm2 ethtool htop dnsutils >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      sleep 2
-      DEBIAN_FRONTEND=noninteractive apt-get install -y smartmontools >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      #불필요한 서비스 disable
-      systemctl disable bluetooth.service      >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable iscsi.service          >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable ksm.service            >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable ksmtuned.service       >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable libstoragemgmt.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable libvirtd.service       >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable spice-vdagentd.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable vmtoolsd.service       >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable ModemManager.service   >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable cups.service           >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable cups-browsed.service   >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      sleep 3
-      ## ipmi 여부로 PC, Server 판단
-      dmidecode | grep -i ipmi &> /dev/null
-      if [ $? = 0 ]
-      then
-        apt-get -y install ipmitool >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-        systemctl disable NetworkManager.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-        systemctl stop    NetworkManager.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-        systemctl disable NetworkManager-dispatcher.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-        systemctl disable NetworkManager-wait-online.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      else
-        echo "" | tee -a /root/install_log.txt
-        echo "PC,Workstation do not install ipmitool" | tee -a /root/install_log.txt
-      fi
-      echo "" | tee -a /root/install_log.txt
-      echo "The package install complete" | tee -a /root/install_log.txt
-    else
-      echo "" | tee -a /root/install_log.txt
-      echo "The package has already been installed." | tee -a /root/install_log.txt
-    fi
-  ;;
-  ubuntu2204 )
-    echo "" | tee -a /root/install_log.txt
-    echo "$OS Package Install" | tee -a /root/install_log.txt
-    ## Package 설치를 ipmi 여부로 Server와 PC를 나눠서 진행
-    dpkg -l | grep -i rdate &> /dev/null
-    if [ $? != 0 ]
-    then
-      apt-get update >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      sleep 2
-      apt-get -y install vim nfs-common xauth firefox gcc make tmux wget figlet net-tools >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      apt-get -y install xfsprogs ntfs-3g aptitude lvm2 dstat curl npm locate  >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      sleep 2
-      apt-get -y install dconf-editor gnome-panel gnome-settings-daemon metacity nautilus gnome-terminal >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      apt-get -y install libzmq3-dev libcurl4-openssl-dev libxml2-dev snapd ethtool htop dnsutils >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      sleep 2
-      apt-get install -y smartmontools  >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      apt-get install -y ubuntu-desktop >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      apt-get install -y rdate >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      #불필요한 서비스 disable
-      systemctl disable bluetooth.service      >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable iscsi.service          >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable spice-vdagentd.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable vmtoolsd.service       >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable ModemManager.service   >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable cups.service           >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      systemctl disable cups-browsed.service   >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      sleep 3
-      ## ipmi 여부로 PC, Server 판단
-      dmidecode | grep -i ipmi &> /dev/null
-      if [ $? = 0 ]
-      then
-        apt-get -y install ipmitool >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-        systemctl disable NetworkManager.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-        systemctl stop    NetworkManager.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-        systemctl disable NetworkManager-dispatcher.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-        systemctl disable NetworkManager-wait-online.service >> /root/Package_install_log.txt 2>> /root/Package_install_log_err.txt
-      else
-        echo "" | tee -a /root/install_log.txt
-        echo "PC,Workstation do not install ipmitool" | tee -a /root/install_log.txt
-      fi
-      echo "" | tee -a /root/install_log.txt
-      echo "The package install complete" | tee -a /root/install_log.txt
-    else
-      echo "" | tee -a /root/install_log.txt
-      echo "The package has already been installed." | tee -a /root/install_log.txt
-    fi
-  ;;
-  *)
-  echo "" | tee -a /root/install_log.txt
-  echo "Package install has already been complete" | tee -a /root/install_log.txt
-  ;;
-esac
+# --- 9. Python & pip 설치 ---
+echo "Python 3 및 pip 설치를 시작합니다." | tee -a "$INSTALL_LOG"
 
-echo "" | tee -a /root/install_log.txt
-sleep 3
-echo "" | tee -a /root/install_log.txt
+if ! command -v pip3 &>/dev/null; then
+    case "$OS_FULL_ID" in
+        rocky8|rocky9|rocky10|almalinux8|almalinux9|almalinux10)
+            dnf -y install python3 python3-pip >> $LOG_DIR/Python_install_log.txt 2>> $LOG_DIR/Python_install_log_err.txt
+            ;;
+        ubuntu20|ubuntu22)
+            apt update >> $LOG_DIR/Python_install_log.txt 2>> $LOG_DIR/Python_install_log_err.txt
+            apt -y install python3 python3-pip >> $LOG_DIR/Python_install_log.txt 2>> $LOG_DIR/Python_install_log_err.txt
+            ;;
+        *)
+            echo "지원하지 않는 OS 또는 버전입니다: $OS_FULL_ID" | tee -a "$INSTALL_LOG"
+            ;;
+    esac
 
-# 6. 프로필 설정 
-cat /etc/profile | grep Dasandata &> /dev/null
-if [ $? != 0 ]
-  then
-    echo "" | tee -a /root/install_log.txt
-    echo "Profile Settings Start" | tee -a /root/install_log.txt
-    # 프로필 alias및 프롬프트 설정 시작
-    echo " "  >> /etc/profile
-    echo "# Add by Dasandata"  >>   /etc/profile
-    echo "alias vi='vim' "  >>   /etc/profile
-    echo "alias ls='ls --color=auto' "  >>   /etc/profile
-    echo "alias ll='ls -lh' "  >>   /etc/profile
-    echo "alias grep='grep --color=auto' "  >>   /etc/profile
-    echo " "  >> /etc/profile
-    echo "# Add Timestamp to .bash_history "  >> /etc/profile
-    echo 'export HISTTIMEFORMAT="20%y/%m/%d %T "'  >> /etc/profile
-    echo "export PS1='\[\e[1;46;30m\][\u@\h:\W]\\$\[\e[m\] '"  >> /root/.bashrc
-    # echo "export PS1='\[\e[1;47;30m\][\u@\h:\W]\\$\[\e[m\] '"  >> /home/sonic/.bashrc
-    echo "export PS1='\[\e[1;47;30m\][\u@\h:\W]\\$\[\e[m\] '"  >> /home/kds/.bashrc
-    source  /etc/profile
-    source  /root/.bashrc
-    echo $HISTSIZE >> /root/install_log.txt 2>> /root/log_err.txt
-    echo "" | tee -a /root/install_log.txt
-    echo "Profile Settings complete" | tee -a /root/install_log.txt
-  else
-    echo "" | tee -a /root/install_log.txt
-    echo "Profile settings are already set up." | tee -a /root/install_log.txt
-fi
-
-echo "" | tee -a /root/install_log.txt
-sleep 3
-echo "" | tee -a /root/install_log.txt
-
-# 7. 서버 시간 동기화
-
-if [ $OS = "rocky8" ]
-then
-  yum install -y chrony >> /root/Time_Setting_log.txt 2>> /root/Time_Setting_log_err.txt
-  sed -i 's/pool 2.pool.ntp.org iburst/pool kr.pool.ntp.org iburst/' /etc/chrony.conf 
-  systemctl enable chronyd >> /root/Time_Setting_log.txt 2>> /root/Time_Setting_log_err.txt
-  systemctl start  chronyd >> /root/Time_Setting_log.txt 2>> /root/Time_Setting_log_err.txt
-  chronyc sources >> /root/Time_Setting_log.txt 2>> /root/Time_Setting_log_err.txt
-  timedatectl >> /root/Time_Setting_log.txt 2>> /root/Time_Setting_log_err.txt
-  clock --systohc >> /root/Time_Setting_log.txt 2>> /root/Time_Setting_log_err.txt
-  date >> /root/Time_Setting_log.txt 2>> /root/Time_Setting_log_err.txt
-  hwclock >> /root/Time_Setting_log.txt 2>> /root/Time_Setting_log_err.txt
+    python3 -m pip install --upgrade pip >> $LOG_DIR/Python_install_log.txt 2>> $LOG_DIR/Python_install_log_err.txt
 else
-  echo "Start time setting" | tee -a /root/install_log.txt
-  rdate  -s  time.bora.net >> /root/Time_Setting_log.txt 2>> /root/Time_Setting_log_err.txt
-  hwclock --systohc >> /root/Time_Setting_log.txt 2>> /root/Time_Setting_log_err.txt
-  date >> /root/Time_Setting_log.txt 2>> /root/Time_Setting_log_err.txt
-  hwclock >> /root/Time_Setting_log.txt 2>> /root/Time_Setting_log_err.txt
-  echo "" | tee -a /root/install_log.txt
-  echo "Time setting completed" | tee -a /root/install_log.txt
+    echo "pip3가 이미 설치되어 있습니다." | tee -a "$INSTALL_LOG"
 fi
 
-echo "" | tee -a /root/install_log.txt
-sleep 3
-echo "" | tee -a /root/install_log.txt
+echo "Python 3 및 pip 설치 완료" | tee -a "$INSTALL_LOG"
 
-# 8. 파이썬 설치
-pip3 -V &> /dev/null
-if [ $? != 0 ]
-then
-  case $OS in
-    centos7 )
-      echo "" | tee -a /root/install_log.txt
-      echo "Python Install" | tee -a /root/install_log.txt
-      yum -y install python-devel python-setuptools python-setuptools-devel >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      curl -O https://bootstrap.pypa.io/pip/2.7/get-pip.py >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      python get-pip.py >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      yum -y install python36  python36-devel python36-pip python36-setuptools >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      easy_install-3.6   pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      yum -y install openblas* >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      pip   install --upgrade pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      pip3   install --upgrade pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      perl -pi -e 's/python3/python/'   /usr/local/bin/pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "Python Install complete" | tee -a /root/install_log.txt
-    ;;
-    rocky8 )
-      echo "" | tee -a /root/install_log.txt
-      echo "Python Install" | tee -a /root/install_log.txt
-      yum -y install python36-devel >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "Python Install complete" | tee -a /root/install_log.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "Python Package Install" | tee -a /root/install_log.txt
-      python3 -m pip install --upgrade pip >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      python3 -m pip install numpy scipy nose matplotlib pandas keras >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      #python3 -m pip install --upgrade tensorflow-gpu==1.13.1 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      python3 -m pip install --upgrade tensorflow >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      python3 -m pip install torch torchvision >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "Python Package Install complete" | tee -a /root/install_log.txt
-    ;;
-    ubuntu1604 )
-      echo "" | tee -a /root/install_log.txt
-      echo "Python Install" | tee -a /root/install_log.txt
-      apt-get -y install python-dev python3-dev libssl-dev build-essential libffi-dev >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      curl -fsSL -o- https://bootstrap.pypa.io/pip/2.7/get-pip.py | python2.7 >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      curl -fsSL -o- https://bootstrap.pypa.io/pip/3.5/get-pip.py | python3.5 >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      pip   install --upgrade pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      pip3   install --upgrade pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      perl -pi -e 's/python3/python/'   /usr/local/bin/pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "Python Install complete" | tee -a /root/install_log.txt
-    ;;
-    ubuntu1804 )
-      echo "" | tee -a /root/install_log.txt
-      echo "Python Install" | tee -a /root/install_log.txt
-      apt-get -y install  python-pip python3-pip python-tk python3-tk >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      pip install --upgrade pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      pip3 install --upgrade pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      perl -pi -e 's/python3/python/'   /usr/local/bin/pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "Python Install complete" | tee -a /root/install_log.txt
-    ;;
-    ubuntu2004 )
-      echo "" | tee -a /root/install_log.txt
-      echo "Python Install" | tee -a /root/install_log.txt
-      apt-get -y install python3-pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      add-apt-repository universe >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      apt update >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      apt list --upgradeable >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      apt install -y python2 >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      curl https://bootstrap.pypa.io/pip/2.7/get-pip.py -o get-pip.py >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      python2.7 get-pip.py --force-reinstall >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      pip3 install --upgrade pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      perl -pi -e 's/python3/python/'   /usr/local/bin/pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "Python Install complete" | tee -a /root/install_log.txt
-    ;;
-    ubuntu2204 )
-      echo "" | tee -a /root/install_log.txt
-      echo "Python Install" | tee -a /root/install_log.txt
-      apt-get -y install python3-pip >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      pip3 install --upgrade pip     >> /root/Python_install_log.txt 2>> /root/Python_install_log_err.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "Python Install complete" | tee -a /root/install_log.txt
-    ;;
-    *)
-    ;;
-  esac
+# --- 10. H/W 사양 체크 ---
+if [ ! -f $LOG_DIR/HWcheck.txt ]; then
+    echo "===== H/W Check Start =====" | tee -a "$INSTALL_LOG"
+    touch $LOG_DIR/HWcheck.txt
+
+    {
+        echo "############################################################"
+        echo "#               H/W SPECIFICATION CHECK RESULT             #"
+        echo "############################################################"
+        echo ""
+        
+        echo "==================== [ System Information ] ===================="
+        dmidecode --type system | grep -v "^$\|#\|SMBIOS\|Handle\|Not"
+        echo ""
+
+        echo "==================== [ CPU Information ] ===================="
+        lscpu | grep -v "Flags\|NUMA"
+        echo ""
+
+        echo "==================== [ Memory Devices ] ===================="
+        dmidecode --type 16 | grep -v "dmidecode\|SMBIOS\|Handle"
+        echo ""
+        dmidecode --type memory | grep "Number Of Devices\|Size\|Locator\|Clock\|DDR\|Rank" | grep -v "No\|Unknown"
+        echo ""
+        echo "MemTotal from /proc/meminfo:"
+        grep MemTotal /proc/meminfo
+        echo ""
+        echo "Free/Used Memory:"
+        free -h
+        echo ""
+
+        echo "==================== [ PCIe Devices ] ===================="
+        echo "VGA:"
+        lspci | grep -i vga
+        echo ""
+        echo "NVIDIA:"
+        lspci | grep -i nvidia
+        echo ""
+        echo "NIC (dmidecode):"
+        dmidecode | grep NIC
+        echo ""
+        echo "Communication Controllers:"
+        lspci | grep -i communication
+        echo ""
+        echo "NIC (dmesg):"
+        dmesg | grep NIC
+        echo ""
+
+        echo "==================== [ Power Supply Units ] ===================="
+        dmidecode --type 39 | grep "System\|Name:\|Capacity"
+        echo ""
+
+        echo "==================== [ Disk & Partitions ] ===================="
+        blkid
+        echo ""
+
+        echo "==================== [ OS Release & Kernel ] ===================="
+        uname -a
+        echo ""
+
+        echo "############################################################"
+        echo "#                  H/W CHECK END                           #"
+        echo "############################################################"
+    } > $LOG_DIR/HWcheck.txt
+
+    echo "" | tee -a "$INSTALL_LOG"
+    echo "=====  H/W Check Complete =====" | tee -a "$INSTALL_LOG"
+
+    # 출력
+    echo ""
+    echo "===== H/W CHECK RESULT ====="
+    cat $LOG_DIR/HWcheck.txt
+    echo "============================"
 else
-  echo "" | tee -a /root/install_log.txt
-  echo "The python has already been installed." | tee -a /root/install_log.txt
+    echo "" | tee -a "$INSTALL_LOG"
+    echo "H/W check has already been completed." | tee -a "$INSTALL_LOG"
+
+    echo ""
+    echo "===== EXISTING H/W CHECK RESULT ====="
+    cat $LOG_DIR/HWcheck.txt
+    echo "====================================="
 fi
 
-echo "" | tee -a /root/install_log.txt
-sleep 3
-echo "" | tee -a /root/install_log.txt
+echo "" | tee -a "$INSTALL_LOG"
+sleep 5
+echo "" | tee -a "$INSTALL_LOG"
 
-# 9. 파이썬 패키지 설치
-pip3 list | grep tensor &> /dev/null 
-if [ $? != 0 ]
-then
-  case $OS in
-    centos7 )
-      echo "" | tee -a /root/install_log.txt
-      echo "Python Package Install" | tee -a /root/install_log.txt
-      pip install  numpy   scipy  nose  matplotlib  pandas  keras >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip uninstall --yes dnspython >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      yum erase -y python-ldap pyparsing >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip3 install  numpy   scipy  nose  matplotlib  pandas  keras >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip install --upgrade setuptools >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      rm -rf /usr/share/doc/python-enum34-1.0.4* >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      rm -rf /usr/lib/python2.7/site-packages/enum34-1.0.4-py2.7.egg-info >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip  install --upgrade setuptools==40 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      #pip3 install --upgrade tensorflow-gpu==1.13.1 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip3 install --upgrade tensorflow >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip3 install --upgrade setuptools >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip  install torch torchvision >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip3 install torch torchvision >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip3 install --upgrade optimuspyspark >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "Python Package Install complete" | tee -a /root/install_log.txt
-    ;;
-    ubuntu1604 )
-      echo "" | tee -a /root/install_log.txt
-      echo "Python Package Install" | tee -a /root/install_log.txt
-      pip2 install  numpy   scipy  nose  matplotlib  pandas  keras >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip3 install  numpy   scipy  nose  matplotlib  pandas  keras >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      #pip2 install  --upgrade tensorflow-gpu==1.13.1 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      #pip3 install  --upgrade tensorflow-gpu==1.13.1 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip2 install  --upgrade tensorflow >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip3 install  --upgrade tensorflow >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip2 install  --upgrade setuptools >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip3 install  --upgrade setuptools >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip3 install --upgrade optimuspyspark  >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip3 install --upgrade testresources >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip2 install torch torchvision >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip3 install torch torchvision >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      sed -i 's/python.5/python2.7/g' /usr/local/bin/pip 
-      echo "" | tee -a /root/install_log.txt
-      echo "Python Package Install complete" | tee -a /root/install_log.txt
-    ;;
-    ubuntu1804 )
-      echo "" | tee -a /root/install_log.txt
-      echo "Python Package Install" | tee -a /root/install_log.txt
-      pip install  numpy   scipy  nose  matplotlib  pandas  keras >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip3 install  numpy   scipy  nose  matplotlib  pandas  keras >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      #pip install  --upgrade tensorflow-gpu==1.13.1 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      #pip3 install  --upgrade tensorflow-gpu==1.13.1 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip install  --upgrade tensorflow >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip3 install  --upgrade tensorflow >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip3 install --upgrade cryptography==3.3.2 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip3 install --upgrade optimuspyspark  >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip3 install --upgrade testresources >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip install torch torchvision >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip3 install torch torchvision >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "Python Package Install complete" | tee -a /root/install_log.txt
-    ;;
-    ubuntu2004 )
-      echo "" | tee -a /root/install_log.txt
-      echo "Python Package Install"
-      pip install --upgrade numpy scipy  nose  matplotlib  pandas  keras tensorflow >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      #pip install --upgrade numpy scipy  nose  matplotlib  pandas  keras tensorflow-gpu >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip install scipy==1.2.2 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip3 install --upgrade numpy scipy nose matplotlib pandas keras tensorflow >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      #pip3 install --upgrade numpy scipy nose matplotlib pandas keras tensorflow-gpu    >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip3 install numpy==1.20.3 h5py==2.10.0 cryptography==3.3.2 python-dateutil==2.8.2 >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip install --upgrade torch torchvision  >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip3 install --upgrade torch torchvision >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "Python Package Install complete" | tee -a /root/install_log.txt
-    ;;
-    ubuntu2204 )
-      echo "" | tee -a /root/install_log.txt
-      echo "Python Package Install"
-      pip3 install --upgrade numpy scipy nose matplotlib pandas keras h5py cryptography tensorflow >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      #pip3 install --upgrade numpy scipy nose matplotlib pandas keras h5py cryptography tensorflow-gpu  >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      pip3 install --upgrade torch torchvision >> /root/pip_install_log.txt 2>> /root/pip_install_log_err.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "Python Package Install complete" | tee -a /root/install_log.txt
-    ;;
-    *)
-    ;;
-  esac
+
+# --- GPU 체크 및 CPU/GPU 서버 버전 분기 ---
+if ! lspci | grep -iq nvidia; then
+    echo "" | tee -a "$INSTALL_LOG"
+    echo "Complete basic setup" | tee -a "$INSTALL_LOG"
+
+    case "$OS_FULL_ID" in
+        rocky8|rocky9|almalinux9)
+            if ! dmidecode | grep -iq ipmi; then
+                echo "" | tee -a "$INSTALL_LOG"
+                echo "End of CPU version LAS" | tee -a "$INSTALL_LOG"
+                if ! grep -q "bash /root/LAS/Check_List.sh" /etc/rc.d/rc.local; then
+                    sed -i '13a bash /root/LAS/Check_List.sh' /etc/rc.d/rc.local
+                fi
+                systemctl set-default graphical.target >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+                reboot
+            else
+                echo "" | tee -a "$INSTALL_LOG"
+                echo "The server version continues." | tee -a "$INSTALL_LOG"
+                if [ ! -f $LOG_DIR/nvidia.txt ]; then
+                    touch $LOG_DIR/nvidia.txt
+                    reboot
+                fi
+            fi
+            ;;
+
+        ubuntu20|ubuntu22|ubuntu24)
+            if ! dmidecode | grep -iq ipmi; then
+                echo "" | tee -a "$INSTALL_LOG"
+                echo "End of CPU version LAS" | tee -a "$INSTALL_LOG"
+                if ! grep -q "bash /root/LAS/Check_List.sh" /etc/rc.local; then
+                    sed -i '1a bash /root/LAS/Check_List.sh' /etc/rc.local
+                fi
+                systemctl set-default graphical.target >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+                reboot
+            else
+                echo "" | tee -a "$INSTALL_LOG"
+                echo "The server version continues." | tee -a "$INSTALL_LOG"
+                if [ ! -f $LOG_DIR/nvidia.txt ]; then
+                    touch $LOG_DIR/nvidia.txt
+                    reboot
+                fi
+            fi
+            ;;
+
+        *)
+            ;;
+    esac
 else
-  echo "" | tee -a /root/install_log.txt
-  echo "Python Package has been installed." | tee -a /root/install_log.txt
-fi
-
-echo "" | tee -a /root/install_log.txt
-sleep 3
-echo "" | tee -a /root/install_log.txt
-
-# 10. 방화벽 설정
-case $OS in
-  centos7 | rocky8 )
-    firewall-cmd --list-all | grep 7777 &> /dev/null
-    if [ $? != 0 ]
-    then
-      echo "" | tee -a /root/install_log.txt
-      echo "Firewall Settings" | tee -a /root/install_log.txt
-      systemctl enable firewalld >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
-      systemctl restart firewalld >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
-      firewall-cmd --add-port=7777/tcp  --permanent >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
-      ## R Server Port
-      firewall-cmd --add-port=8787/tcp  --permanent >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
-      ## jupyterHub Port
-      firewall-cmd --add-port=8000/tcp  --permanent >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
-      ## masquerade on
-      firewall-cmd --add-masquerade --permanent >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
-      ## remove service
-      firewall-cmd --remove-service=dhcpv6-client  --permanent >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
-      firewall-cmd --remove-service=cockpit  --permanent >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
-      firewall-cmd --remove-service=ssh  --permanent >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
-      firewall-cmd --reload >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
-      sed -i  "s/#Port 22/Port 7777/g" /etc/ssh/sshd_config
-      if [ $OS = "rocky8" ]
-      then
-        sed -i  "s/PermitRootLogin yes/PermitRootLogin no/g" /etc/ssh/sshd_config
-      else
-        sed -i  "s/#PermitRootLogin yes/PermitRootLogin no/g" /etc/ssh/sshd_config
-      fi
-      echo "AddressFamily inet" >> /etc/ssh/sshd_config
-      systemctl restart sshd >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "Firewall setting complete" | tee -a /root/install_log.txt
-    else
-      echo "" | tee -a /root/install_log.txt
-      echo "The Firewall has already been started." | tee -a /root/install_log.txt
-    fi
-  ;;
-  ubuntu1604 | ubuntu1804 | ubuntu2004 | ubuntu2204 )
-    ufw status | grep inactive &> /dev/null
-    if [ $? = 0 ]
-    then
-      echo "" | tee -a /root/install_log.txt
-      echo "Firewall Settings" | tee -a /root/install_log.txt
-      systemctl start ufw >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
-      systemctl enable ufw >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
-      yes | ufw enable >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
-      ufw default deny >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
-      ufw allow 22/tcp  >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
-      ufw allow 7777/tcp  >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
-      ## R Server port
-      ufw allow 8787/tcp  >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
-      ## JupyterHub port
-      ufw allow 8000/tcp >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
-      if [ $OS = "ubuntu1604" ]
-      then
-        perl -pi -e "s/Port 22/Port 7777/g" /etc/ssh/sshd_config
-      else
-        perl -pi -e "s/#Port 22/Port 7777/g" /etc/ssh/sshd_config
-      fi
-      perl -pi -e "s/PermitRootLogin prohibit-password/PermitRootLogin no/g" /etc/ssh/sshd_config
-      echo "AddressFamily inet" >> /etc/ssh/sshd_config
-      systemctl restart sshd >> /root/firewall_setting_log.txt 2>> /root/firewall_setting_log_err.txt
-    else
-      echo "" | tee -a /root/install_log.txt
-      echo "The Firewall has already been started." | tee -a /root/install_log.txt
-    fi
-  ;;
-  *)
-    echo "" | tee -a /root/install_log.txt
-  ;;
-esac
-
-echo "" | tee -a /root/install_log.txt
-sleep 3
-echo "" | tee -a /root/install_log.txt
-
-: << 'END'
-# 11. 사용자 생성 테스트
-ls /home/ | grep -i dasan &> /dev/null
-if [ $? != 0 ]
-then
-  case $OS in
-    centos7 | rocky8 )
-      echo "" | tee -a /root/install_log.txt
-      echo "User Add Start" | tee -a /root/install_log.txt
-      useradd dasan >> /root/useradd_log.txt 2>> /root/useradd_log_err.txt
-      usermod -aG wheel dasan >> /root/useradd_log.txt 2>> /root/useradd_log_err.txt
-    ;;
-    ubuntu1604 | ubuntu1804 | ubuntu2004 | ubuntu2204 )
-      echo "" | tee -a /root/install_log.txt
-      echo "User add Start" | tee -a /root/install_log.txt
-      adduser --disabled-login --gecos "" dasan >> /root/useradd_log.txt 2>> /root/useradd_log_err.txt
-      usermod -G sudo dasan >> /root/useradd_log.txt 2>> /root/useradd_log_err.txt
-    ;;
-    *)
-    ;;
-  esac
-else
-  echo "" | tee -a /root/install_log.txt
-  echo "User add has already been complete." | tee -a /root/install_log.txt
-fi
-
-echo "" | tee -a /root/install_log.txt
-sleep 3
-echo "" | tee -a /root/install_log.txt
-END
-
-# 12. H/W 사양 체크
-cat /root/HWcheck.txt &> /dev/null
-if [ $? != 0 ]
-then
-  echo "===== H/W Check Start =====" | tee -a /root/install_log.txt
-  touch /root/HWcheck.txt
-  echo "=====  H/W Check Start =====" >> /root/HWcheck.txt
-  echo "=====  System =====" >> /root/HWcheck.txt
-  dmidecode --type system | grep -v "^$\|#\|SMBIOS\|Handle\|Not" >> /root/HWcheck.txt
-  echo "===== CPU =====" >> /root/HWcheck.txt
-  lscpu | grep -v "Flags\|NUMA" >> /root/HWcheck.txt
-  echo "===== Memory Devices =====" >> /root/HWcheck.txt
-  dmidecode --type 16 | grep -v "dmidecode\|SMBIOS\|Handle" >> /root/HWcheck.txt
-  dmidecode --type memory | grep "Number Of Devices\|Size\|Locator\|Clock\|DDR\|Rank" | grep -v "No\|Unknown" >> /root/HWcheck.txt
-  cat /proc/meminfo | grep MemTotal >> /root/HWcheck.txt
-  free -h >> /root/HWcheck.txt
-  echo "===== PCIe =====" >> /root/HWcheck.txt
-  lspci | grep -i vga >> /root/HWcheck.txt
-  lspci | grep -i nvidia >> /root/HWcheck.txt
-  dmidecode | grep NIC >> /root/HWcheck.txt
-  lspci | grep -i communication >> /root/HWcheck.txt
-  dmesg | grep NIC >> /root/HWcheck.txt
-  echo "===== Power Supply =====" >> /root/HWcheck.txt
-  dmidecode --type 39  | grep "System\|Name:\|Capacity" >> /root/HWcheck.txt
-  echo "===== Disk & Partition =====" >> /root/HWcheck.txt
-  blkid >> /root/HWcheck.txt
-  echo "===== OS release & kernel =====" >> /root/HWcheck.txt
-  uname -a >> /root/HWcheck.txt
-  echo "" | tee -a /root/install_log.txt
-  echo "=====  H/W Check Complete ===== " | tee -a /root/install_log.txt
-else
-  echo "" | tee -a /root/install_log.txt
-  echo "H/W check has already been completed." | tee -a /root/install_log.txt
-fi
-
-echo "" | tee -a /root/install_log.txt
-sleep 10
-echo "" | tee -a /root/install_log.txt
-
-## CPU 버전 PC, Server 여기까지 (Dell 서버만 뒤에 메일 설정 진행)
-lspci | grep -i nvidia &> /dev/null
-if [ $? != 0 ]
-then
-  echo "" | tee -a /root/install_log.txt
-  echo "Complete basic setup" | tee -a /root/install_log.txt
-  case $OS in
-    centos7 | rocky8 )
-      dmidecode | grep -i ipmi &> /dev/null
-      if [ $? != 0 ]
-      then
-        echo "" | tee -a /root/install_log.txt
-        echo "End of CPU version LAS" | tee -a /root/install_log.txt
-        sed -i '13a bash /root/LAS/Check_List.sh' /etc/rc.d/rc.local
-        systemctl set-default graphical.target >> /root/install_log.txt 2>> /root/log_err.txt
+    echo "" | tee -a "$INSTALL_LOG"
+    echo "GPU Settings Start." | tee -a "$INSTALL_LOG"
+    if [ ! -f $LOG_DIR/nvidia.txt ]; then
+        touch $LOG_DIR/nvidia.txt
         reboot
-      else
-        echo "" | tee -a /root/install_log.txt
-        echo "The server version continues." | tee -a /root/install_log.txt
-        cat /root/nvidia.txt &> /dev/null
-        if [ $? != 0 ]
-        then
-          touch /root/nvidia.txt
-          reboot
-        else
-          echo "" | tee -a /root/install_log.txt
-        fi
-      fi
-    ;;
-    ubuntu1604 | ubuntu1804 | ubuntu2004 | ubuntu2204 )
-      dmidecode | grep -i ipmi &> /dev/null
-      if [ $? != 0 ]
-      then
-        echo "" | tee -a /root/install_log.txt
-        echo "End of CPU version LAS" | tee -a /root/install_log.txt
-        if [ $OS = "ubuntu1604" ]
-        then
-          sed -i '13a bash /root/LAS/Check_List.sh' /etc/rc.local
-        else
-          sed -i '1a bash /root/LAS/Check_List.sh' /etc/rc.local
-        fi
-        systemctl set-default graphical.target >> /root/install_log.txt 2>> /root/log_err.txt
-        reboot
-      else
-        echo "" | tee -a /root/install_log.txt
-        echo "The server version continues." | tee -a /root/install_log.txt
-        cat /root/nvidia.txt &> /dev/null
-        if [ $? != 0 ]
-        then
-          touch /root/nvidia.txt
-          reboot
-        else
-          echo "" | tee -a /root/install_log.txt
-        fi
-      fi
-    ;;
-    *)
-    ;;
-  esac
-else
-  echo "" | tee -a /root/install_log.txt
-  echo "GPU Settings Start." | tee -a /root/install_log.txt
-  cat /root/nvidia.txt &> /dev/null
-  if [ $? != 0 ]
-  then
-    touch /root/nvidia.txt
-    reboot
-  else
-    echo "" | tee -a /root/install_log.txt
-  fi
+    fi
 fi
 
 sleep 3
- 
-cat /root/cudaversion.txt | grep No &> /dev/null
-if [ $? = 0 ]
-then
-  OS="Skip this server as it has no GPU."
+
+if grep -q "No" $LOG_DIR/cudaversion.txt; then
+    OS="Skip this server as it has no GPU."
 else
-  echo ""
+    echo ""
 fi
 
-# 13. CUDA,CUDNN Repo 설치
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS_ID=$ID
+    OS_VERSION_MAJOR=$(echo "$VERSION_ID" | cut -d. -f1)
+    OS_FULL_ID="${OS_ID}${OS_VERSION_MAJOR}"
+else
+    echo "OS 정보를 확인할 수 없습니다. /etc/os-release 없음" | tee -a $LOG_DIR/install_log.txt
+    exit 1
+fi
+
+# 11. CUDA, CUDNN Repo install
+
+# 기본 부팅 타겟을 multi-user (텍스트 모드)로 설정
+
+systemctl set-default multi-user.target | tee -a "$INSTALL_LOG"
+
 ls /usr/local/ | grep cuda &> /dev/null
-if [ $? != 0 ]
-then
-  case $OS in
-    centos7 )
-      echo "" | tee -a /root/install_log.txt
-      echo "CUDA,CUDNN REPO install Start" | tee -a /root/install_log.txt
-      yum-config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/cuda-rhel7.repo >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
-      wget https://developer.download.nvidia.com/compute/machine-learning/repos/rhel7/x86_64/nvidia-machine-learning-repo-rhel7-1.0.0-1.x86_64.rpm >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
-      yum -y install nvidia-machine-learning-repo-rhel7-1.0.0-1.x86_64.rpm >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
-      yum --disablerepo="*" --enablerepo="cuda-rhel7-x86_64" list available >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
-      yum -y install libXi-devel mesa-libGLU-devel libXmu-devel libX11-devel freeglut-devel libXm* >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
-      yum -y install openmotif* >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "CUDA,CUDNN REPO install complete" | tee -a /root/install_log.txt
-    ;;
-    rocky8 )
-      dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64/cuda-rhel8.repo >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
-      wget https://developer.download.nvidia.com/compute/machine-learning/repos/rhel8/x86_64/nvidia-machine-learning-repo-rhel8-1.0.0-1.x86_64.rpm >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
-      yum -y install nvidia-machine-learning-repo-rhel8-1.0.0-1.x86_64.rpm >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
-      yum -y install libXi-devel mesa-libGLU-devel libXmu-devel libX11-devel freeglut-devel libXm* openmotif* >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
-    ;;
-    ubuntu1604 | ubuntu1804 | ubuntu2004 | ubuntu2204 )
-      echo "" | tee -a /root/install_log.txt
-      echo "CUDA,CUDNN REPO install Start" | tee -a /root/install_log.txt
-      apt-get -y install sudo gnupg >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
-      apt-key adv --fetch-keys "https://developer.download.nvidia.com/compute/cuda/repos/"$OS"/x86_64/3bf863cc.pub" >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
-      sh -c 'echo "deb https://developer.download.nvidia.com/compute/cuda/repos/'$OS'/x86_64 /" > /etc/apt/sources.list.d/nvidia-cuda.list' >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
-      apt-get update >> /root/GPU_repo_log.txt 2>> /root/GPU_repo_log_err.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "CUDA,CUDNN REPO install complete" | tee -a /root/install_log.txt
-    ;;
+if [ $? != 0 ]; then
+  case $OS_FULL_ID in
+    rocky8|almalinux8)
+      dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64/cuda-rhel8.repo >> $LOG_DIR/GPU_repo_log.txt 2>> $LOG_DIR/GPU_repo_log_err.txt
+      wget https://developer.download.nvidia.com/compute/machine-learning/repos/rhel8/x86_64/nvidia-machine-learning-repo-rhel8-1.0.0-1.x86_64.rpm >> $LOG_DIR/GPU_repo_log.txt 2>> $LOG_DIR/GPU_repo_log_err.txt
+      dnf -y install nvidia-machine-learning-repo-rhel8-1.0.0-1.x86_64.rpm >> $LOG_DIR/GPU_repo_log.txt 2>> $LOG_DIR/GPU_repo_log_err.txt
+      dnf -y install libXi-devel mesa-libGLU-devel libXmu-devel libX11-devel freeglut-devel libXm* openmotif* >> $LOG_DIR/GPU_repo_log.txt 2>> $LOG_DIR/GPU_repo_log_err.txt
+      ;;
+    rocky9|almalinux9)
+      dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64/cuda-rhel9.repo >> $LOG_DIR/GPU_repo_log.txt 2>> $LOG_DIR/GPU_repo_log_err.txt
+      dnf -y install libXi-devel mesa-libGLU-devel libXmu-devel libX11-devel freeglut-devel libXm* openmotif* >> $LOG_DIR/GPU_repo_log.txt 2>> $LOG_DIR/GPU_repo_log_err.txt
+      ;;
+    rocky10|almalinux10)
+      dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel10/x86_64/cuda-rhel10.repo >> $LOG_DIR/GPU_repo_log.txt 2>> $LOG_DIR/GPU_repo_log_err.txt
+      dnf -y install libXi-devel mesa-libGLU-devel libXmu-devel libX11-devel freeglut-devel libXm* openmotif* >> $LOG_DIR/GPU_repo_log.txt 2>> $LOG_DIR/GPU_repo_log_err.txt
+      ;;
+    ubuntu20|ubuntu22|ubuntu24)
+      apt -y install sudo gnupg >> $LOG_DIR/GPU_repo_log.txt 2>> $LOG_DIR/GPU_repo_log_err.txt           
+      apt-key adv --fetch-keys "https://developer.download.nvidia.com/compute/cuda/repos/"${OS_FULL_ID}04"/x86_64/3bf863cc.pub" >> $LOG_DIR/GPU_repo_log.txt 2>> $LOG_DIR/GPU_repo_log_err.txt
+      sh -c 'echo "deb https://developer.download.nvidia.com/compute/cuda/repos/'${OS_FULL_ID}04'/x86_64 /" > /etc/apt/sources.list.d/nvidia-cuda.list' >> $LOG_DIR/GPU_repo_log.txt 2>> $LOG_DIR/GPU_repo_log_err.txt
+      apt update >> $LOG_DIR/GPU_repo_log.txt 2>> $LOG_DIR/GPU_repo_log_err.txt
+      ;;
     *)
-      echo "" | tee -a /root/install_log.txt
-      echo "CUDA,CUDNN repo not install:$OS" | tee -a /root/install_log.txt
-    ;;
+      echo "CUDA,CUDNN repo not installed for this OS: $OS_FULL_ID" | tee -a $LOG_DIR/install_log.txt
+      ;;
   esac
 else
-  echo "" | tee -a /root/install_log.txt
-  echo "The Cuda REPO has already been installed." | tee -a /root/install_log.txt
+  echo "The CUDA REPO has already been installed." | tee -a $LOG_DIR/install_log.txt
 fi
 
-echo "" | tee -a /root/install_log.txt
+echo "" | tee -a $LOG_DIR/install_log.txt
 sleep 3
-echo "" | tee -a /root/install_log.txt
+echo "" | tee -a $LOG_DIR/install_log.txt
 
-# 14. CUDA 설치 및 PATH 설정
-ls /usr/local/ | grep cuda >> /root/install_log.txt 2>> /root/log_err.txt
-if [ $? != 0 ]
-then
-  CUDAV=$(cat /root/cudaversion.txt)
-  if [ $CUDAV = "No-GPU" ]
-  then
-    echo "No-GPU not install cuda" >> /root/install_log.txt 2>> /root/log_err.txt
+# 12. CUDA install / PATH setting
+ls /usr/local/ | grep cuda >> $LOG_DIR/install_log.txt 2>> $LOG_DIR/log_err.txt
+if [ $? != 0 ]; then
+  CUDAV=$(cat $LOG_DIR/cudaversion.txt)
+  if [ "$CUDAV" = "No-GPU" ]; then
+    echo "No-GPU: not install cuda" >> $LOG_DIR/install_log.txt 2>> $LOG_DIR/log_err.txt
   else
-    CUDAV="${CUDAV/-/.}"
-    case $OS in
-      centos7 | rocky8 )
-        echo "CUDA $CUDAV install Start" | tee -a /root/install_log.txt
-        cat /etc/profile | grep "ADD Cuda" >> /root/install_log.txt 2>> /root/log_err.txt
-        if [ $? != 0 ]
-        then
-          echo " "  >> /etc/profile
-          echo "### ADD Cuda $CUDAV PATH"  >> /etc/profile
-          echo "export PATH=/usr/local/cuda-$CUDAV/bin:/usr/local/cuda-$CUDAV/include:\$PATH " >> /etc/profile
-          echo "export LD_LIBRARY_PATH=/usr/local/cuda-$CUDAV/lib64:/usr/local/cuda/extras/CUPTI/:\$LD_LIBRARY_PATH " >> /etc/profile
-          echo "export CUDA_HOME=/usr/local/cuda-$CUDAV " >> /etc/profile
-          echo "export CUDA_INC_DIR=/usr/local/cuda-$CUDAV/include " >> /etc/profile
-          cat /etc/profile | tail -6 >> /root/install_log.txt 2>> /root/log_err.txt
-        else
-          echo "" | tee -a /root/install_log.txt
+    CUDAV_U="${CUDAV/-/.}"
+    case $OS_FULL_ID in
+      rocky8|almalinux8|rocky9|almalinux9|rocky10|almalinux10)
+        echo "CUDA $CUDAV 설치 시작" | tee -a $LOG_DIR/install_log.txt
+        if ! grep -q "ADD Cuda" /etc/profile; then
+          echo "" >> /etc/profile
+          echo "### ADD Cuda $CUDAV_U PATH" >> /etc/profile
+          echo "export PATH=/usr/local/cuda-$CUDAV_U/bin:/usr/local/cuda-$CUDAV_U/include:\$PATH" >> /etc/profile
+          echo "export LD_LIBRARY_PATH=/usr/local/cuda-$CUDAV_U/lib64:/usr/local/cuda/extras/CUPTI/:\$LD_LIBRARY_PATH" >> /etc/profile
+          echo "export CUDA_HOME=/usr/local/cuda-$CUDAV_U" >> /etc/profile
+          echo "export CUDA_INC_DIR=/usr/local/cuda-$CUDAV_U/include" >> /etc/profile
         fi
-        CUDAV="${CUDAV/./-}"
         sleep 1
-
-        rpm --import http://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/D42D0685.pub
-        yum -y install kmod-nvidia-latest-dkms
-
-        yum -y install cuda-$CUDAV >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
+        dnf -y install cuda-$CUDAV >> $LOG_DIR/cuda_cudnn_install_log.txt 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
         sleep 1
-        nvidia-smi -pm 1 >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
-        systemctl enable nvidia-persistenced >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
-        sleep 1
+        nvidia-smi -pm 1 >> $LOG_DIR/cuda_cudnn_install_log.txt 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
+        systemctl enable nvidia-persistenced >> $LOG_DIR/cuda_cudnn_install_log.txt 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
         source /etc/profile
-        sleep 1
         source /root/.bashrc
-        sleep 1
-        echo "" | tee -a /root/install_log.txt
-        echo "CUDA $CUDAV install Start complete" | tee -a /root/install_log.txt
+        echo "CUDA $CUDAV 설치 완료" | tee -a $LOG_DIR/install_log.txt
       ;;
-      ubuntu1604 | ubuntu1804 | ubuntu2004 | ubuntu2204 )
-        echo "CUDA $CUDAV install Start" | tee -a /root/install_log.txt
-        cat /etc/profile | grep "ADD Cuda" >> /root/install_log.txt 2>> /root/log_err.txt
-        if [ $? != 0 ]
-        then
-          echo " "  >> /etc/profile
-          echo "### ADD Cuda $CUDAV PATH"  >> /etc/profile
-          echo "export PATH=/usr/local/cuda-$CUDAV/bin:/usr/local/cuda-$CUDAV/include:\$PATH " >> /etc/profile
-          echo "export LD_LIBRARY_PATH=/usr/local/cuda-$CUDAV/lib64:/usr/local/cuda/extras/CUPTI/:\$LD_LIBRARY_PATH " >> /etc/profile
-          echo "export CUDA_HOME=/usr/local/cuda-$CUDAV " >> /etc/profile
-          echo "export CUDA_INC_DIR=/usr/local/cuda-$CUDAV/include " >> /etc/profile
-          cat /etc/profile | tail -6 >> /root/install_log.txt 2>> /root/log_err.txt
-        else
-          echo "" | tee -a /root/install_log.txt
+      ubuntu20|ubuntu22|ubuntu24)
+        echo "CUDA $CUDAV 설치 시작" | tee -a $LOG_DIR/install_log.txt
+        if ! grep -q "ADD Cuda" /etc/profile; then
+          echo "" >> /etc/profile
+          echo "### ADD Cuda $CUDAV_U PATH" >> /etc/profile
+          echo "export PATH=/usr/local/cuda-$CUDAV_U/bin:/usr/local/cuda-$CUDAV_U/include:\$PATH" >> /etc/profile
+          echo "export LD_LIBRARY_PATH=/usr/local/cuda-$CUDAV_U/lib64:/usr/local/cuda/extras/CUPTI/:\$LD_LIBRARY_PATH" >> /etc/profile
+          echo "export CUDA_HOME=/usr/local/cuda-$CUDAV_U" >> /etc/profile
+          echo "export CUDA_INC_DIR=/usr/local/cuda-$CUDAV_U/include" >> /etc/profile
         fi
-        CUDAV="${CUDAV/./-}"
         sleep 1
-        apt-get -y install cuda-$CUDAV >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
+        apt -y install cuda-toolkit-$CUDAV >> $LOG_DIR/cuda_cudnn_install_log.txt 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
         sleep 1
-        nvidia-smi -pm 1 >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
-        systemctl enable nvidia-persistenced >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
+        ubuntu-drivers autoinstall >> $LOG_DIR/cuda_cudnn_install_log.txt 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
+        nvidia-smi -pm 1 >> $LOG_DIR/cuda_cudnn_install_log.txt 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
+        systemctl enable nvidia-persistenced >> $LOG_DIR/cuda_cudnn_install_log.txt 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
         source /etc/profile
-        sleep 1
         source /root/.bashrc
-        sleep 1
-        echo "" | tee -a /root/install_log.txt
-        echo "CUDA $CUDAV install Start complete" | tee -a /root/install_log.txt
+        echo "CUDA $CUDAV 설치 완료" | tee -a $LOG_DIR/install_log.txt
       ;;
       *)
-        echo "" | tee -a /root/install_log.txt
-        echo "CUDA not install:$OS" | tee -a /root/install_log.txt
+        echo "CUDA not install: $OS_FULL_ID" | tee -a $LOG_DIR/install_log.txt
       ;;
     esac
   fi
 else
-  echo "" | tee -a /root/install_log.txt
-  echo "The CUDA has already been installed." | tee -a /root/install_log.txt
+  echo "The CUDA has already been installed." | tee -a $LOG_DIR/install_log.txt
 fi
 
-echo "" | tee -a /root/install_log.txt
+echo "" | tee -a $LOG_DIR/install_log.txt
 sleep 3
-echo "" | tee -a /root/install_log.txt
+echo "" | tee -a $LOG_DIR/install_log.txt
 
-# 15. CUDNN 설치 및 PATH 설정
-updatedb
-locate libcudnn  &> /dev/null
-if [ $? != 0 ]
-then
-  case $OS in
-    centos7 )
-      echo "" | tee -a /root/install_log.txt
-      echo "libcudnn Install Start" | tee -a /root/install_log.txt
-      if [[ $CUDAV == *11* ]]
-      then
-        yum -y install libcudnn8* >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
-        yum -y update >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
-      else
-        yum -y install libcudnn7* >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
-        yum -y update >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
-      fi
-      echo "" | tee -a /root/install_log.txt
-      echo "libcudnn Install complete" | tee -a /root/install_log.txt
-    ;;
-    rocky8 )
-      echo "" | tee -a /root/install_log.txt
-      echo "libcudnn Install Start" | tee -a /root/install_log.txt
-      yum -y install libcudnn8* >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
-      yum -y install libnccl*   >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "libcudnn Install complete" | tee -a /root/install_log.txt
-    ;;
-    ubuntu1604 | ubuntu1804 )
-      echo "" | tee -a /root/install_log.txt
-      echo "libcudnn Install Start" | tee -a /root/install_log.txt
-      if [[ $CUDAV == *11* ]]
-      then
-        apt-get -y install libcudnn8*    >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
-        apt-get -y install libcublas-dev >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
-      else
-        apt-get -y install libcudnn7*    >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
-        apt-get -y install libcublas-dev >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
-      fi
-      echo "" | tee -a /root/install_log.txt
-      echo "libcudnn Install complete" | tee -a /root/install_log.txt
-    ;;
-    ubuntu2004 | ubuntu2204)
-      echo "" | tee -a /root/install_log.txt
-      echo "libcudnn Install Start" | tee -a /root/install_log.txt
-      apt-get -y install nvidia-cuda-toolkit >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
-      apt-get -y install libcudnn8*          >> /root/cuda_cudnn_install_log.txt 2>> /root/cuda_cudnn_install_log_err.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "libcudnn Install complete" | tee -a /root/install_log.txt
-    ;;
+# --- 13. CUDNN 9 install ---
+echo "CUDNN 9 설치를 시작합니다." | tee -a "$INSTALL_LOG"
+
+CUDAV=$(cat $LOG_DIR/cudaversion.txt 2>/dev/null)
+if [ -z "$CUDAV" ] || [ "$CUDAV" = "No-GPU" ]; then
+    echo "No GPU 또는 CUDA 버전 미설정 상태입니다. CUDNN 설치를 건너뜁니다." | tee -a "$INSTALL_LOG"
+else
+    if [[ "$CUDAV" == *"-"* ]]; then
+        CUDA_MAJOR=${CUDAV%%-*}
+    else
+        CUDA_MAJOR=$CUDAV
+    fi
+    
+    case "$OS_FULL_ID" in
+        rocky8|rocky9|almalinux9|rocky10|almalinux10)
+            echo " CUDNN 설치 시작" | tee -a "$INSTALL_LOG"
+            dnf -y install \
+                cudnn9-cuda-${CUDA_MAJOR} \
+                libcudnn9-devel-cuda-${CUDA_MAJOR} \
+                libcudnn9-headers-cuda-${CUDA_MAJOR} \
+                libcudnn9-samples \
+                >> $LOG_DIR/cuda_cudnn_install_log.txt 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
+            echo "CUDNN 설치 완료" | tee -a "$INSTALL_LOG"
+            ;;
+
+        ubuntu20|ubuntu22|ubuntu24)
+            echo " CUDNN 9 설치 시작" | tee -a "$INSTALL_LOG"
+            apt -y install \
+                libcudnn9-cuda-${CUDA_MAJOR} \
+                libcudnn9-dev-cuda-${CUDA_MAJOR} \
+                libcudnn9-headers-cuda-${CUDA_MAJOR} \
+                libcudnn9-samples \
+                >> $LOG_DIR/cuda_cudnn_install_log.txt 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
+            echo "CUDNN 설치 완료" | tee -a "$INSTALL_LOG"
+            ;;
+
+        *)
+            echo "지원하지 않는 OS 또는 버전입니다: $OS_FULL_ID" | tee -a "$INSTALL_LOG"
+            ;;
+    esac
+fi
+
+
+
+# ---14. LSA install ---
+
+echo "===== LSA 설치 시작 ====="
+
+mkdir -p /root/LSA
+cd /root/LSA
+
+wget https://docs.broadcom.com/docs-and-downloads/008.012.007.000_MR7.32_LSA_Linux.zip
+
+unzip -o 008.012.007.000_MR7.32_LSA_Linux.zip
+cd webgui_rel
+unzip -o LSA_Linux.zip
+ls -l
+
+cd gcc_8.3.x
+case "$OS_ID" in
+    rocky|almalinux)
+        if [ -f install.sh ]; then
+            yes | ./install.sh -s
+            echo "Rocky/AlmaLinux: install.sh 실행 완료" | tee -a "$INSTALL_LOG"
+        else
+            echo "[WARN] install.sh 파일이 없습니다." | tee -a "$INSTALL_LOG"
+        fi
+        ;;
+    ubuntu)
+        if [ -f install_deb.sh ]; then
+            yes | ./install_deb.sh -s
+            echo "Ubuntu: install_deb.sh 실행 완료" | tee -a "$INSTALL_LOG"
+        else
+            echo "[WARN] install_deb.sh 파일이 없습니다." | tee -a "$INSTALL_LOG"
+        fi
+        ;;
     *)
-    echo "" | tee -a /root/install_log.txt
-    echo "CUDNN, PATH Setting:$OS" | tee -a /root/install_log.txt
-    ;;
-  esac
-else
-  echo "" | tee -a /root/install_log.txt
-  echo "The CUDNN has already been installed." | tee -a /root/install_log.txt
-fi
-
-echo "" | tee -a /root/install_log.txt
-sleep 3
-echo "" | tee -a /root/install_log.txt
-
-# 16. 딥러닝 패키지 설치(R,R Server, JupyterHub, Pycharm)
-updatedb
-locate rstudio  &> /dev/null
-if [ $? != 0 ]
-then
-  case $OS in
-    centos7 )
-      echo "" | tee -a /root/install_log.txt
-      echo "Deep Learnig Package Install Start" | tee -a /root/install_log.txt
-      ## R,R-sutdio install
-      yum -y install R >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      wget https://download2.rstudio.org/server/centos7/x86_64/rstudio-server-rhel-2022.02.0-443-x86_64.rpm  >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      yum -y install rstudio-server-rhel-2022.02.0-443-x86_64.rpm >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      ## JupyterHub install
-      pip3 install --upgrade jupyterhub jupyterlab notebook >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      wget https://rpm.nodesource.com/pub_16.x/el/7/x86_64/nodejs-16.10.0-1nodesource.x86_64.rpm >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      wget https://rpm.nodesource.com/pub_16.x/el/7/x86_64/nodejs-devel-16.10.0-1nodesource.x86_64.rpm >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      rpm -ivh nodejs-16.10.0-1nodesource.x86_64.rpm nodejs-devel-16.10.0-1nodesource.x86_64.rpm >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      npm install -g configurable-http-proxy >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "Deep Learnig Package install complete"  | tee -a /root/install_log.txt
-    ;;
-    rocky8 )
-      ## R,R-studio install
-      dnf config-manager --set-enabled powertools >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      yum -y install R >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      yum install libcurl-devel libxml2-devel >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      wget https://download2.rstudio.org/server/rhel8/x86_64/rstudio-server-rhel-2022.02.0-443-x86_64.rpm  >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      yum -y install rstudio-server-rhel-2022.02.0-443-x86_64.rpm  >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      ## jupyter install
-      python3 -m pip install jupyterhub jupyterlab notebook >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      curl -sL https://rpm.nodesource.com/setup_16.x | sudo -E bash - >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      sed -i '/failover/d'  /etc/yum.repos.d/nodesource-el8.repo >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      yum -y install nodejs >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      npm install -g configurable-http-proxy >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-    ;;
-    ubuntu1604 | ubuntu1804 | ubuntu2004 )
-      echo "" | tee -a /root/install_log.txt
-      echo "Deep Learnig Package Install Start" | tee -a /root/install_log.txt
-      ## R,R-studio Install
-      apt-get -y install r-base >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      apt-get -y install gdebi-core >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      wget https://download2.rstudio.org/server/bionic/amd64/rstudio-server-2022.02.0-443-amd64.deb >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      yes | gdebi rstudio-server-2022.02.0-443-amd64.deb >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      ## JupyterHub install
-      pip3 install --upgrade jupyterhub jupyterlab notebook >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      curl -fsSL https://deb.nodesource.com/setup_16.x | bash - >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      apt-get -y install nodejs default-jre >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      npm install -g configurable-http-proxy >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      ## Pycharm install
-      snap install pycharm-community --classic >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "Deep Learnig Package install complete" | tee -a /root/install_log.txt
-    ;;
-    ubuntu2204 )
-      echo "" | tee -a /root/install_log.txt
-      echo "Deep Learnig Package Install Start" | tee -a /root/install_log.txt
-      ## R,R-studio Install
-      apt-get -y install r-base       >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      apt-get -y install gdebi-core   >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-
-      wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.0g-2ubuntu4_amd64.deb
-      dpkg -i libssl1.1_1.1.0g-2ubuntu4_amd64.deb
-
-      wget https://download2.rstudio.org/server/bionic/amd64/rstudio-server-2022.07.1-554-amd64.deb >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      yes | gdebi rstudio-server-2022.07.1-554-amd64.deb >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      ## JupyterHub install
-      pip3 install --upgrade jupyterhub jupyterlab notebook >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-
-      apt-get -y purge nodejs libnode72
-
-      curl -fsSL https://deb.nodesource.com/setup_16.x | bash - >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      apt-get -y install nodejs default-jre >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      npm install -g configurable-http-proxy >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      ## Pycharm install
-      snap install pycharm-community --classic >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "Deep Learnig Package install complete" | tee -a /root/install_log.txt
-    ;;
-    *)
-      echo "" | tee -a /root/install_log.txt
-      echo "$OS"   | tee -a /root/install_log.txt
-    ;;
-  esac
-  sleep 3
-else
-  echo "" | tee -a /root/install_log.txt
-  echo "The Deep Learnig Package has already been installed." | tee -a /root/install_log.txt
-fi
-
-## jupyterhub 마무리 설정
-cat /root/cudaversion.txt | grep No &> /dev/null
-if [ $? != 0 ]
-then
-  ls /lib/systemd/system/ | grep jupyter &> /dev/null
-  if [ $? != 0 ]
-  then
-    echo "" | tee -a /root/install_log.txt
-    echo "JupyterHub Setting Files Copy" | tee -a /root/install_log.txt
-    ## jupyterhub 설정값 변경
-    mkdir /etc/jupyterhub
-    jupyterhub --generate-config -f /etc/jupyterhub/jupyterhub_config.py >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-
-      sed -i '625a c.JupyterHub.port = 8000'                        /etc/jupyterhub/jupyterhub_config.py
-      sed -i '656a c.JupyterHub.proxy_class = 'jupyterhub.proxy.ConfigurableHTTPProxy'' /etc/jupyterhub/jupyterhub_config.py
-      sed -i '1260a c.Authenticator.admin_users = {"kds"}'        /etc/jupyterhub/jupyterhub_config.py
-      sed -i '976a c.Spawner.default_url = '/lab''                  /etc/jupyterhub/jupyterhub_config.py
-
-      sed -i '1450a c.LocalAuthenticator.create_system_users = True' /etc/jupyterhub/jupyterhub_config.py
-      sed -i '1451a c.Authenticator.add_user_cmd = ['adduser', '--force-badname', '-q', '--gecos', '""', '--disabled-password']' /etc/jupyterhub/jupyterhub_config.py
-
-    ## jupyterhub service 설정 파일 복사
-    mv /root/LAS/jupyterhub.service  /lib/systemd/system/
-    mv /root/LAS/jupyterhub          /etc/init.d/
-
-    chmod 777 /lib/systemd/system/jupyterhub.service >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-    chmod 755 /etc/init.d/jupyterhub                 >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-
-    systemctl daemon-reload                          >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-    systemctl enable jupyterhub.service              >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-    systemctl restart jupyterhub.service             >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-
-    R CMD BATCH /root/LAS/r_jupyterhub.R             >> /root/DL_install_log.txt 2>> /root/DL_install_log_err.txt
-
-    echo "" | tee -a /root/install_log.txt
-    echo "JupyterHub Setting Files Copy Complete" | tee -a /root/install_log.txt
-  else
-    echo "JupyterHub Settings is already" | tee -a /root/install_log.txt
-  fi
-else
-  echo "$OS" | tee -a /root/install_log.txt
-fi
-
-echo "" | tee -a /root/install_log.txt
-sleep 3
-echo "" | tee -a /root/install_log.txt
-
-#### Server만 아래 스크립트 진행 #####
-dmidecode | grep -i ipmi &> /dev/null
-if [ $? != 0 ]
-then
-  # rc.local 기본 값으로 변경
-  echo "" | tee -a /root/install_log.txt
-  echo "LAS install complete" | tee -a /root/install_log.txt
-  case $OSCHECK in
-    centos | rocky )
-      sed -i '13a bash /root/LAS/Check_List.sh' /etc/rc.d/rc.local
-      systemctl set-default graphical.target >> /root/install_log.txt 2>> /root/log_err.txt
-    ;;
-    ubuntu )
-      OS=$(lsb_release -isr |  tr -d "." | sed -e '{N;s/\n//}' | tr '[A-Z]' '[a-z]')
-      if [ $OS = "ubuntu1604" ]
-      then
-        sed -i '13a bash /root/LAS/Check_List.sh' /etc/rc.local
-        systemctl set-default graphical.target >> /root/install_log.txt 2>> /root/log_err.txt
-      else
-        sed -i '1a bash /root/LAS/Check_List.sh' /etc/rc.local
-        systemctl set-default graphical.target >> /root/install_log.txt 2>> /root/log_err.txt
-      fi
-    ;;
-    *)
-    ;;
-  esac
-  reboot
-else
-  echo "" | tee -a /root/install_log.txt
-  echo "Server Package Install Start." | tee -a /root/install_log.txt
-fi
-
-echo "" | tee -a /root/install_log.txt
-sleep 3
-echo "" | tee -a /root/install_log.txt
-
-## GPU 없는 서버가 여기까지 건너뛰기 위해 제거했던 OS 변수 입력
-if [ $OSCHECK = "ubuntu" ]
-then
-  OS=$(lsb_release -isr |  tr -d "." | sed -e '{N;s/\n//}' | tr '[A-Z]' '[a-z]')
-else
-  OS=$(cat /etc/redhat-release | awk '{print$1,$4}' | cut -d "." -f 1 | tr -d " " | tr '[A-Z]' '[a-z]')
-fi
-
-# 17. 서버 전용 MSM 설치
-ls /usr/local/ | grep Mega &> /dev/null
-if [ $? != 0 ]
-then
-  case $OS in
-    centos7 | rocky8 )
-      echo "" | tee -a /root/install_log.txt
-      echo "MSM install start" | tee -a /root/install_log.txt
-      mkdir /tmp/raid_manager
-      cd /tmp/raid_manager
-      wget https://docs.broadcom.com/docs-and-downloads/raid-controllers/raid-controllers-common-files/17.05.00.02_Linux-64_MSM.gz >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
-      tar zxf 17.05.00.02_Linux-64_MSM.gz >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
-      cd /tmp/raid_manager/disk/ && ./install.csh -a >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
-
-      systemctl daemon-reload >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
-      systemctl enable vivaldiframeworkd.service >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
-      systemctl start vivaldiframeworkd.service >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
-      cd /root/
-      echo "" | tee -a /root/install_log.txt
-      echo "MSM install complete" | tee -a /root/install_log.txt
-    ;;
-    ubuntu1604 | ubuntu1804 | ubuntu2004 | ubuntu2204 )
-      echo "" | tee -a /root/install_log.txt
-      echo "MSM install start" | tee -a /root/install_log.txt
-      mkdir /tmp/raid_manager
-      cd /tmp/raid_manager
-      wget https://docs.broadcom.com/docs-and-downloads/raid-controllers/raid-controllers-common-files/17.05.00.02_Linux-64_MSM.gz >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
-      tar zxf 17.05.00.02_Linux-64_MSM.gz >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
-      cd /tmp/raid_manager/disk/
-      apt-get -y install alien >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
-      alien --scripts *.rpm >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
-      dpkg --install lib-utils2_1.00-9_all.deb >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
-      dpkg --install megaraid-storage-manager_17.05.00-3_all.deb >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
-      systemctl daemon-reload >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
-      systemctl start vivaldiframeworkd.service >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
-      systemctl enable vivaldiframeworkd.service >> /root/MSM_install_log.txt 2>> /root/MSM_install_log_err.txt
-      cd /root/
-      echo "" | tee -a /root/install_log.txt
-      echo "MSM install complete" | tee -a /root/install_log.txt
-    ;;
-    *)
-    ;;
-  esac
-else
-  echo "" | tee -a /root/install_log.txt
-  echo "MSM is ready or IPMI does not exist." | tee -a /root/install_log.txt
-fi
-
-echo "" | tee -a /root/install_log.txt
-sleep 3
-echo "" | tee -a /root/install_log.txt
-
-## Dell Server를 제외한 Server는 여기까지 실행
-echo $VENDOR | grep -i dell &> /dev/null
-if [ $? != 0 ]
-then
-# rc.local 기본 값으로 변경
-  echo "" | tee -a /root/install_log.txt
-  echo "LAS install complete" | tee -a /root/install_log.txt
-    case $OS in
-      centos7 | rocky8 )
-        sed -i '13a bash /root/LAS/Check_List.sh' /etc/rc.d/rc.local
-        sleep 2
-        systemctl set-default  multi-user.target
-      ;;
-      ubuntu1604 )
-        sed -i '13a bash /root/LAS/Check_List.sh' /etc/rc.local
-        sleep 2
-        systemctl set-default  multi-user.target
-      ;;
-      ubuntu1804 | ubuntu2004 )
-        sed -i '1a bash /root/LAS/Check_List.sh' /etc/rc.local
-        sleep 2
-        systemctl set-default  multi-user.target
-      ;;
-      *)
-      ;;
-  esac
-  reboot
-else
-  echo "" | tee -a /root/install_log.txt
-  echo "The Dell server only OMSA setup begins." | tee -a /root/install_log.txt
-fi
-
-echo "" | tee -a /root/install_log.txt
-sleep 3
-echo "" | tee -a /root/install_log.txt
-
-### 19. Dell 전용 OMSA설치
-systemctl status dsm_om_connsvc &> /dev/null
-if [ $? != 0 ]
-then
-  echo "" | tee -a /root/install_log.txt
-  echo "OMSA install start" | tee -a /root/install_log.txt
-  case $OS in
-    centos7 | rocky8 )
-      ## OMSA Port
-      firewall-cmd --add-port=1311/tcp  --permanent >> /root/install_log.txt 2>> /root/log_err.txt
-      firewall-cmd --reload >> /root/install_log.txt 2>> /root/log_err.txt
-      perl -p -i -e '$.==20 and print "exclude = libsmbios smbios-utils-bin\n"' /etc/yum.repos.d/CentOS-Base.repo
-      wget http://linux.dell.com/repo/hardware/dsu/bootstrap.cgi -O  ./dellomsainstall.sh >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      sed -i -e "s/enabled=1/enabled=0/g" ./dellomsainstall.sh 
-      yes | bash ./dellomsainstall.sh >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      sleep 3
-      rm -f ./dellomsainstall.sh >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      yum -y erase  tog-pegasus-libs >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      yum -y install --enablerepo=dell-system-update_dependent -y srvadmin-all openssl-devel >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      systemctl daemon-reload >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      systemctl enable dataeng >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      systemctl enable dsm_om_connsvc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      systemctl start dataeng >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      systemctl start dsm_om_connsvc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "OMSA install complete" | tee -a /root/install_log.txt
-    ;;
-    ubuntu1604 )
-      ## OMSA port
-      ufw allow 1311/tcp >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      echo 'deb http://linux.dell.com/repo/community/openmanage/940/xenial xenial main'  >  /etc/apt/sources.list.d/linux.dell.com.sources.list
-      wget http://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      apt-key add 0x1285491434D8786F.asc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      apt-get -y update >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      apt-get -y install srvadmin-all >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      systemctl daemon-reload >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      systemctl enable dataeng >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      systemctl enable dsm_om_connsvc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      systemctl start dataeng >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      systemctl start dsm_om_connsvc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "OMSA install complete" | tee -a /root/install_log.txt
-    ;;
-    ubuntu1804 )
-      ## OMSA port
-      ufw allow 1311/tcp >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      echo 'deb http://linux.dell.com/repo/community/openmanage/940/bionic bionic main'  > /etc/apt/sources.list.d/linux.dell.com.sources.list
-      wget http://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      apt-key add 0x1285491434D8786F.asc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      apt-get -y update >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      apt-get -y install srvadmin-all >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      cd /usr/lib/x86_64-linux-gnu/ >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      ln -s /usr/lib/x86_64-linux-gnu/libssl.so.1.1 libssl.so >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      cd /root/
-      systemctl daemon-reload >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      systemctl enable dataeng >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      systemctl enable dsm_om_connsvc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      systemctl start dataeng >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      systemctl start dsm_om_connsvc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "OMSA install complete" | tee -a /root/install_log.txt
-    ;;
-    ubuntu2004 | ubuntu2204 )
-      ## OMSA port
-      ufw allow 1311/tcp >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      echo 'deb http://linux.dell.com/repo/community/openmanage/10300/focal focal main'  > /etc/apt/sources.list.d/linux.dell.com.sources.list
-      wget http://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      apt-key add 0x1285491434D8786F.asc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      apt-get -y update >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      apt-get -y install srvadmin-all >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      cd /usr/lib/x86_64-linux-gnu/ >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      ln -s /usr/lib/x86_64-linux-gnu/libssl.so.1.1 libssl.so >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      cd /root/
-      systemctl daemon-reload >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      systemctl enable dsm_sa_datamgrd.service >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      systemctl enable dsm_om_connsvc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      systemctl start dsm_sa_datamgrd.service >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      systemctl start dsm_om_connsvc >> /root/OMSA_install_log.txt 2>> /root/OMSA_install_log_err.txt
-      echo "" | tee -a /root/install_log.txt
-      echo "OMSA install complete" | tee -a /root/install_log.txt
-    ;;
-    *)
-      echo "" | tee -a /root/install_log.txt
-      echo "OMSA install error" | tee -a /root/install_log.txt
-    ;;
-  esac
-else
-  echo ""| tee -a /root/install_log.txt
-  echo "The OMSA has already been setting" | tee -a /root/install_log.txt
-fi
-
-echo "" | tee -a /root/install_log.txt
-sleep 3
-echo "" | tee -a /root/install_log.txt
-
-## 스크립트 완료 정리 후 재부팅
-echo "" | tee -a /root/install_log.txt
-echo "LAS install complete" | tee -a /root/install_log.txt
-case $OS in
-  centos7 | rocky8 )
-    sed -i '13a bash /root/LAS/Check_List.sh' /etc/rc.d/rc.local
-    systemctl set-default  multi-user.target | tee -a /root/install_log.txt
-  ;;
-  ubuntu1604 )
-    sed -i '13a bash /root/LAS/Check_List.sh' /etc/rc.local
-    systemctl set-default  multi-user.target | tee -a /root/install_log.txt
-  ;;
-  ubuntu1804 | ubuntu2004 | ubuntu2204 )
-    sed -i '1a bash /root/LAS/Check_List.sh' /etc/rc.local
-    systemctl set-default  multi-user.target | tee -a /root/install_log.txt
-  ;;
-  *)
-  ;;
+        echo "[WARN] 지원하지 않는 OS: $OS_ID" | tee -a "$INSTALL_LOG"
+        ;;
 esac
-  reboot
+
+cd
+echo "=== LSA 설치 스크립트 완료 ==="
+
+mkdir -p /etc/lsisash
+mv /etc/init.d/LsiSASH /etc/lsisash/LsiSASH
+chmod +x /etc/lsisash/LsiSASH
+
+
+
+case "$OS_FULL_ID" in
+    rocky8|rocky9|rocky10|almalinux8|almalinux9|almalinux10)
+        firewall-cmd --zone=public --add-service=http --permanent
+        firewall-cmd --zone=public --add-port=2463/tcp --permanent
+        firewall-cmd --reload
+        ;;
+    ubuntu20|ubuntu22|ubuntu24)
+        ufw allow http
+        ufw allow 2463/tcp
+        ufw reload
+        ;;
+esac
+
+SYSTEMD_FILE="/etc/systemd/system/lsisash.service"
+if [ ! -f "$SYSTEMD_FILE" ]; then
+    cat <<EOF > "$SYSTEMD_FILE"
+[Unit]
+Description=Start LsiSASH service at boot
+After=network.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/etc/lsisash/LsiSASH start
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    systemctl daemon-reload
+    systemctl enable lsisash.service
+    systemctl start lsisash.service
+    systemctl status lsisash.service
+    echo "lsisash.service 서비스 등록 및 시작 완료"
+else
+    echo "lsisash.service 서비스가 이미 존재합니다."
+fi
+
+cd
+rm -rf LSA
+echo "===== LSA 설치 및 설정 완료 ====="
+
+
+# --- 19. Dell OMSA install ---
+echo "OMSA 설치를 시작합니다." | tee -a "$INSTALL_LOG"
+
+if ! systemctl is-active --quiet dsm_om_connsvc; then
+    case "$OS_FULL_ID" in
+        rocky8|almalinux8|rocky9|almalinux9|rocky10|almalinux10)
+            echo "RHEL 계열 OMSA 설치" | tee -a "$INSTALL_LOG"
+            firewall-cmd --permanent --add-port=1311/tcp
+            firewall-cmd --reload
+
+            wget http://linux.dell.com/repo/hardware/dsu/bootstrap.cgi -O ./dellomsainstall.sh
+            sed -i -e "s/enabled=1/enabled=0/g" ./dellomsainstall.sh
+            yes | bash ./dellomsainstall.sh
+
+            dnf -y install --enablerepo=dell-system-update_dependent srvadmin-all openssl-devel
+
+            systemctl daemon-reload
+            systemctl enable dsm_om_connsvc
+            systemctl start dsm_om_connsvc
+            ;;
+        ubuntu20)
+            echo "Ubuntu 계열 OMSA 설치" | tee -a "$INSTALL_LOG"
+            ufw allow 1311/tcp
+
+            echo 'deb http://linux.dell.com/repo/community/openmanage/10300/focal focal main' \
+                > /etc/apt/sources.list.d/linux.dell.com.sources.list
+            wget http://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc
+            apt-key add 0x1285491434D8786F.asc
+            apt -y update
+            pip install --upgrade pyOpenSSL cryptography
+            apt -y install srvadmin-all
+
+            #if [ ! -f /usr/lib/x86_64-linux-gnu/libssl.so ]; then
+            #    ln -s /usr/lib/x86_64-linux-gnu/libssl.so.1.1 /usr/lib/x86_64-linux-gnu/libssl.so
+            #fi
+
+            systemctl daemon-reload
+            systemctl enable dsm_sa_datamgrd.service
+            systemctl enable dsm_om_connsvc
+            systemctl start dsm_sa_datamgrd.service
+            systemctl start dsm_om_connsvc
+            ;;
+        ubuntu22|ubuntu24)
+            echo "Ubuntu 계열 OMSA 설치" | tee -a "$INSTALL_LOG"
+            ufw allow 1311/tcp
+
+            echo 'deb http://linux.dell.com/repo/community/openmanage/10300/focal focal main' \
+                > /etc/apt/sources.list.d/linux.dell.com.sources.list
+            wget http://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc
+            apt-key add 0x1285491434D8786F.asc
+            apt -y update
+            wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+            dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+            apt -y install srvadmin-all
+
+            #if [ ! -f /usr/lib/x86_64-linux-gnu/libssl.so ]; then
+            #    ln -s /usr/lib/x86_64-linux-gnu/libssl.so.1.1 /usr/lib/x86_64-linux-gnu/libssl.so
+            #fi
+
+            systemctl daemon-reload
+            systemctl enable dsm_sa_datamgrd.service
+            systemctl enable dsm_om_connsvc
+            systemctl start dsm_sa_datamgrd.service
+            systemctl start dsm_om_connsvc
+
+            echo "지원하지 않는 OS: $OS_FULL_ID" | tee -a "$INSTALL_LOG"
+            ;;
+    esac
+else
+    echo "OMSA가 이미 설치되어 있습니다." | tee -a "$INSTALL_LOG"
+fi
+
+echo "" | tee -a $LOG_DIR/install_log.txt
+sleep 3
+echo "" | tee -a $LOG_DIR/install_log.txt
+
+echo "" | tee -a $LOG_DIR/install_log.txt
+echo "LAS install complete" | tee -a $LOG_DIR/install_log.txt
+
+echo "모든 설치 완료. 최종 정리 작업을 수행합니다." | tee -a "$INSTALL_LOG"
+
+# rc.local에서 메인 스크립트 자동 실행 항목 제거
+case "$OS_ID" in
+    ubuntu) RC_PATH="/etc/rc.local" ;;
+    rocky|almalinux) RC_PATH="/etc/rc.d/rc.local" ;;
+esac
+if [ -n "$RC_PATH" ] && [ -f "$RC_PATH" ]; then
+    sed -i "\|bash $SCRIPT_PATH|d" "$RC_PATH" # SCRIPT_PATH는 메인 스크립트 경로 변수
+    echo "$RC_PATH에서 메인 스크립트 자동 실행 항목을 제거했습니다." | tee -a "$INSTALL_LOG"
+    
+    #  Check_List.sh를 다음 부팅 시 한 번만 실행하도록 등록 ★★★
+    if [ -f /root/LAS/Check_List.sh ]; then
+        echo "bash /root/LAS/Check_List.sh" >> "$RC_PATH"
+        chmod +x /root/LAS/Check_List.sh
+        echo "다음 부팅 시 Check_List.sh를 실행하도록 등록했습니다." | tee -a "$INSTALL_LOG"
+    fi
+fi
+
+#  최종 부팅 타겟 설정
+systemctl set-default multi-user.target | tee -a "$INSTALL_LOG"
+
+echo "모든 작업이 최종 완료되었습니다. 시스템을 재부팅하여 마지막 점검을 수행합니다." | tee -a "$INSTALL_LOG"
+reboot
+
