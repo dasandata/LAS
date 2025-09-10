@@ -4,7 +4,7 @@
 # Modernized Check List - 2025-09-10
 # 이 스크립트는 메인 설치 스크립트의 작업 결과를 최종 점검합니다.
 
-LOG_DIR="/root/LAS_LOGS"
+LOG_DIR="/root/dasan_LOGS"
 CHECKLIST_LOG="$LOG_DIR/Check_List.log"
 # 로그 파일 초기화
 > "$CHECKLIST_LOG"

@@ -24,7 +24,7 @@ if [ -f /etc/os-release ]; then
     OS_VERSION_MAJOR=$(echo "$VERSION_ID" | cut -d. -f1)
     OS_FULL_ID="${OS_ID}${OS_VERSION_MAJOR}"
 else
-    echo "OS 정보를 확인할 수 없습니다. /etc/os-release 파일이 없습니다." | tee -a $LOG_DIR/install_log.txt
+    echo "OS 정보를 확인할 수 없습니다. /etc/os-release 파일이 없습니다." | tee -a $LOG_DIR/install_.log
     exit 1
 fi
 
@@ -354,18 +354,18 @@ echo "Python 3 및 pip 설치를 시작합니다." | tee -a "$INSTALL_LOG"
 if ! command -v pip3 &>/dev/null; then
     case "$OS_FULL_ID" in
         rocky8|rocky9|rocky10|almalinux8|almalinux9|almalinux10)
-            dnf -y install python3 python3-pip >> $LOG_DIR/Python_install_log.txt 2>> $LOG_DIR/Python_install_log_err.txt
+            dnf -y install python3 python3-pip >> $LOG_DIR/Python_install_.log 2>> $LOG_DIR/Python_install_log_err.txt
             ;;
         ubuntu20|ubuntu22)
-            apt update >> $LOG_DIR/Python_install_log.txt 2>> $LOG_DIR/Python_install_log_err.txt
-            apt -y install python3 python3-pip >> $LOG_DIR/Python_install_log.txt 2>> $LOG_DIR/Python_install_log_err.txt
+            apt update >> $LOG_DIR/Python_install_.log 2>> $LOG_DIR/Python_install_log_err.txt
+            apt -y install python3 python3-pip >> $LOG_DIR/Python_install_.log 2>> $LOG_DIR/Python_install_log_err.txt
             ;;
         *)
             echo "지원하지 않는 OS 또는 버전입니다: $OS_FULL_ID" | tee -a "$INSTALL_LOG"
             ;;
     esac
 
-    python3 -m pip install --upgrade pip >> $LOG_DIR/Python_install_log.txt 2>> $LOG_DIR/Python_install_log_err.txt
+    python3 -m pip install --upgrade pip >> $LOG_DIR/Python_install_.log 2>> $LOG_DIR/Python_install_log_err.txt
 else
     echo "pip3가 이미 설치되어 있습니다." | tee -a "$INSTALL_LOG"
 fi
@@ -530,7 +530,7 @@ if [ -f /etc/os-release ]; then
     OS_VERSION_MAJOR=$(echo "$VERSION_ID" | cut -d. -f1)
     OS_FULL_ID="${OS_ID}${OS_VERSION_MAJOR}"
 else
-    echo "OS 정보를 확인할 수 없습니다. /etc/os-release 없음" | tee -a $LOG_DIR/install_log.txt
+    echo "OS 정보를 확인할 수 없습니다. /etc/os-release 없음" | tee -a $LOG_DIR/install_.log
     exit 1
 fi
 
@@ -564,28 +564,28 @@ if [ $? != 0 ]; then
       apt update >> $LOG_DIR/GPU_repo_log.txt 2>> $LOG_DIR/GPU_repo_log_err.txt
       ;;
     *)
-      echo "CUDA,CUDNN repo not installed for this OS: $OS_FULL_ID" | tee -a $LOG_DIR/install_log.txt
+      echo "CUDA,CUDNN repo not installed for this OS: $OS_FULL_ID" | tee -a $LOG_DIR/install_.log
       ;;
   esac
 else
-  echo "The CUDA REPO has already been installed." | tee -a $LOG_DIR/install_log.txt
+  echo "The CUDA REPO has already been installed." | tee -a $LOG_DIR/install_.log
 fi
 
-echo "" | tee -a $LOG_DIR/install_log.txt
+echo "" | tee -a $LOG_DIR/install_.log
 sleep 3
-echo "" | tee -a $LOG_DIR/install_log.txt
+echo "" | tee -a $LOG_DIR/install_.log
 
 # 12. CUDA install / PATH setting
-ls /usr/local/ | grep cuda >> $LOG_DIR/install_log.txt 2>> $LOG_DIR/log_err.txt
+ls /usr/local/ | grep cuda >> $LOG_DIR/install_.log 2>> $LOG_DIR/log_err.txt
 if [ $? != 0 ]; then
   CUDAV=$(cat $LOG_DIR/cudaversion.txt)
   if [ "$CUDAV" = "No-GPU" ]; then
-    echo "No-GPU: not install cuda" >> $LOG_DIR/install_log.txt 2>> $LOG_DIR/log_err.txt
+    echo "No-GPU: not install cuda" >> $LOG_DIR/install_.log 2>> $LOG_DIR/log_err.txt
   else
     CUDAV_U="${CUDAV/-/.}"
     case $OS_FULL_ID in
       rocky8|almalinux8|rocky9|almalinux9|rocky10|almalinux10)
-        echo "CUDA $CUDAV 설치 시작" | tee -a $LOG_DIR/install_log.txt
+        echo "CUDA $CUDAV 설치 시작" | tee -a $LOG_DIR/install_.log
         if ! grep -q "ADD Cuda" /etc/profile; then
           echo "" >> /etc/profile
           echo "### ADD Cuda $CUDAV_U PATH" >> /etc/profile
@@ -595,16 +595,16 @@ if [ $? != 0 ]; then
           echo "export CUDA_INC_DIR=/usr/local/cuda-$CUDAV_U/include" >> /etc/profile
         fi
         sleep 1
-        dnf -y install cuda-$CUDAV >> $LOG_DIR/cuda_cudnn_install_log.txt 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
+        dnf -y install cuda-$CUDAV >> $LOG_DIR/cuda_cudnn_install_.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
         sleep 1
-        nvidia-smi -pm 1 >> $LOG_DIR/cuda_cudnn_install_log.txt 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
-        systemctl enable nvidia-persistenced >> $LOG_DIR/cuda_cudnn_install_log.txt 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
+        nvidia-smi -pm 1 >> $LOG_DIR/cuda_cudnn_install_.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
+        systemctl enable nvidia-persistenced >> $LOG_DIR/cuda_cudnn_install_.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
         source /etc/profile
         source /root/.bashrc
-        echo "CUDA $CUDAV 설치 완료" | tee -a $LOG_DIR/install_log.txt
+        echo "CUDA $CUDAV 설치 완료" | tee -a $LOG_DIR/install_.log
       ;;
       ubuntu20|ubuntu22|ubuntu24)
-        echo "CUDA $CUDAV 설치 시작" | tee -a $LOG_DIR/install_log.txt
+        echo "CUDA $CUDAV 설치 시작" | tee -a $LOG_DIR/install_.log
         if ! grep -q "ADD Cuda" /etc/profile; then
           echo "" >> /etc/profile
           echo "### ADD Cuda $CUDAV_U PATH" >> /etc/profile
@@ -614,27 +614,27 @@ if [ $? != 0 ]; then
           echo "export CUDA_INC_DIR=/usr/local/cuda-$CUDAV_U/include" >> /etc/profile
         fi
         sleep 1
-        apt -y install cuda-toolkit-$CUDAV >> $LOG_DIR/cuda_cudnn_install_log.txt 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
+        apt -y install cuda-toolkit-$CUDAV >> $LOG_DIR/cuda_cudnn_install_.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
         sleep 1
-        ubuntu-drivers autoinstall >> $LOG_DIR/cuda_cudnn_install_log.txt 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
-        nvidia-smi -pm 1 >> $LOG_DIR/cuda_cudnn_install_log.txt 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
-        systemctl enable nvidia-persistenced >> $LOG_DIR/cuda_cudnn_install_log.txt 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
+        ubuntu-drivers autoinstall >> $LOG_DIR/cuda_cudnn_install_.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
+        nvidia-smi -pm 1 >> $LOG_DIR/cuda_cudnn_install_.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
+        systemctl enable nvidia-persistenced >> $LOG_DIR/cuda_cudnn_install_.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
         source /etc/profile
         source /root/.bashrc
-        echo "CUDA $CUDAV 설치 완료" | tee -a $LOG_DIR/install_log.txt
+        echo "CUDA $CUDAV 설치 완료" | tee -a $LOG_DIR/install_.log
       ;;
       *)
-        echo "CUDA not install: $OS_FULL_ID" | tee -a $LOG_DIR/install_log.txt
+        echo "CUDA not install: $OS_FULL_ID" | tee -a $LOG_DIR/install_.log
       ;;
     esac
   fi
 else
-  echo "The CUDA has already been installed." | tee -a $LOG_DIR/install_log.txt
+  echo "The CUDA has already been installed." | tee -a $LOG_DIR/install_.log
 fi
 
-echo "" | tee -a $LOG_DIR/install_log.txt
+echo "" | tee -a $LOG_DIR/install_.log
 sleep 3
-echo "" | tee -a $LOG_DIR/install_log.txt
+echo "" | tee -a $LOG_DIR/install_.log
 
 # --- 13. CUDNN 9 install ---
 echo "CUDNN 9 설치를 시작합니다." | tee -a "$INSTALL_LOG"
@@ -657,7 +657,7 @@ else
                 libcudnn9-devel-cuda-${CUDA_MAJOR} \
                 libcudnn9-headers-cuda-${CUDA_MAJOR} \
                 libcudnn9-samples \
-                >> $LOG_DIR/cuda_cudnn_install_log.txt 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
+                >> $LOG_DIR/cuda_cudnn_install_.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
             echo "CUDNN 설치 완료" | tee -a "$INSTALL_LOG"
             ;;
 
@@ -668,7 +668,7 @@ else
                 libcudnn9-dev-cuda-${CUDA_MAJOR} \
                 libcudnn9-headers-cuda-${CUDA_MAJOR} \
                 libcudnn9-samples \
-                >> $LOG_DIR/cuda_cudnn_install_log.txt 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
+                >> $LOG_DIR/cuda_cudnn_install_.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
             echo "CUDNN 설치 완료" | tee -a "$INSTALL_LOG"
             ;;
 
@@ -840,12 +840,12 @@ else
     echo "OMSA가 이미 설치되어 있습니다." | tee -a "$INSTALL_LOG"
 fi
 
-echo "" | tee -a $LOG_DIR/install_log.txt
+echo "" | tee -a $LOG_DIR/install_.log
 sleep 3
-echo "" | tee -a $LOG_DIR/install_log.txt
+echo "" | tee -a $LOG_DIR/install_.log
 
-echo "" | tee -a $LOG_DIR/install_log.txt
-echo "LAS install complete" | tee -a $LOG_DIR/install_log.txt
+echo "" | tee -a $LOG_DIR/install_.log
+echo "LAS install complete" | tee -a $LOG_DIR/install_.log
 
 echo "모든 설치 완료. 최종 정리 작업을 수행합니다." | tee -a "$INSTALL_LOG"
 
