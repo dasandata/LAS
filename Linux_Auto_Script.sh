@@ -206,20 +206,20 @@ echo "시스템 설정 완료." | tee -a "$INSTALL_LOG"
 echo "기본 패키지 설치를 시작합니다." | tee -a "$INSTALL_LOG"
 case "$OS_FULL_ID" in
     ubuntu20|ubuntu22|ubuntu24)
-        apt -y install build-essential vim nfs-common rdate curl git wget figlet net-tools htop dstat \
-        gnome-tweaks ubuntu-desktop-minimal dconf-editor smartmontools \
-        python3-pip python3-dev >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        apt -y install build-essential firefox vim nfs-common rdate xauth firefox curl git wget figlet net-tools htop >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        apt -y install smartmontools snapd tmux xfsprogs aptitude lvm2 dstat npm mlocate ntfs-3g >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        apt -y install gnome-tweaks ubuntu-desktop dconf-editor gnome-settings-daemon metacity nautilus gnome-terminal >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        apt -y install ipmitool python3-pip python3-dev >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         ;;
     rocky8|rocky9|almalinux9)
         dnf -y install epel-release >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         dnf -y groupinstall "Server with GUI" "Development Tools" >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         dnf -y install  epel-release >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         dnf -y install \
-        ethtool pciutils openssh mlocate nfs-utils xauth firefox nautilus wget bind-utils \
-        tcsh tree lshw tmux kernel-headers kernel-devel gcc make gcc-c++ yum-utils \
-        cmake dstat perl perl-CPAN perl-core net-tools openssl-devel git-lfs vim  \
-        git bash-completion smartmontools ipmitool tar chrony htop \
-        >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        dnf -y install ethtool pciutils openssh mlocate nfs-utils xauth firefox nautilus wget bind-utils >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        dnf -y install tcsh tree lshw tmux kernel-headers kernel-devel gcc make gcc-c++ yum-utils >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        dnf -y install cmake dstat perl perl-CPAN perl-core net-tools openssl-devel git-lfs vim  >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        dnf -y install git bash-completion smartmontools ipmitool tar chrony htop >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         ;;
 esac
 echo "기본 패키지 설치 완료." | tee -a "$INSTALL_LOG"
@@ -834,8 +834,6 @@ if ! systemctl is-active --quiet dsm_om_connsvc; then
             systemctl enable dsm_om_connsvc
             systemctl start dsm_sa_datamgrd.service
             systemctl start dsm_om_connsvc
-
-            echo "지원하지 않는 OS: $OS_FULL_ID" | tee -a "$INSTALL_LOG"
             ;;
     esac
 else
