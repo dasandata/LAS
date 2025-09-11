@@ -78,9 +78,7 @@ else
 fi
 
 # --- 3. 부팅 스크립트(rc.local) 설정 ---
-
 echo "rc.local 설정을 시작합니다." | tee -a "$INSTALL_LOG"
-
 # OS에 따라 rc.local 경로 설정
 case "$OS_ID" in
     ubuntu)
@@ -108,7 +106,7 @@ if ! grep -q 'Linux_Auto_Script.sh' "$RC_PATH"; then
     sed -i '/^exit 0/i bash /root/LAS/Linux_Auto_Script.sh\n' "$RC_PATH"
 fi
 
-
+# ★★★ 항상 실행 권한 부여 ★★★
 chmod +x "$RC_PATH"
 
 # rc.local을 위한 systemd 서비스 파일 생성
@@ -119,27 +117,23 @@ if [ ! -f "$RC_SERVICE_FILE" ]; then
 [Unit]
 Description=/etc/rc.local Compatibility
 ConditionPathExists=$RC_PATH
-
 [Service]
 Type=forking
 ExecStart=$RC_PATH start
 TimeoutSec=0
 StandardOutput=journal+console
 RemainAfterExit=yes
-
 [Install]
 WantedBy=multi-user.target
 EOF
     systemctl daemon-reload
 fi
-    
+
 # 서비스 활성화
 if ! systemctl is-enabled --quiet rc-local.service; then
     systemctl enable rc-local.service >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
 fi
-
 echo "rc.local 설정 완료." | tee -a "$INSTALL_LOG"
-
 
 # --- 4. Nouveau 비활성화 및 GRUB 설정 ---
 if lsmod | grep -q "^nouveau"; then
