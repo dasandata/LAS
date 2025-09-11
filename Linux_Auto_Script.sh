@@ -78,43 +78,46 @@ else
 fi
 
 # --- 3. 부팅 스크립트(rc.local) 설정 ---
-#if ! grep -q 'Linux_Auto_Script.sh' /etc/rc.local /etc/rc.d/rc.local 2>/dev/null; then
-    echo "rc.local 설정을 시작합니다." | tee -a "$INSTALL_LOG"
-    
-    # OS에 따라 rc.local 경로 설정
-    case "$OS_ID" in
-        ubuntu)
-            RC_PATH="/etc/rc.local"
-            ;;
-        rocky|almalinux)
-            mkdir -p /etc/rc.d
-            RC_PATH="/etc/rc.d/rc.local"
-            ;;
-        *)
-            echo "지원하지 않는 OS이므로 rc.local 설정을 건너뜁니다: $OS_ID" | tee -a "$ERROR_LOG"
-            exit 1
-            ;;
-    esac
 
-    # rc.local 파일이 없다면 기본 틀 생성
-    if [ ! -f "$RC_PATH" ]; then
-        echo "#!/bin/sh -e" > "$RC_PATH"
-        echo "" >> "$RC_PATH"
-        echo "exit 0" >> "$RC_PATH"
-    fi
+# if ! grep -q 'Linux_Auto_Script.sh' /etc/rc.local /etc/rc.d/rc.local 2>/dev/null; then  # <-- 이 라인을 주석 처리하거나 삭제!
 
-    # 'exit 0' 앞에 스크립트 실행 명령 추가 (중복 방지)
-    if ! grep -q 'Linux_Auto_Script.sh' "$RC_PATH"; then
-        sed -i '/^exit 0/i bash /root/LAS/Linux_Auto_Script.sh\n' "$RC_PATH"
-    fi
+echo "rc.local 설정을 시작합니다." | tee -a "$INSTALL_LOG"
 
-     chmod +x "$RC_PATH"
+# OS에 따라 rc.local 경로 설정
+case "$OS_ID" in
+    ubuntu)
+        RC_PATH="/etc/rc.local"
+        ;;
+    rocky|almalinux)
+        mkdir -p /etc/rc.d
+        RC_PATH="/etc/rc.d/rc.local"
+        ;;
+    *)
+        echo "지원하지 않는 OS이므로 rc.local 설정을 건너뜁니다: $OS_ID" | tee -a "$ERROR_LOG"
+        exit 1
+        ;;
+esac
 
-    # rc.local을 위한 systemd 서비스 파일 생성
-    RC_SERVICE_FILE="/etc/systemd/system/rc-local.service"
-    if [ ! -f "$RC_SERVICE_FILE" ]; then
-        echo "systemd용 rc-local.service 파일을 생성합니다." | tee -a "$INSTALL_LOG"
-        cat <<EOF > "$RC_SERVICE_FILE"
+# rc.local 파일이 없다면 기본 틀 생성
+if [ ! -f "$RC_PATH" ]; then
+    echo "#!/bin/sh -e" > "$RC_PATH"
+    echo "" >> "$RC_PATH"
+    echo "exit 0" >> "$RC_PATH"
+fi
+
+# 'exit 0' 앞에 스크립트 실행 명령 추가 (중복 방지)
+if ! grep -q 'Linux_Auto_Script.sh' "$RC_PATH"; then
+    sed -i '/^exit 0/i bash /root/LAS/Linux_Auto_Script.sh\n' "$RC_PATH"
+fi
+
+
+chmod +x "$RC_PATH"
+
+# rc.local을 위한 systemd 서비스 파일 생성
+RC_SERVICE_FILE="/etc/systemd/system/rc-local.service"
+if [ ! -f "$RC_SERVICE_FILE" ]; then
+    echo "systemd용 rc-local.service 파일을 생성합니다." | tee -a "$INSTALL_LOG"
+    cat <<EOF > "$RC_SERVICE_FILE"
 [Unit]
 Description=/etc/rc.local Compatibility
 ConditionPathExists=$RC_PATH
@@ -129,9 +132,8 @@ RemainAfterExit=yes
 [Install]
 WantedBy=multi-user.target
 EOF
-        chmod +x "$RC_PATH"
-        systemctl daemon-reload
-    fi
+    systemctl daemon-reload
+fi
     
 # 서비스 활성화
 if ! systemctl is-enabled --quiet rc-local.service; then
