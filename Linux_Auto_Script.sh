@@ -107,7 +107,7 @@ if ! grep -q 'Linux_Auto_Script.sh' "$RC_PATH"; then
 fi
 
 # ★★★ 항상 실행 권한 부여 ★★★
-chmod +x "$RC_PATH"
+chmod +x /etc/rc.local
 
 # rc.local을 위한 systemd 서비스 파일 생성
 RC_SERVICE_FILE="/etc/systemd/system/rc-local.service"
