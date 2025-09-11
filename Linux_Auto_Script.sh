@@ -101,13 +101,14 @@ if ! grep -q 'Linux_Auto_Script.sh' /etc/rc.local /etc/rc.d/rc.local 2>/dev/null
         echo "#!/bin/sh -e" > "$RC_PATH"
         echo "" >> "$RC_PATH"
         echo "exit 0" >> "$RC_PATH"
-        chmod +x "$RC_PATH"
     fi
 
     # 'exit 0' 앞에 스크립트 실행 명령 추가 (중복 방지)
     if ! grep -q 'Linux_Auto_Script.sh' "$RC_PATH"; then
         sed -i '/^exit 0/i bash /root/LAS/Linux_Auto_Script.sh\n' "$RC_PATH"
     fi
+
+     chmod +x "$RC_PATH"
 
     # rc.local을 위한 systemd 서비스 파일 생성
     RC_SERVICE_FILE="/etc/systemd/system/rc-local.service"
