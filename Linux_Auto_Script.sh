@@ -24,7 +24,7 @@ if [ -f /etc/os-release ]; then
     OS_VERSION_MAJOR=$(echo "$VERSION_ID" | cut -d. -f1)
     OS_FULL_ID="${OS_ID}${OS_VERSION_MAJOR}"
 else
-    echo "OS 정보를 확인할 수 없습니다. /etc/os-release 파일이 없습니다." | tee -a $LOG_DIR/install_.log
+    echo "OS 정보를 확인할 수 없습니다. /etc/os-release 파일이 없습니다." | tee -a $LOG_DIR/install.log
     exit 1
 fi
 
@@ -121,6 +121,10 @@ Description=/etc/rc.local Compatibility
 [Service]
 Type=forking
 ExecStart=$RC_PATH start
+TimeoutSec=0
+StandardOutput=tty
+StandardError=tty  
+RemainAfterExit=yes
 [Install]
 WantedBy=multi-user.target
 EOF
@@ -526,7 +530,7 @@ if [ -f /etc/os-release ]; then
     OS_VERSION_MAJOR=$(echo "$VERSION_ID" | cut -d. -f1)
     OS_FULL_ID="${OS_ID}${OS_VERSION_MAJOR}"
 else
-    echo "OS 정보를 확인할 수 없습니다. /etc/os-release 없음" | tee -a $LOG_DIR/install_.log
+    echo "OS 정보를 확인할 수 없습니다. /etc/os-release 없음" | tee -a $LOG_DIR/install.log
     exit 1
 fi
 
@@ -560,28 +564,28 @@ if [ $? != 0 ]; then
       apt update >> $LOG_DIR/GPU_repo_log.txt 2>> $LOG_DIR/GPU_repo_log_err.txt
       ;;
     *)
-      echo "CUDA,CUDNN repo not installed for this OS: $OS_FULL_ID" | tee -a $LOG_DIR/install_.log
+      echo "CUDA,CUDNN repo not installed for this OS: $OS_FULL_ID" | tee -a $LOG_DIR/install.log
       ;;
   esac
 else
-  echo "The CUDA REPO has already been installed." | tee -a $LOG_DIR/install_.log
+  echo "The CUDA REPO has already been installed." | tee -a $LOG_DIR/install.log
 fi
 
-echo "" | tee -a $LOG_DIR/install_.log
+echo "" | tee -a $LOG_DIR/install.log
 sleep 3
-echo "" | tee -a $LOG_DIR/install_.log
+echo "" | tee -a $LOG_DIR/install.log
 
 # 12. CUDA install / PATH setting
-ls /usr/local/ | grep cuda >> $LOG_DIR/install_.log 2>> $LOG_DIR/log_err.txt
+ls /usr/local/ | grep cuda >> $LOG_DIR/install.log 2>> $LOG_DIR/log_err.txt
 if [ $? != 0 ]; then
   CUDAV=$(cat $LOG_DIR/cudaversion.txt)
   if [ "$CUDAV" = "No-GPU" ]; then
-    echo "No-GPU: not install cuda" >> $LOG_DIR/install_.log 2>> $LOG_DIR/log_err.txt
+    echo "No-GPU: not install cuda" >> $LOG_DIR/install.log 2>> $LOG_DIR/log_err.txt
   else
     CUDAV_U="${CUDAV/-/.}"
     case $OS_FULL_ID in
       rocky8|almalinux8|rocky9|almalinux9|rocky10|almalinux10)
-        echo "CUDA $CUDAV 설치 시작" | tee -a $LOG_DIR/install_.log
+        echo "CUDA $CUDAV 설치 시작" | tee -a $LOG_DIR/install.log
         if ! grep -q "ADD Cuda" /etc/profile; then
           echo "" >> /etc/profile
           echo "### ADD Cuda $CUDAV_U PATH" >> /etc/profile
@@ -597,10 +601,10 @@ if [ $? != 0 ]; then
         systemctl enable nvidia-persistenced >> $LOG_DIR/cuda_cudnn_install_.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
         source /etc/profile
         source /root/.bashrc
-        echo "CUDA $CUDAV 설치 완료" | tee -a $LOG_DIR/install_.log
+        echo "CUDA $CUDAV 설치 완료" | tee -a $LOG_DIR/install.log
       ;;
       ubuntu20|ubuntu22|ubuntu24)
-        echo "CUDA $CUDAV 설치 시작" | tee -a $LOG_DIR/install_.log
+        echo "CUDA $CUDAV 설치 시작" | tee -a $LOG_DIR/install.log
         if ! grep -q "ADD Cuda" /etc/profile; then
           echo "" >> /etc/profile
           echo "### ADD Cuda $CUDAV_U PATH" >> /etc/profile
@@ -617,20 +621,20 @@ if [ $? != 0 ]; then
         systemctl enable nvidia-persistenced >> $LOG_DIR/cuda_cudnn_install_.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
         source /etc/profile
         source /root/.bashrc
-        echo "CUDA $CUDAV 설치 완료" | tee -a $LOG_DIR/install_.log
+        echo "CUDA $CUDAV 설치 완료" | tee -a $LOG_DIR/install.log
       ;;
       *)
-        echo "CUDA not install: $OS_FULL_ID" | tee -a $LOG_DIR/install_.log
+        echo "CUDA not install: $OS_FULL_ID" | tee -a $LOG_DIR/install.log
       ;;
     esac
   fi
 else
-  echo "The CUDA has already been installed." | tee -a $LOG_DIR/install_.log
+  echo "The CUDA has already been installed." | tee -a $LOG_DIR/install.log
 fi
 
-echo "" | tee -a $LOG_DIR/install_.log
+echo "" | tee -a $LOG_DIR/install.log
 sleep 3
-echo "" | tee -a $LOG_DIR/install_.log
+echo "" | tee -a $LOG_DIR/install.log
 
 # --- 13. CUDNN 9 install ---
 echo "CUDNN 9 설치를 시작합니다." | tee -a "$INSTALL_LOG"
@@ -836,12 +840,12 @@ else
     echo "OMSA가 이미 설치되어 있습니다." | tee -a "$INSTALL_LOG"
 fi
 
-echo "" | tee -a $LOG_DIR/install_.log
+echo "" | tee -a $LOG_DIR/install.log
 sleep 3
-echo "" | tee -a $LOG_DIR/install_.log
+echo "" | tee -a $LOG_DIR/install.log
 
-echo "" | tee -a $LOG_DIR/install_.log
-echo "LAS install complete" | tee -a $LOG_DIR/install_.log
+echo "" | tee -a $LOG_DIR/install.log
+echo "LAS install complete" | tee -a $LOG_DIR/install.log
 
 echo "모든 설치 완료. 최종 정리 작업을 수행합니다." | tee -a "$INSTALL_LOG"
 
