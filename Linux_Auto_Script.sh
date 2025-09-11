@@ -79,6 +79,7 @@ fi
 
 # --- 3. 부팅 스크립트(rc.local) 설정 ---
 echo "rc.local 설정을 시작합니다." | tee -a "$INSTALL_LOG"
+
 # OS에 따라 rc.local 경로 설정
 case "$OS_ID" in
     ubuntu)
@@ -89,7 +90,7 @@ case "$OS_ID" in
         RC_PATH="/etc/rc.d/rc.local"
         ;;
     *)
-        echo "지원하지 않는 OS이므로 rc.local 설정을 건너뜁니다: $OS_ID" | tee -a "$ERROR_LOG"
+        echo "지원하지 않는 OS이므로 rc.local 설정을 건너뜁니다." | tee -a "$ERROR_LOG"
         exit 1
         ;;
 esac
@@ -101,13 +102,14 @@ if [ ! -f "$RC_PATH" ]; then
     echo "exit 0" >> "$RC_PATH"
 fi
 
-# 'exit 0' 앞에 스크립트 실행 명령 추가 (중복 방지)
+# 'exit 0' 또는 파일의 끝에 스크립트 실행 명령 추가 (중복 방지)
 if ! grep -q 'Linux_Auto_Script.sh' "$RC_PATH"; then
-    sed -i '/^exit 0/i bash /root/LAS/Linux_Auto_Script.sh\n' "$RC_PATH"
+    # Rocky Linux의 기본 템플릿에는 exit 0이 없으므로, sed 대신 echo로 추가하는 것이 더 안전함
+    echo "bash /root/LAS/Linux_Auto_Script.sh" >> "$RC_PATH"
 fi
 
-# ★★★ 항상 실행 권한 부여 ★★★
-chmod +x $RC_PATH
+# 항상 실행 권한 부여
+chmod +x "$RC_PATH"
 
 # rc.local을 위한 systemd 서비스 파일 생성
 RC_SERVICE_FILE="/etc/systemd/system/rc-local.service"
@@ -116,24 +118,22 @@ if [ ! -f "$RC_SERVICE_FILE" ]; then
     cat <<EOF > "$RC_SERVICE_FILE"
 [Unit]
 Description=/etc/rc.local Compatibility
-ConditionPathExists=$RC_PATH
 [Service]
 Type=forking
 ExecStart=$RC_PATH start
-TimeoutSec=0
-StandardOutput=journal+console
-RemainAfterExit=yes
 [Install]
 WantedBy=multi-user.target
 EOF
     systemctl daemon-reload
 fi
-
+    
 # 서비스 활성화
 if ! systemctl is-enabled --quiet rc-local.service; then
     systemctl enable rc-local.service >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
 fi
+
 echo "rc.local 설정 완료." | tee -a "$INSTALL_LOG"
+
 
 # --- 4. Nouveau 비활성화 및 GRUB 설정 ---
 if lsmod | grep -q "^nouveau"; then
@@ -861,9 +861,6 @@ if [ -n "$RC_PATH" ] && [ -f "$RC_PATH" ]; then
         echo "다음 부팅 시 Check_List.sh를 실행하도록 등록했습니다." | tee -a "$INSTALL_LOG"
     fi
 fi
-
-#  최종 부팅 타겟 설정
-systemctl set-default multi-user.target | tee -a "$INSTALL_LOG"
 
 echo "모든 작업이 최종 완료되었습니다. 시스템을 재부팅하여 마지막 점검을 수행합니다." | tee -a "$INSTALL_LOG"
 reboot
