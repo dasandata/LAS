@@ -129,17 +129,17 @@ RemainAfterExit=yes
 [Install]
 WantedBy=multi-user.target
 EOF
+        chmod +x "$RC_PATH"
         systemctl daemon-reload
     fi
     
-    # 서비스 활성화 및 시작
+# 서비스 활성화
+if ! systemctl is-enabled --quiet rc-local.service; then
     systemctl enable rc-local.service >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-    systemctl start rc-local.service >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-
-    echo "rc.local 설정 완료." | tee -a "$INSTALL_LOG"
-else
-    echo "rc.local에 스크립트가 이미 설정되어 있습니다." | tee -a "$INSTALL_LOG"
 fi
+
+echo "rc.local 설정 완료." | tee -a "$INSTALL_LOG"
+
 
 # --- 4. Nouveau 비활성화 및 GRUB 설정 ---
 if lsmod | grep -q "^nouveau"; then
@@ -216,7 +216,6 @@ case "$OS_FULL_ID" in
         dnf -y install epel-release >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         dnf -y groupinstall "Server with GUI" "Development Tools" >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         dnf -y install  epel-release >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        dnf -y install \
         dnf -y install ethtool pciutils openssh mlocate nfs-utils xauth firefox nautilus wget bind-utils >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         dnf -y install tcsh tree lshw tmux kernel-headers kernel-devel gcc make gcc-c++ yum-utils >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         dnf -y install cmake dstat perl perl-CPAN perl-core net-tools openssl-devel git-lfs vim  >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
