@@ -78,7 +78,7 @@ else
 fi
 
 # --- 3. 부팅 스크립트(rc.local) 설정 ---
-if ! grep -q 'Linux_Auto_Script.sh' /etc/rc.local /etc/rc.d/rc.local 2>/dev/null; then
+#if ! grep -q 'Linux_Auto_Script.sh' /etc/rc.local /etc/rc.d/rc.local 2>/dev/null; then
     echo "rc.local 설정을 시작합니다." | tee -a "$INSTALL_LOG"
     
     # OS에 따라 rc.local 경로 설정
