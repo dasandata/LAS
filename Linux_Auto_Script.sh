@@ -222,8 +222,6 @@ case "$OS_FULL_ID" in
 esac
 echo "기본 패키지 설치 완료." | tee -a "$INSTALL_LOG"
 
-echo "---"
-
 
 echo "방화벽 설정을 시작합니다." | tee -a "$INSTALL_LOG"
 case "$OS_ID" in
@@ -354,18 +352,18 @@ echo "Python 3 및 pip 설치를 시작합니다." | tee -a "$INSTALL_LOG"
 if ! command -v pip3 &>/dev/null; then
     case "$OS_FULL_ID" in
         rocky8|rocky9|rocky10|almalinux8|almalinux9|almalinux10)
-            dnf -y install python3 python3-pip >> $LOG_DIR/Python_install_.log 2>> $LOG_DIR/Python_install_log_err.txt
+            dnf -y install python3 python3-pip >> $LOG_DIR/Python_install.log 2>> $LOG_DIR/Python_install_log_err.txt
             ;;
         ubuntu20|ubuntu22)
-            apt update >> $LOG_DIR/Python_install_.log 2>> $LOG_DIR/Python_install_log_err.txt
-            apt -y install python3 python3-pip >> $LOG_DIR/Python_install_.log 2>> $LOG_DIR/Python_install_log_err.txt
+            apt update >> $LOG_DIR/Python_install.log 2>> $LOG_DIR/Python_install_log_err.txt
+            apt -y install python3 python3-pip >> $LOG_DIR/Python_install.log 2>> $LOG_DIR/Python_install_log_err.txt
             ;;
         *)
             echo "지원하지 않는 OS 또는 버전입니다: $OS_FULL_ID" | tee -a "$INSTALL_LOG"
             ;;
     esac
 
-    python3 -m pip install --upgrade pip >> $LOG_DIR/Python_install_.log 2>> $LOG_DIR/Python_install_log_err.txt
+    python3 -m pip install --upgrade pip >> $LOG_DIR/Python_install.log 2>> $LOG_DIR/Python_install_log_err.txt
 else
     echo "pip3가 이미 설치되어 있습니다." | tee -a "$INSTALL_LOG"
 fi
@@ -595,10 +593,10 @@ if [ $? != 0 ]; then
           echo "export CUDA_INC_DIR=/usr/local/cuda-$CUDAV_U/include" >> /etc/profile
         fi
         sleep 1
-        dnf -y install cuda-$CUDAV >> $LOG_DIR/cuda_cudnn_install_.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
+        dnf -y install cuda-$CUDAV >> $LOG_DIR/cuda_cudnn_install.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
         sleep 1
-        nvidia-smi -pm 1 >> $LOG_DIR/cuda_cudnn_install_.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
-        systemctl enable nvidia-persistenced >> $LOG_DIR/cuda_cudnn_install_.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
+        nvidia-smi -pm 1 >> $LOG_DIR/cuda_cudnn_install.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
+        systemctl enable nvidia-persistenced >> $LOG_DIR/cuda_cudnn_install.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
         source /etc/profile
         source /root/.bashrc
         echo "CUDA $CUDAV 설치 완료" | tee -a $LOG_DIR/install.log
@@ -614,11 +612,11 @@ if [ $? != 0 ]; then
           echo "export CUDA_INC_DIR=/usr/local/cuda-$CUDAV_U/include" >> /etc/profile
         fi
         sleep 1
-        apt -y install cuda-toolkit-$CUDAV >> $LOG_DIR/cuda_cudnn_install_.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
+        apt -y install cuda-toolkit-$CUDAV >> $LOG_DIR/cuda_cudnn_install.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
         sleep 1
-        ubuntu-drivers autoinstall >> $LOG_DIR/cuda_cudnn_install_.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
-        nvidia-smi -pm 1 >> $LOG_DIR/cuda_cudnn_install_.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
-        systemctl enable nvidia-persistenced >> $LOG_DIR/cuda_cudnn_install_.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
+        ubuntu-drivers autoinstall >> $LOG_DIR/cuda_cudnn_install.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
+        nvidia-smi -pm 1 >> $LOG_DIR/cuda_cudnn_install.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
+        systemctl enable nvidia-persistenced >> $LOG_DIR/cuda_cudnn_install.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
         source /etc/profile
         source /root/.bashrc
         echo "CUDA $CUDAV 설치 완료" | tee -a $LOG_DIR/install.log
@@ -657,7 +655,7 @@ else
                 libcudnn9-devel-cuda-${CUDA_MAJOR} \
                 libcudnn9-headers-cuda-${CUDA_MAJOR} \
                 libcudnn9-samples \
-                >> $LOG_DIR/cuda_cudnn_install_.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
+                >> $LOG_DIR/cuda_cudnn_install.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
             echo "CUDNN 설치 완료" | tee -a "$INSTALL_LOG"
             ;;
 
@@ -668,7 +666,7 @@ else
                 libcudnn9-dev-cuda-${CUDA_MAJOR} \
                 libcudnn9-headers-cuda-${CUDA_MAJOR} \
                 libcudnn9-samples \
-                >> $LOG_DIR/cuda_cudnn_install_.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
+                >> $LOG_DIR/cuda_cudnn_install.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
             echo "CUDNN 설치 완료" | tee -a "$INSTALL_LOG"
             ;;
 
@@ -784,12 +782,36 @@ if ! systemctl is-active --quiet dsm_om_connsvc; then
             sed -i -e "s/enabled=1/enabled=0/g" ./dellomsainstall.sh
             yes | bash ./dellomsainstall.sh
 
-            dnf -y install --enablerepo=dell-system-update_dependent srvadmin-all openssl-devel
+            dnf config-manager --set-enabled crb
+            dnf -y install --enablerepo=dell-system-update_dependent srvadmin-all openssl-devel srvadmin-idrac
 
             systemctl daemon-reload
             systemctl enable dsm_om_connsvc
             systemctl start dsm_om_connsvc
+            systemctl enable dsm_sa_datamgrd.service
+            systemctl start dsm_sa_datamgrd.service
             ;;
+
+            almalinux8|almalinux9|almalinux10)
+            echo "RHEL 계열 OMSA 설치" | tee -a "$INSTALL_LOG"
+            firewall-cmd --permanent --add-port=1311/tcp
+            firewall-cmd --reload
+
+            wget http://linux.dell.com/repo/hardware/dsu/bootstrap.cgi -O ./dellomsainstall.sh
+            sed -i -e "s/enabled=1/enabled=0/g" ./dellomsainstall.sh
+            yes | bash ./dellomsainstall.sh
+
+            dnf config-manager --set-enabled almalinux-crb
+            dnf -y install --enablerepo=dell-system-update_dependent srvadmin-all openssl-devel srvadmin-idrac
+
+            systemctl daemon-reload
+            systemctl enable dsm_om_connsvc
+            systemctl start dsm_om_connsvc
+            systemctl enable dsm_sa_datamgrd.service
+            systemctl start dsm_sa_datamgrd.service
+            
+            ;;
+
         ubuntu20)
             echo "Ubuntu 계열 OMSA 설치" | tee -a "$INSTALL_LOG"
             ufw allow 1311/tcp
@@ -800,7 +822,7 @@ if ! systemctl is-active --quiet dsm_om_connsvc; then
             apt-key add 0x1285491434D8786F.asc
             apt -y update
             pip install --upgrade pyOpenSSL cryptography
-            apt -y install srvadmin-all
+            apt -y install srvadmin-all srvadmin-idrac
 
             #if [ ! -f /usr/lib/x86_64-linux-gnu/libssl.so ]; then
             #    ln -s /usr/lib/x86_64-linux-gnu/libssl.so.1.1 /usr/lib/x86_64-linux-gnu/libssl.so
