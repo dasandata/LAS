@@ -787,9 +787,7 @@ if ! systemctl is-active --quiet dsm_om_connsvc; then
 
             systemctl daemon-reload
             systemctl enable dsm_om_connsvc
-            systemctl start dsm_om_connsvc
             systemctl enable dsm_sa_datamgrd.service
-            systemctl start dsm_sa_datamgrd.service
             ;;
 
             almalinux8|almalinux9|almalinux10)
@@ -806,9 +804,7 @@ if ! systemctl is-active --quiet dsm_om_connsvc; then
 
             systemctl daemon-reload
             systemctl enable dsm_om_connsvc
-            systemctl start dsm_om_connsvc
             systemctl enable dsm_sa_datamgrd.service
-            systemctl start dsm_sa_datamgrd.service
             
             ;;
 
@@ -831,8 +827,6 @@ if ! systemctl is-active --quiet dsm_om_connsvc; then
             systemctl daemon-reload
             systemctl enable dsm_sa_datamgrd.service
             systemctl enable dsm_om_connsvc
-            systemctl start dsm_sa_datamgrd.service
-            systemctl start dsm_om_connsvc
             ;;
         ubuntu22|ubuntu24)
             echo "Ubuntu 계열 OMSA 설치" | tee -a "$INSTALL_LOG"
@@ -854,8 +848,6 @@ if ! systemctl is-active --quiet dsm_om_connsvc; then
             systemctl daemon-reload
             systemctl enable dsm_sa_datamgrd.service
             systemctl enable dsm_om_connsvc
-            systemctl start dsm_sa_datamgrd.service
-            systemctl start dsm_om_connsvc
             ;;
     esac
 else
