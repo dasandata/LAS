@@ -642,6 +642,7 @@ if [ $? != 0 ]; then
         source /etc/profile
         source /root/.bashrc
         echo "CUDA $CUDAV 설치 완료" | tee -a $LOG_DIR/install.log
+      ;;
 
 
       *)
