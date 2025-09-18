@@ -102,10 +102,10 @@ if [ ! -f "$RC_PATH" ]; then
     echo "exit 0" >> "$RC_PATH"
 fi
 
-# 'exit 0' 또는 파일의 끝에 스크립트 실행 명령 추가 (중복 방지)
-if ! grep -q 'Linux_Auto_Script.sh' "$RC_PATH"; then
-    # Rocky Linux의 기본 템플릿에는 exit 0이 없으므로, sed 대신 echo로 추가하는 것이 더 안전함
-    echo "bash /root/LAS/Linux_Auto_Script.sh" >> "$RC_PATH"
+# 스크립트 실행 명령이 파일 내에 없는 경우, 'exit 0' 라인 바로 위에 추가
+if ! grep -q "bash /root/LAS/Linux_Auto_Script.sh" "$RC_PATH"; then
+    # sed를 사용하여 'exit 0' 라인 이전에 스크립트 실행 명령을 삽입합니다.
+    sed -i '/^exit 0/i bash /root/LAS/Linux_Auto_Script.sh\n' "$RC_PATH"
 fi
 
 # 항상 실행 권한 부여
