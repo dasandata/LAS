@@ -869,11 +869,13 @@ case "$OS_ID" in
     ubuntu) RC_PATH="/etc/rc.local" ;;
     rocky|almalinux) RC_PATH="/etc/rc.d/rc.local" ;;
 esac
+# ...
 if [ -n "$RC_PATH" ] && [ -f "$RC_PATH" ]; then
-    sed -i "\|bash $SCRIPT_PATH|d" "$RC_PATH" # SCRIPT_PATH는 메인 스크립트 경로 변수
-    echo "$RC_PATH에서 메인 스크립트 자동 실행 항목을 제거했습니다." | tee -a "$INSTALL_LOG"
+    # 정의되지 않은 변수 대신 실제 스크립트 경로를 명시합니다.
+    sed -i "\|bash /root/LAS/Linux_Auto_Script.sh|d" "$RC_PATH"    
+echo "$RC_PATH에서 메인 스크립트 자동 실행 항목을 제거했습니다." | tee -a "$INSTALL_LOG"
     
-    #  Check_List.sh를 다음 부팅 시 한 번만 실행하도록 등록 ★★★
+    #  Check_List.sh를 다음 부팅 시 한 번만 실행하도록 등록
     if [ -f /root/LAS/Check_List.sh ]; then
         echo "bash /root/LAS/Check_List.sh" >> "$RC_PATH"
         chmod +x /root/LAS/Check_List.sh
