@@ -369,6 +369,7 @@ else
 fi
 
 echo "Python 3 및 pip 설치 완료" | tee -a "$INSTALL_LOG"
+systemctl set-default multi-user.target
 
 # --- 10. H/W 사양 체크 ---
 if [ ! -f $LOG_DIR/HWcheck.txt ]; then
