@@ -602,7 +602,7 @@ if [ $? != 0 ]; then
         source /root/.bashrc
         echo "CUDA $CUDAV 설치 완료" | tee -a $LOG_DIR/install.log
       ;;
-      ubuntu20|ubuntu22|ubuntu24)
+      ubuntu20|ubuntu22)
         echo "CUDA $CUDAV 설치 시작" | tee -a $LOG_DIR/install.log
         if ! grep -q "ADD Cuda" /etc/profile; then
           echo "" >> /etc/profile
@@ -622,6 +622,28 @@ if [ $? != 0 ]; then
         source /root/.bashrc
         echo "CUDA $CUDAV 설치 완료" | tee -a $LOG_DIR/install.log
       ;;
+
+      ubuntu24)
+      
+      echo "CUDA $CUDAV 설치 시작" | tee -a $LOG_DIR/install.log
+        if ! grep -q "ADD Cuda" /etc/profile; then
+          echo "" >> /etc/profile
+          echo "### ADD Cuda $CUDAV_U PATH" >> /etc/profile
+          echo "export PATH=/usr/local/cuda-$CUDAV_U/bin:/usr/local/cuda-$CUDAV_U/include:\$PATH" >> /etc/profile
+          echo "export LD_LIBRARY_PATH=/usr/local/cuda-$CUDAV_U/lib64:/usr/local/cuda/extras/CUPTI/:\$LD_LIBRARY_PATH" >> /etc/profile
+          echo "export CUDA_HOME=/usr/local/cuda-$CUDAV_U" >> /etc/profile
+          echo "export CUDA_INC_DIR=/usr/local/cuda-$CUDAV_U/include" >> /etc/profile
+        fi
+        sleep 1
+        apt -y install cuda-$CUDAV >> $LOG_DIR/cuda_cudnn_install.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
+        sleep 1
+        nvidia-smi -pm 1 >> $LOG_DIR/cuda_cudnn_install.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
+        systemctl enable nvidia-persistenced >> $LOG_DIR/cuda_cudnn_install.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
+        source /etc/profile
+        source /root/.bashrc
+        echo "CUDA $CUDAV 설치 완료" | tee -a $LOG_DIR/install.log
+
+
       *)
         echo "CUDA not install: $OS_FULL_ID" | tee -a $LOG_DIR/install.log
       ;;
