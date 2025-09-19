@@ -102,10 +102,18 @@ if [ ! -f "$RC_PATH" ]; then
     echo "exit 0" >> "$RC_PATH"
 fi
 
-# 스크립트 실행 명령이 파일 내에 없는 경우, 'exit 0' 라인 바로 위에 추가
-if ! grep -q "bash /root/LAS/Linux_Auto_Script.sh" "$RC_PATH"; then
-    # sed를 사용하여 'exit 0' 라인 이전에 스크립트 실행 명령을 삽입합니다.
-    sed -i '/^exit 0/i bash /root/LAS/Linux_Auto_Script.sh\n' "$RC_PATH"
+# 스크립트 실행 명령이 파일 내에 없는 경우 추가
+SCRIPT_EXEC_CMD="bash /root/LAS/Linux_Auto_Script.sh"
+if ! grep -Fq "$SCRIPT_EXEC_CMD" "$RC_PATH"; then
+    echo "스크립트 실행 명령을 $RC_PATH 에 추가합니다." | tee -a "$INSTALL_LOG"
+    # 'exit 0'이 있다면 그 바로 위에, 없다면 파일의 끝에 추가
+    if grep -q "^exit 0" "$RC_PATH"; then
+        # sed를 사용하여 'exit 0' 라인 이전에 삽입
+        sed -i '/^exit 0/i '"$SCRIPT_EXEC_CMD"'\n' "$RC_PATH"
+    else
+        # 파일의 마지막에 실행 명령 추가
+        echo -e "\n$SCRIPT_EXEC_CMD" >> "$RC_PATH"
+    fi
 fi
 
 # 항상 실행 권한 부여
