@@ -203,7 +203,7 @@ case "$OS_ID" in
                 sed -i 's|security.ubuntu.com|mirror.kakao.com|g' /etc/apt/sources.list
                 ;;
         esac
-        apt update >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        apt-get update >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         ;;
 esac
 
@@ -211,12 +211,14 @@ echo "시스템 설정 완료." | tee -a "$INSTALL_LOG"
 
 # --- 6. 기본 패키지 설치 ---
 echo "기본 패키지 설치를 시작합니다." | tee -a "$INSTALL_LOG"
+
 case "$OS_FULL_ID" in
     ubuntu20|ubuntu22|ubuntu24)
-        apt -y install build-essential firefox vim nfs-common rdate xauth firefox curl git wget figlet net-tools htop >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        apt -y install smartmontools snapd tmux xfsprogs aptitude lvm2 dstat npm mlocate ntfs-3g >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        apt -y install gnome-tweaks ubuntu-desktop dconf-editor gnome-settings-daemon metacity nautilus gnome-terminal >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        apt -y install ipmitool python3-pip python3-dev >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+       apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install \
+        build-essential vim nfs-common rdate xauth curl git wget figlet net-tools htop \
+        smartmontools snapd tmux xfsprogs aptitude lvm2 dstat npm mlocate ntfs-3g \
+        gnome-tweaks ubuntu-desktop dconf-editor gnome-settings-daemon metacity nautilus gnome-terminal \
+        ipmitool python3-pip python3-dev >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         ;;
     rocky8|rocky9|almalinux9)
         dnf -y install epel-release >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
@@ -229,6 +231,13 @@ case "$OS_FULL_ID" in
         ;;
 esac
 echo "기본 패키지 설치 완료." | tee -a "$INSTALL_LOG"
+
+echo "필요없는 서비스를 disable 합니다." | tee -a "$INSTALL_LOG"
+
+case "$OS_FULL_ID" in
+    ubuntu22|ubuntu24)
+      systemctl mask network-online.target
+
 
 
 echo "방화벽 설정을 시작합니다." | tee -a "$INSTALL_LOG"
@@ -332,7 +341,7 @@ case "$OS_FULL_ID" in
         hwclock --systohc >> "$TIME_LOG" 2>> "$TIME_ERR"
         ;;
     ubuntu20|ubuntu22|ubuntu24)
-        apt -y install chrony >> "$TIME_LOG" 2>> "$TIME_ERR"
+        apt-get -y install chrony >> "$TIME_LOG" 2>> "$TIME_ERR"
         # 기본 NTP 서버를 국내 kr.pool.ntp.org로 변경
         sed -i 's|^pool .* iburst|pool kr.pool.ntp.org iburst|' /etc/chrony/chrony.conf
         systemctl enable --now chrony >> "$TIME_LOG" 2>> "$TIME_ERR"
@@ -363,8 +372,8 @@ if ! command -v pip3 &>/dev/null; then
             dnf -y install python3 python3-pip >> $LOG_DIR/Python_install.log 2>> $LOG_DIR/Python_install_log_err.txt
             ;;
         ubuntu20|ubuntu22)
-            apt update >> $LOG_DIR/Python_install.log 2>> $LOG_DIR/Python_install_log_err.txt
-            apt -y install python3 python3-pip >> $LOG_DIR/Python_install.log 2>> $LOG_DIR/Python_install_log_err.txt
+            apt-get update >> $LOG_DIR/Python_install.log 2>> $LOG_DIR/Python_install_log_err.txt
+            apt-get -y install python3 python3-pip >> $LOG_DIR/Python_install.log 2>> $LOG_DIR/Python_install_log_err.txt
             ;;
         *)
             echo "지원하지 않는 OS 또는 버전입니다: $OS_FULL_ID" | tee -a "$INSTALL_LOG"
@@ -565,10 +574,10 @@ if [ $? != 0 ]; then
       dnf -y install libXi-devel mesa-libGLU-devel libXmu-devel libX11-devel freeglut-devel libXm* openmotif* >> $LOG_DIR/GPU_repo_log.txt 2>> $LOG_DIR/GPU_repo_log_err.txt
       ;;
     ubuntu20|ubuntu22|ubuntu24)
-      apt -y install sudo gnupg >> $LOG_DIR/GPU_repo_log.txt 2>> $LOG_DIR/GPU_repo_log_err.txt           
+      apt-get -y install sudo gnupg >> $LOG_DIR/GPU_repo_log.txt 2>> $LOG_DIR/GPU_repo_log_err.txt           
       apt-key adv --fetch-keys "https://developer.download.nvidia.com/compute/cuda/repos/"${OS_FULL_ID}04"/x86_64/3bf863cc.pub" >> $LOG_DIR/GPU_repo_log.txt 2>> $LOG_DIR/GPU_repo_log_err.txt
       sh -c 'echo "deb https://developer.download.nvidia.com/compute/cuda/repos/'${OS_FULL_ID}04'/x86_64 /" > /etc/apt/sources.list.d/nvidia-cuda.list' >> $LOG_DIR/GPU_repo_log.txt 2>> $LOG_DIR/GPU_repo_log_err.txt
-      apt update >> $LOG_DIR/GPU_repo_log.txt 2>> $LOG_DIR/GPU_repo_log_err.txt
+      apt-get update >> $LOG_DIR/GPU_repo_log.txt 2>> $LOG_DIR/GPU_repo_log_err.txt
       ;;
     *)
       echo "CUDA,CUDNN repo not installed for this OS: $OS_FULL_ID" | tee -a $LOG_DIR/install.log
@@ -621,7 +630,7 @@ if [ $? != 0 ]; then
           echo "export CUDA_INC_DIR=/usr/local/cuda-$CUDAV_U/include" >> /etc/profile
         fi
         sleep 1
-        apt -y install cuda-toolkit-$CUDAV >> $LOG_DIR/cuda_cudnn_install.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
+        apt-get -y install cuda-toolkit-$CUDAV >> $LOG_DIR/cuda_cudnn_install.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
         sleep 1
         ubuntu-drivers autoinstall >> $LOG_DIR/cuda_cudnn_install.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
         nvidia-smi -pm 1 >> $LOG_DIR/cuda_cudnn_install.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
@@ -643,7 +652,7 @@ if [ $? != 0 ]; then
           echo "export CUDA_INC_DIR=/usr/local/cuda-$CUDAV_U/include" >> /etc/profile
         fi
         sleep 1
-        apt -y install cuda-$CUDAV >> $LOG_DIR/cuda_cudnn_install.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
+        apt-get -y install cuda-$CUDAV >> $LOG_DIR/cuda_cudnn_install.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
         sleep 1
         nvidia-smi -pm 1 >> $LOG_DIR/cuda_cudnn_install.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
         systemctl enable nvidia-persistenced >> $LOG_DIR/cuda_cudnn_install.log 2>> $LOG_DIR/cuda_cudnn_install_log_err.txt
@@ -693,7 +702,7 @@ else
 
         ubuntu20|ubuntu22|ubuntu24)
             echo " CUDNN 9 설치 시작" | tee -a "$INSTALL_LOG"
-            apt -y install \
+            apt-get -y install \
                 libcudnn9-cuda-${CUDA_MAJOR} \
                 libcudnn9-dev-cuda-${CUDA_MAJOR} \
                 libcudnn9-headers-cuda-${CUDA_MAJOR} \
@@ -848,9 +857,9 @@ if ! systemctl is-active --quiet dsm_om_connsvc; then
                 > /etc/apt/sources.list.d/linux.dell.com.sources.list
             wget http://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc
             apt-key add 0x1285491434D8786F.asc
-            apt -y update
+            apt-get -y update
             pip install --upgrade pyOpenSSL cryptography
-            apt -y install srvadmin-all srvadmin-idrac
+            apt-get -y install srvadmin-all srvadmin-idrac
 
             #if [ ! -f /usr/lib/x86_64-linux-gnu/libssl.so ]; then
             #    ln -s /usr/lib/x86_64-linux-gnu/libssl.so.1.1 /usr/lib/x86_64-linux-gnu/libssl.so
@@ -868,10 +877,10 @@ if ! systemctl is-active --quiet dsm_om_connsvc; then
                 > /etc/apt/sources.list.d/linux.dell.com.sources.list
             wget http://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc
             apt-key add 0x1285491434D8786F.asc
-            apt -y update
+            apt-get -y update
             wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
             dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
-            apt -y install srvadmin-all
+            apt-get -y install srvadmin-all
 
             #if [ ! -f /usr/lib/x86_64-linux-gnu/libssl.so ]; then
             #    ln -s /usr/lib/x86_64-linux-gnu/libssl.so.1.1 /usr/lib/x86_64-linux-gnu/libssl.so
