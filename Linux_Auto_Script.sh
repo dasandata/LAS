@@ -44,10 +44,10 @@ if [ ! -f $LOG_DIR/cudaversion.txt ]; then
             CUDA_OPTIONS="12-8 12-9 13-0 No-GPU"
             ;;
         ubuntu22)
-            CUDA_OPTIONS="11-8 12-5 12-6 12-8 12-9 13-0No-GPU"
+            CUDA_OPTIONS="11-8 12-5 12-6 12-8 12-9 13-0 No-GPU"
             ;;
         rocky9|almalinux9)
-            CUDA_OPTIONS="12-8 12-9 13-0No-GPU"
+            CUDA_OPTIONS="12-8 12-9 13-0 No-GPU"
             ;;
         rocky8)
             CUDA_OPTIONS="12-8 12-9 13-0 No-GPU"
