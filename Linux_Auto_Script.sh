@@ -211,14 +211,14 @@ echo "시스템 설정 완료." | tee -a "$INSTALL_LOG"
 
 # --- 6. 기본 패키지 설치 ---
 echo "기본 패키지 설치를 시작합니다." | tee -a "$INSTALL_LOG"
+export DEBIAN_FRONTEND=noninteractive
 
 case "$OS_FULL_ID" in
     ubuntu20|ubuntu22|ubuntu24)
-       apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install \
-        build-essential vim nfs-common rdate xauth curl git wget figlet net-tools htop \
-        smartmontools snapd tmux xfsprogs aptitude lvm2 dstat npm mlocate ntfs-3g \
-        gnome-tweaks ubuntu-desktop dconf-editor gnome-settings-daemon metacity nautilus gnome-terminal \
-        ipmitool python3-pip python3-dev >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        apt-get -y install build-essential firefox vim nfs-common rdate xauth firefox curl git wget figlet net-tools htop >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        apt-get -y install smartmontools snapd tmux xfsprogs aptitude lvm2 dstat npm ntfs-3g >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        apt-get -y install gnome-tweaks ubuntu-desktop dconf-editor gnome-settings-daemon metacity nautilus gnome-terminal >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        apt-get -y install ipmitool python3-pip python3-dev >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         ;;
     rocky8|rocky9|almalinux9)
         dnf -y install epel-release >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
@@ -240,6 +240,7 @@ case "$OS_FULL_ID" in
       ;;
 esac
 echo "필요없는 서비스를 disable 합니다." | tee -a "$INSTALL_LOG"
+
 
 echo "방화벽 설정을 시작합니다." | tee -a "$INSTALL_LOG"
 case "$OS_ID" in
