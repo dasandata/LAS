@@ -237,8 +237,9 @@ echo "필요없는 서비스를 disable 합니다." | tee -a "$INSTALL_LOG"
 case "$OS_FULL_ID" in
     ubuntu22|ubuntu24)
       systemctl mask network-online.target
-
-
+      ;;
+esac
+echo "필요없는 서비스를 disable 합니다." | tee -a "$INSTALL_LOG"
 
 echo "방화벽 설정을 시작합니다." | tee -a "$INSTALL_LOG"
 case "$OS_ID" in
