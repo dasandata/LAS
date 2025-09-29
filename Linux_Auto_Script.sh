@@ -215,8 +215,8 @@ export DEBIAN_FRONTEND=noninteractive
 
 case "$OS_FULL_ID" in
     ubuntu20|ubuntu22|ubuntu24)
-        apt-get -y install build-essential firefox vim nfs-common rdate xauth curl git wget figlet net-tools htop >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        apt-get -y install smartmontools snapd tmux xfsprogs aptitude lvm2 dstat npm ntfs-3g >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        apt-get -y install build-essential snapd firefox vim nfs-common rdate xauth curl git wget figlet net-tools htop >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        apt-get -y install smartmontools tmux xfsprogs aptitude lvm2 dstat npm ntfs-3g >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         apt-get -y install gnome-tweaks ubuntu-desktop dconf-editor gnome-settings-daemon metacity nautilus gnome-terminal >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         apt-get -y install ipmitool python3-pip python3-dev >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         ;;
