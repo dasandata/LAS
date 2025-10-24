@@ -104,7 +104,7 @@ OSCHECK=$(cat /etc/os-release | head -1 | cut -d "=" -f 2 | tr -d "\"" | awk '{p
 OS=$(lsb_release -isr |  tr -d "." | sed -e '{N;s/\n//}' | tr '[A-Z]' '[a-z]')
 
 # CUDA 설치 버전을 중 선택하여 CUDAV라는 변수로 사용합니다.
-select CUDAV in 11-1 11-2 11-3 11-4 11-5 11-6 11-7 No-GPU ; do echo "Select CUDA Version : $CUDAV" ; break; done
+select CUDAV in 12-8 12-9 13-0 No-GPU ; do echo "Select CUDA Version : $CUDAV" ; break; done
 ```
 
 ### # [2. rc.local 생성 및 변경](#목차) 
