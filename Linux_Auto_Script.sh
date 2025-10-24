@@ -77,6 +77,27 @@ else
     echo "CUDA 버전이 이미 선택되었습니다." | tee -a "$INSTALL_LOG"
 fi
 
+# RAID 관리자 선택
+if [ ! -f $LOG_DIR/raidmanager.txt ]; then
+    echo "RAID 관리자 선택을 시작합니다." | tee -a "$INSTALL_LOG"
+    PS3='설치할 RAID 관리자를 선택하세요: '
+    options=("LSA" "MSM" "no install")
+    select opt in "${options[@]}"; do
+        case $opt in
+            "LSA"|"MSM"|"no install")
+                echo "선택한 RAID 관리자: $opt" | tee -a "$INSTALL_LOG"
+                echo "$opt" > $LOG_DIR/raidmanager.txt
+                break
+                ;;
+            *) echo "잘못된 선택입니다. 1, 2, 3 중 하나를 입력하세요.";;
+        esac
+    done
+    echo "RAID 관리자 선택 완료." | tee -a "$INSTALL_LOG"
+else
+    echo "RAID 관리자가 이미 선택되었습니다." | tee -a "$INSTALL_LOG"
+fi
+
+
 # --- 3. 부팅 스크립트(rc.local) 설정 ---
 echo "rc.local 설정을 시작합니다." | tee -a "$INSTALL_LOG"
 
@@ -216,7 +237,7 @@ export DEBIAN_FRONTEND=noninteractive
 case "$OS_FULL_ID" in
     ubuntu20|ubuntu22|ubuntu24)
         apt-get -y install build-essential snapd firefox vim nfs-common rdate xauth curl git wget figlet net-tools htop >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        apt-get -y install smartmontools tmux xfsprogs aptitude lvm2 dstat npm ntfs-3g >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        apt-get -y install util-linux-extra smartmontools tmux xfsprogs aptitude lvm2 dstat npm ntfs-3g >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         apt-get -y install gnome-tweaks ubuntu-desktop dconf-editor gnome-settings-daemon metacity nautilus gnome-terminal >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         apt-get -y install ipmitool python3-pip python3-dev >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         ;;
@@ -720,13 +741,15 @@ else
 fi
 
 
+# --- 14. RAID 관리자 설치 ---
+echo "RAID 관리자 설치를 시작합니다." | tee -a "$INSTALL_LOG"
+RAID_MANAGER_CHOICE=$(cat $LOG_DIR/raidmanager.txt 2>/dev/null)
 
-# ---14. LSA install ---
-
-echo "===== LSA 설치 시작 ====="
-
-mkdir -p /root/LSA
-cd /root/LSA
+if [ "$RAID_MANAGER_CHOICE" = "LSA" ]; then
+    echo "===== LSA 설치 시작 =====" | tee -a "$INSTALL_LOG"
+    
+    mkdir -p /root/LSA_INSTALL
+    cd /root/LSA_INSTALL
 
 wget https://docs.broadcom.com/docs-and-downloads/008.012.007.000_MR7.32_LSA_Linux.zip
 
@@ -810,8 +833,50 @@ cd
 rm -rf LSA
 echo "===== LSA 설치 및 설정 완료 ====="
 
+elif [ "$RAID_MANAGER_CHOICE" = "MSM" ]; then
+    # MSM 설치를 선택한 경우 이 블록이 실행됩니다.
+    echo "===== MSM 설치 시작 =====" | tee -a "$INSTALL_LOG"
+    
+    # 1. 임시 디렉토리 생성 및 이동
+    mkdir -p /tmp/raid_manager
+    cd /tmp/raid_manager
+    
+    # 2. MSM 설치 파일 다운로드
+    wget https://docs.broadcom.com/docs-and-downloads/raid-controllers/raid-controllers-common-files/17.05.00.02_Linux-64_MSM.gz
+    
+    # 3. OS에 따른 설치 방식 분기
+    case "$OS_ID" in
+        ubuntu)
+            tar xzf 17.05.00.02_Linux-64_MSM.gz
+            cd /tmp/raid_manager/disk
+            apt-get -y install alien
+            alien --scripts *.rpm
+            dpkg --install lib-utils2_1.00-9_all.deb
+            dpkg --install megaraid-storage-manager_17.05.00-3_all.deb
+            ;;
+        rocky|almalinux)
+            tar xvzf 17.05.00.02_Linux-64_MSM.gz
+            cd /tmp/raid_manager/disk/ && ./install.csh -a
+            ;;
+    esac
 
-# --- 19. Dell OMSA install ---
+    # 4. MSM 서비스 등록 및 실행 (모든 OS 공통)
+    systemctl daemon-reload
+    systemctl start vivaldiframeworkd.service
+    systemctl enable vivaldiframeworkd.service
+    
+    # 5. 임시 파일 정리
+    cd /root
+    rm -rf /tmp/raid_manager
+    
+    echo "===== MSM 설치 완료 =====" | tee -a "$INSTALL_LOG"
+else
+    # LSA나 MSM을 선택하지 않은 경우 실행되는 블록
+    echo "RAID 관리자를 설치하지 않습니다." | tee -a "$INSTALL_LOG"
+fi
+
+
+# --- 15. Dell OMSA install ---
 echo "OMSA 설치를 시작합니다." | tee -a "$INSTALL_LOG"
 
 if ! systemctl is-active --quiet dsm_om_connsvc; then
