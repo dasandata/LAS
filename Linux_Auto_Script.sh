@@ -81,10 +81,10 @@ fi
 if [ ! -f $LOG_DIR/raidmanager.txt ]; then
     echo "RAID 관리자 선택을 시작합니다." | tee -a "$INSTALL_LOG"
     PS3='설치할 RAID 관리자를 선택하세요: '
-    options=("LSA" "MSM" "no install")
+    options=("MSM" "LSA" "no install")
     select opt in "${options[@]}"; do
         case $opt in
-            "LSA"|"MSM"|"no install")
+            "MSM"|"LSA"|"no install")
                 echo "선택한 RAID 관리자: $opt" | tee -a "$INSTALL_LOG"
                 echo "$opt" > $LOG_DIR/raidmanager.txt
                 break
