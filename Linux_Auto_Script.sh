@@ -253,57 +253,12 @@ case "$OS_FULL_ID" in
 esac
 echo "기본 패키지 설치 완료." | tee -a "$INSTALL_LOG"
 
-echo "필요없는 서비스를 disable 합니다." | tee -a "$INSTALL_LOG"
-
 case "$OS_FULL_ID" in
     ubuntu22|ubuntu24)
       systemctl mask network-online.target
       ;;
 esac
 echo "필요없는 서비스를 disable 합니다." | tee -a "$INSTALL_LOG"
-
-
-echo "방화벽 설정을 시작합니다." | tee -a "$INSTALL_LOG"
-case "$OS_ID" in
-    ubuntu)
-        if ufw status | grep -q "Status: inactive"; then
-            yes | ufw enable >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        fi
-
-        if ufw status | grep -q "Status: active"; then
-            ufw allow 22/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-            ufw allow 7777/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # 변경될 SSH 포트
-            ufw allow 8000/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # JupyterHub
-            ufw allow 8787/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # RStudio Server
-            sed -i 's/#Port 22/Port 7777/g' /etc/ssh/sshd_config
-            systemctl restart sshd
-        else
-            echo "ERROR: ufw is not active. Skipping configuration." >> "$ERROR_LOG"
-        fi
-        ;;
-
-    rocky|almalinux)
-        if ! systemctl is-active --quiet firewalld; then
-             systemctl enable --now firewalld >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        fi
-
-        if systemctl is-active --quiet firewalld; then
-            firewall-cmd --permanent --add-port=22/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-            firewall-cmd --permanent --add-port=7777/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # 변경될 SSH 포트
-            firewall-cmd --permanent --add-port=8000/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # JupyterHub
-            firewall-cmd --permanent --add-port=8787/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # RStudio Server
-            firewall-cmd --reload >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-            
-            sed -i 's/#Port 22/Port 7777/g' /etc/ssh/sshd_config
-            sed -i 's/PermitRootLogin yes/PermitRootLogin no/g' /etc/ssh/sshd_config
-            systemctl restart sshd
-        else
-            echo "ERROR: firewalld is not running. Skipping configuration." >> "$ERROR_LOG"
-        fi
-        ;;
-esac
-echo "방화벽 설정 완료." | tee -a "$INSTALL_LOG"
-
 
 # --- 7. 프로필(alias, history, 프롬프트 등) 설정 ---
 echo "프로필(alias 및 히스토리, 프롬프트) 설정을 시작합니다." | tee -a "$INSTALL_LOG"
@@ -409,9 +364,56 @@ else
 fi
 
 echo "Python 3 및 pip 설치 완료" | tee -a "$INSTALL_LOG"
+
+
+# --- 10. 방화벽 설정 ---
+echo "방화벽 설정을 시작합니다." | tee -a "$INSTALL_LOG"
+case "$OS_ID" in
+    ubuntu)
+        if ufw status | grep -q "Status: inactive"; then
+            yes | ufw enable >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        fi
+
+        if ufw status | grep -q "Status: active"; then
+            ufw allow 22/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+            ufw allow 7777/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # 변경될 SSH 포트
+            ufw allow 8000/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # JupyterHub
+            ufw allow 8787/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # RStudio Server
+            sed -i 's/#Port 22/Port 7777/g' /etc/ssh/sshd_config
+            echo "AddressFamily inet" >> /etc/ssh/sshd_config
+            
+            systemctl restart sshd
+        else
+            echo "ERROR: ufw is not active. Skipping configuration." >> "$ERROR_LOG"
+        fi
+        ;;
+
+    rocky|almalinux)
+        if ! systemctl is-active --quiet firewalld; then
+             systemctl enable --now firewalld >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        fi
+
+        if systemctl is-active --quiet firewalld; then
+            firewall-cmd --permanent --add-port=22/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+            firewall-cmd --permanent --add-port=7777/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # 변경될 SSH 포트
+            firewall-cmd --permanent --add-port=8000/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # JupyterHub
+            firewall-cmd --permanent --add-port=8787/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # RStudio Server
+            firewall-cmd --reload >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+            
+            sed -i 's/#Port 22/Port 7777/g' /etc/ssh/sshd_config
+            sed -i 's/PermitRootLogin yes/PermitRootLogin no/g' /etc/ssh/sshd_config
+            systemctl restart sshd
+        else
+            echo "ERROR: firewalld is not running. Skipping configuration." >> "$ERROR_LOG"
+        fi
+        ;;
+esac
+echo "방화벽 설정 완료." | tee -a "$INSTALL_LOG"
+
 systemctl set-default multi-user.target
 
-# --- 10. H/W 사양 체크 ---
+
+# --- 11. H/W 사양 체크 ---
 if [ ! -f $LOG_DIR/HWcheck.txt ]; then
     echo "===== H/W Check Start =====" | tee -a "$INSTALL_LOG"
     touch $LOG_DIR/HWcheck.txt
@@ -427,7 +429,7 @@ if [ ! -f $LOG_DIR/HWcheck.txt ]; then
         echo ""
 
         echo "==================== [ CPU Information ] ===================="
-        lscpu | grep -v "Flags\|NUMA"
+        lscpu | grep -v "Flags\|NUMA|Vulnerability"
         echo ""
 
         echo "==================== [ Memory Devices ] ===================="
@@ -451,6 +453,7 @@ if [ ! -f $LOG_DIR/HWcheck.txt ]; then
         echo ""
         echo "NIC (dmidecode):"
         dmidecode | grep NIC
+        lspci | grep -i eth
         echo ""
         echo "Communication Controllers:"
         lspci | grep -i communication
@@ -465,6 +468,7 @@ if [ ! -f $LOG_DIR/HWcheck.txt ]; then
 
         echo "==================== [ Disk & Partitions ] ===================="
         blkid
+        lsblk
         echo ""
 
         echo "==================== [ OS Release & Kernel ] ===================="
@@ -573,7 +577,7 @@ else
     exit 1
 fi
 
-# 11. CUDA, CUDNN Repo install
+# 12. CUDA, CUDNN Repo install
 
 # 기본 부팅 타겟을 multi-user (텍스트 모드)로 설정
 
@@ -614,7 +618,7 @@ echo "" | tee -a $LOG_DIR/install.log
 sleep 3
 echo "" | tee -a $LOG_DIR/install.log
 
-# 12. CUDA install / PATH setting
+# 13. CUDA install / PATH setting
 ls /usr/local/ | grep cuda >> $LOG_DIR/install.log 2>> $LOG_DIR/log_err.txt
 if [ $? != 0 ]; then
   CUDAV=$(cat $LOG_DIR/cudaversion.txt)
@@ -698,7 +702,7 @@ echo "" | tee -a $LOG_DIR/install.log
 sleep 3
 echo "" | tee -a $LOG_DIR/install.log
 
-# --- 13. CUDNN 9 install ---
+# --- 14. CUDNN 9 install ---
 echo "CUDNN 9 설치를 시작합니다." | tee -a "$INSTALL_LOG"
 
 CUDAV=$(cat $LOG_DIR/cudaversion.txt 2>/dev/null)
@@ -741,7 +745,7 @@ else
 fi
 
 
-# --- 14. RAID 관리자 설치 ---
+# --- 15. RAID 관리자 설치 ---
 echo "RAID 관리자 설치를 시작합니다." | tee -a "$INSTALL_LOG"
 RAID_MANAGER_CHOICE=$(cat $LOG_DIR/raidmanager.txt 2>/dev/null)
 
@@ -876,7 +880,7 @@ else
 fi
 
 
-# --- 15. Dell OMSA install ---
+# --- 16. Dell OMSA install ---
 echo "OMSA 설치를 시작합니다." | tee -a "$INSTALL_LOG"
 
 if ! systemctl is-active --quiet dsm_om_connsvc; then

@@ -92,22 +92,19 @@ ssh <사용자 계정>@<IP 주소>
 #### ## 여기서는 어떤 변수가 사용되는지 확인만 하도록 합니다.
 ```bash
 # 설치하려는 서버의 종류를 확인 합니다. (Dell, Supermicro, 일반PC 등)
-VENDOR=$(dmidecode -s system-manufacturer | awk '{print$1}')
+VENDOR=$(dmidecode | grep -i manufacturer | awk '{print$2}' | head -1)
 
 # 지금 작동중인 네트워크 인터페이스 명을 확인 후 NIC 변수로 적용합니다.
-NIC=$(ip -o -4 route show to default | awk '{print $5}')
+NIC=$(ip a | grep 'state UP' | cut -d ":" -f 2 | tr -d ' ')
 
 # 현재 설치된 OS의 종류를 확인 합니다. (ex: centos, ubuntu, rocky)
-OS_ID=$(grep '^ID=' /etc/os-release | cut -d'=' -f2 | tr -d '"' | tr '[A-Z]' '[a-z]')
+OSCHECK=$(cat /etc/os-release | head -1 | cut -d "=" -f 2 | tr -d "\"" | awk '{print$1}' | tr '[A-Z]' '[a-z]')
 
 # ubuntu의 정확한 버전을 확인 합니다.
-OS_VERSION_MAJOR=$(grep '^VERSION_ID=' /etc/os-release | cut -d'=' -f2 | tr -d '"' | cut -d'.' -f1)
-
-# OS ID와 주 버전을 조합하여 최종 OS 식별자를 만듭니다. (ex: rocky8, ubuntu22)
-OS_FULL_ID="${OS_ID}${OS_VERSION_MAJOR}"
+OS=$(lsb_release -isr |  tr -d "." | sed -e '{N;s/\n//}' | tr '[A-Z]' '[a-z]')
 
 # CUDA 설치 버전을 중 선택하여 CUDAV라는 변수로 사용합니다.
-select CUDAV in 11-8 12-5 12-6 12-8 12-9 13-0 No-GPU ; do echo "Select CUDA Version : $CUDAV" ; break; done
+select CUDAV in 11-1 11-2 11-3 11-4 11-5 11-6 11-7 No-GPU ; do echo "Select CUDA Version : $CUDAV" ; break; done
 ```
 
 ### # [2. rc.local 생성 및 변경](#목차) 
@@ -125,24 +122,30 @@ sed -i '1a bash /root/LAS/Linux_Auto_Script.sh' /etc/rc.local
 #### ## 부팅시 화면에 부팅 기록 출력, IPv6 비활성화, nouveau 비활성화를 위해 진행 합니다.
 
 ```bash
+# IPv6 비활성화를 위해 설정 변경.
+perl -pi -e  's/^GRUB_CMDLINE_LINUX="/GRUB_CMDLINE_LINUX="ipv6.disable=1 /'  /etc/default/grub
 
 # Nvidia Driver 와 호환성 문제가 있는 nouveau 비활성화 
 echo "blacklist nouveau"         >> /etc/modprobe.d/nouveau_disable.conf
 echo "options nouveau modeset=0" >> /etc/modprobe.d/nouveau_disable.conf
 
 # 변경된 내용으로 initramfs 및 grub 재설정
-update-initramfs -u && update-grub
+update-initramfs -u && update-grub2
 
+# cloud-init 제거
+echo 'datasource_list: [ None ]' |  tee /etc/cloud/cloud.cfg.d/90_dpkg.cfg
+apt-get -y purge cloud-init
+rm -rf /etc/cloud/  /var/lib/cloud/
 ```
 
-### # [4. 시스템 설정 (SELinux, Repository) ](#목차)
+### # [4. 저장소 변경](#목차)
 #### ## Ubuntu는 기존 저장소 속도 최적화를 위해 변경 합니다.
 
 ```bash
 # 기존 저장소 주소보다 빠른 mirror.kakao.com 으로 변경
-perl -pi -e 's/kr.archive.ubuntu.com/mirror.kakao.com/g' /etc/apt/sources.list.d/ubuntu.sources
-perl -pi -e 's/security.ubuntu.com/mirror.kakao.com/g'   /etc/apt/sources.list.d/ubuntu.sources
-cat /etc/apt/sources.list.d/ubuntu.sources | grep -v "#\|^$"
+perl -pi -e 's/kr.archive.ubuntu.com/mirror.kakao.com/g' /etc/apt/sources.list
+perl -pi -e 's/security.ubuntu.com/mirror.kakao.com/g'   /etc/apt/sources.list
+cat /etc/apt/sources.list | grep -v "#\|^$"
 ```
 
 ### # [5. 기본 패키지 설치](#목차)
@@ -151,16 +154,30 @@ cat /etc/apt/sources.list.d/ubuntu.sources | grep -v "#\|^$"
 
 ```bash
 apt-get update
-apt-get -y install build-essential snapd firefox vim nfs-common rdate xauth curl git wget figlet net-tools htop
-apt-get -y install util-linux-extra smartmontools tmux xfsprogs aptitude lvm2 dstat npm ntfs-3g 
-apt-get -y install gnome-tweaks dconf-editor gnome-settings-daemon metacity nautilus gnome-terminal
-apt-get -y install install ipmitool python3-pip python3-dev
+apt-get -y install vim nfs-common rdate xauth firefox gcc make tmux wget figlet net-tools
+apt-get -y install xfsprogs ntfs-3g aptitude lvm2 dstat curl npm mlocate 
+apt-get -y install dconf-editor gnome-panel gnome-settings-daemon metacity nautilus gnome-terminal
+apt-get -y install libzmq3-dev libcurl4-openssl-dev libxml2-dev snapd ethtool htop dnsutils
+apt-get -y install smartmontools
 
 apt-get -y install ubuntu-desktop
 systemctl set-default multi-user.target
 
+# 불필요한 서비스 disable
+systemctl disable bluetooth.service
+systemctl disable iscsi.service
+systemctl disable spice-vdagentd.service
+systemctl disable vmtoolsd.service
+systemctl disable ModemManager.service
+systemctl disable cups.service
+systemctl disable cups-browsed.service
 
-systemctl mask network-online.target
+# Ubuntu Desktop (GUI) 환경을 사용할 경우 disable 하지 않습니다.
+systemctl disable NetworkManager.service
+systemctl stop    NetworkManager.service
+
+# IPMI가 있는 장치의 경우 ipmitool을 설치 합니다.
+# apt-get install -y ipmitool
 ```
 
 ### # [6. 프로필 설정](#목차)
@@ -196,18 +213,9 @@ echo $HISTSIZE
 #### ## 서버 및 HW 시간을 동기화 합니다.
 
 ```bash
-
-
-apt-get -y install chrony
-
-sed -i 's|^pool .* iburst|pool kr.pool.ntp.org iburst|' /etc/chrony/chrony.conf
-systemctl enable --now chrony
-
-# 시간대 한국 표준시로 설정
-timedatectl set-timezone Asia/Seoul
-chronyc makestep
-chronyc sources -v
-timedatectl status
+# time.bora.net 기준으로 시간 동기화
+rdate -s time.bora.net
+hwclock --systohc
 
 # 현재 시간과 동일한지 확인
 date
@@ -217,13 +225,21 @@ hwclock
 ### # [8. 파이썬 설치](#목차)
 
 ```bash
-# Python pip 설치
-apt-get update
-apt-get -y install python3 python3-pip
-python3 -m pip install --upgrade pip
+# Python 3.10 pip 설치
+apt-get -y install python3-pip
+pip3 install --upgrade pip
 ```
 
-### # [9. 방화벽 설정](#목차)
+### # [9. 파이썬 패키지 설치](#목차)
+
+```bash
+# Python 3.10에 사용할 패키지 설치
+#pip3 install --upgrade numpy scipy nose matplotlib pandas keras h5py cryptography tensorflow-gpu 
+pip3 install --upgrade numpy scipy nose matplotlib pandas keras h5py cryptography tensorflow
+pip3 install --upgrade torch torchvision
+```
+
+### # [10. 방화벽 설정](#목차)
 
 ```bash
 systemctl start ufw
@@ -239,13 +255,19 @@ ufw allow 8787/tcp
 ## JupyterHub port
 ufw allow 8000/tcp
 
-sed -i 's/#Port 22/Port 7777/g' /etc/ssh/sshd_config
+perl -pi -e "s/#Port 22/Port 7777/g" /etc/ssh/sshd_config
 echo "AddressFamily inet" >> /etc/ssh/sshd_config
 systemctl restart sshd
 ```
 
+### # [11. 사용자 생성 테스트](#목차)
 
-### # [10. H/W 사양 체크](#목차)
+```bash
+adduser --disabled-login --gecos "" dasan
+usermod -G sudo dasan
+```
+
+### # [12. H/W 사양 체크](#목차)
 
 ```bash
 # 기본적인 시스템 사양 체크를 진행합니다.
@@ -253,17 +275,15 @@ dmidecode --type system | grep -v "^$\|#\|SMBIOS\|Handle\|Not"
 lscpu | grep -v "Flags\|NUMA|Vulnerability"
 dmidecode --type 16 | grep -v "dmidecode\|SMBIOS\|Handle"
 dmidecode --type memory | grep "Number Of Devices\|Size\|Locator\|Clock\|DDR\|Rank" | grep -v "No\|Unknown"
-grep MemTotal /proc/meminfo
+cat /proc/meminfo | grep MemTotal
 free -h
 lspci | grep -i vga
 lspci | grep -i nvidia
 dmidecode | grep NIC
-lspci | grep -i eth
 lspci | grep -i communication
 dmesg | grep NIC
 dmidecode --type 39  | grep "System\|Name:\|Capacity"
 blkid
-lsblk
 uname -a
 ```
 ***
@@ -279,51 +299,44 @@ reboot
 ***
 
 ### ===== GPU 버전 설치 진행 순서 ===== 
-#### ### 아래 11 ~ 16 항목의 경우 Nvidia-GPU가 존재할 경우 진행 합니다.
+#### ### 아래 13 ~ 16 항목의 경우 Nvidia-GPU가 존재할 경우 진행 합니다.
 
-### # [11. CUDA,CUDNN Repo 설치](#목차)
+### # [13. CUDA,CUDNN Repo 설치](#목차)
 
 ```bash
 # 사용할 CUDA 버전을 선택합니다. (22.04는 11.7만 지원됨)
-select CUDAV in 11-8 12-5 12-6 12-8 12-9 13-0 No-GPU ; do echo "Select CUDA Version : $CUDAV" ; break; done
+select CUDAV in 11-7; do echo "Select CUDA Version : $CUDAV" ; break; done
 
 # 자세한 Ubuntu 버전을 변수로 선언합니다.
-OS_ID=$(grep '^ID=' /etc/os-release | cut -d'=' -f2 | tr -d '"' | tr '[A-Z]' '[a-z]')
-OS_VERSION_MAJOR=$(grep '^VERSION_ID=' /etc/os-release | cut -d'=' -f2 | tr -d '"' | cut -d'.' -f1)
-OS_FULL_ID="${OS_ID}${OS_VERSION_MAJOR}"
-
+OS=$(lsb_release -isr |  tr -d "." | sed -e '{N;s/\n//}' | tr '[A-Z]' '[a-z]')
 
 # Nvidia 저장소 생성 (Cuda,cudnn 설치를 위해)
 apt-get -y install sudo gnupg
-apt-key adv --fetch-keys "https://developer.download.nvidia.com/compute/cuda/repos/"${OS_FULL_ID}04"/x86_64/3bf863cc.pub"
+apt-key adv --fetch-keys "https://developer.download.nvidia.com/compute/cuda/repos/"$OS"/x86_64/3bf863cc.pub"
 
-sh -c 'echo "deb https://developer.download.nvidia.com/compute/cuda/repos/'${OS_FULL_ID}04'/x86_64 /" > /etc/apt/sources.list.d/nvidia-cuda.list'
+sh -c 'echo "deb https://developer.download.nvidia.com/compute/cuda/repos/'$OS'/x86_64 /" > /etc/apt/sources.list.d/nvidia-cuda.list'
 
 apt-get update
 ```
 
-### # [12. CUDA 설치 및 PATH 설정](#목차)
+### # [14. CUDA 설치 및 PATH 설정](#목차)
 
 ```bash
 # CUDA 설치
-apt-get -y install cuda-toolkit-$CUDAV
-
-# Driver 설치
-ubuntu-drivers autoinstall
+apt-get -y install cuda-$CUDAV
 
 # profile에 PATH 설정시에는 cuda-11-7의 형식이 아닌 cuda-11.7 같은 형식으로 변경되어야 합니다.
-CUDAV_U="${CUDAV/-/.}"
+CUDAVER="${CUDAV/-/.}"
 
 # cuda 설치 및 설치된 cuda를 사용하기 위해 경로 설정값을 profile에 입력
-echo "" >> /etc/profile
-echo "### ADD Cuda $CUDAV_U PATH" >> /etc/profile
-echo "export PATH=/usr/local/cuda-$CUDAV_U/bin:/usr/local/cuda-$CUDAV_U/include:\$PATH" >> /etc/profile
-echo "export LD_LIBRARY_PATH=/usr/local/cuda-$CUDAV_U/lib64:/usr/local/cuda/extras/CUPTI/:\$LD_LIBRARY_PATH" >> /etc/profile
-echo "export CUDA_HOME=/usr/local/cuda-$CUDAV_U" >> /etc/profile
-echo "export CUDA_INC_DIR=/usr/local/cuda-$CUDAV_U/include" >> /etc/profile
+echo " "  >> /etc/profile
+echo "### ADD Cuda $CUDAVER PATH"  >> /etc/profile
+echo "export PATH=/usr/local/cuda-$CUDAVER/bin:/usr/local/cuda-$CUDAVER/include:\$PATH " >> /etc/profile
+echo "export LD_LIBRARY_PATH=/usr/local/cuda-$CUDAVER/lib64:/usr/local/cuda/extras/CUPTI/:\$LD_LIBRARY_PATH " >> /etc/profile
+echo "export CUDA_HOME=/usr/local/cuda-$CUDAVER " >> /etc/profile
+echo "export CUDA_INC_DIR=/usr/local/cuda-$CUDAVER/include " >> /etc/profile
 
 # 지속성 모드 On, 변경된 PATH 적용
-nvidia-smi -pm 1
 systemctl enable nvidia-persistenced
 source /etc/profile
 source /root/.bashrc
