@@ -10,41 +10,41 @@
 
 [1. 변수 선언](Ubuntu_22_Install_Guide.md#-1-변수-선언)  
 
-[2. nouveau 끄기 및 grub 설정](Ubuntu_22_Install_Guide.md#-3-nouveau-끄기-및-grub-설정)  
+[2. nouveau 끄기 및 grub 설정](Ubuntu_22_Install_Guide.md#-2-nouveau-끄기-및-grub-설정)  
 
-[3. 시스팀 설정](Ubuntu_22_Install_Guide.md#-4-저장소-변경)  
+[3. 시스팀 설정](Ubuntu_22_Install_Guide.md#-3-시스템-설정)  
 
-[4. 기본 패키지 설치](Ubuntu_22_Install_Guide.md#-5-기본-패키지-설치)  
+[4. 기본 패키지 설치](Ubuntu_22_Install_Guide.md#-4-기본-패키지-설치)  
 
-[5. 프로필 설정](Ubuntu_22_Install_Guide.md#-6-프로필-설정)  
+[5. 프로필 설정](Ubuntu_22_Install_Guide.md#-5-프로필-설정)  
 
-[6. 서버 시간 동기화](Ubuntu_22_Install_Guide.md#-7-서버-시간-동기화)  
+[6. 서버 시간 동기화](Ubuntu_22_Install_Guide.md#-6-서버-시간-동기화)  
 
-[7. 파이썬 설치](Ubuntu_22_Install_Guide.md#-8-파이썬-설치)  
+[7. 파이썬 설치](Ubuntu_22_Install_Guide.md#-7-파이썬-설치)  
 
-[8. 방화벽 설정](Ubuntu_22_Install_Guide.md#-10-방화벽-설정)  
+[8. 방화벽 설정](Ubuntu_22_Install_Guide.md#-8-방화벽-설정)  
 
-[9. H/W 사양 체크](Ubuntu_22_Install_Guide.md#-12-HW-사양-체크)  
+[9. H/W 사양 체크](Ubuntu_22_Install_Guide.md#-9-HW-사양-체크)  
 
 ### ===== GPU 버전 설치 진행 순서 ===== 
 
-[10. CUDA,CUDNN Repo 설치](Ubuntu_22_Install_Guide.md#-13-CUDACUDNN-Repo-설치)
+[10. CUDA,CUDNN Repo 설치](Ubuntu_22_Install_Guide.md#-10-CUDACUDNN-Repo-설치)
 
-[11. CUDA 설치 및 PATH 설정](Ubuntu_22_Install_Guide.md#-14-CUDA-설치-및-PATH-설정)
+[11. CUDA 설치 및 PATH 설정](Ubuntu_22_Install_Guide.md#-11-CUDA-설치-및-PATH-설정)
 
-[12. CUDNN 설치](Ubuntu_22_Install_Guide.md#-15-CUDNN-설치-및-PATH-설정)
+[12. CUDNN 설치](Ubuntu_22_Install_Guide.md#-12-CUDNN-설치-및-PATH-설정)
 
-[13. 딥러닝 패키지 설치](Ubuntu_22_Install_Guide.md#-16-딥러닝-패키지-설치)
+[13. 딥러닝 패키지 설치](Ubuntu_22_Install_Guide.md#-13-딥러닝-패키지-설치)
 
 ### =====  Raid manager 설치 진행 순서 ===== 
 
-[14-1. Raid manager MSM 설치](Ubuntu_22_Install_Guide.md#-14-1-Raid-manager-MSM-설치)
+[14-1. Raid manager MSM 설치](Ubuntu_22_Install_Guide.md#-14-1-MSM-설치)
 
-[14-2. Raid manager LSA 설치](Ubuntu_22_Install_Guide.md#-14-2-Raid-manager-LSA-설치)
+[14-2. Raid manager LSA 설치](Ubuntu_22_Install_Guide.md#-14-2-LSA-설치)
 
 ### ===== Dell 서버 전용 설치 순서 =====
 
-[15. Dell 전용 OMSA설치](Ubuntu_22_Install_Guide.md#-18-Dell-전용-OMSA설치)
+[15. Dell 전용 OMSA설치](Ubuntu_22_Install_Guide.md#-15-Dell-전용-OMSA설치)
 
 ***
 ## # 범례(변수).
@@ -120,7 +120,7 @@ update-initramfs -u && update-grub
 
 ```
 
-### # [3. 시스템 설정 (SELinux, Repository) ](#목차)
+### # [3. 시스템 설정 ](#목차)
 #### ## Ubuntu는 기존 저장소 속도 최적화를 위해 변경 합니다.
 
 ```bash
@@ -393,7 +393,7 @@ systemctl start jupyterhub.service
 ### ===== Raid manager 설치 진행 순서 ===== 
 #### ## RAID DISK 관리 Tool인 Mega RAID Manager 를 설치 합니다. (RAID Card가 있을경우 사용 합니다.)
 
-### # [14-1. 서버 전용 MSM 설치](#목차)
+### # [14-1. MSM 설치](#목차)
 
 ```bash
 mkdir /tmp/raid_manager
@@ -413,7 +413,7 @@ systemctl enable vivaldiframeworkd.service
 cd
 ```
 
-### # [14-2. 서버 전용 LSA 설치](#목차)
+### # [14-2. LSA 설치](#목차)
 
 ```bash
 mkdir /tmp/raid_manager
