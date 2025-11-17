@@ -329,14 +329,20 @@ source /etc/profile
 source /root/.bashrc
 ```
 
-### # [15. CUDNN 설치](#목차)
+### # [13. CUDNN 설치](#목차)
 
 ```bash
-# Ubuntu 22.04 는 CUDA 11 버전부터 지원하여 libcudnn8 버전만 설치 가능
-apt-get -y install libcudnn8 libcudnn8-dev
+
+CUDA_MAJOR=${CUDAV%%-*}
+
+apt-get -y install \
+libcudnn9-cuda-${CUDA_MAJOR} \
+libcudnn9-dev-cuda-${CUDA_MAJOR} \
+libcudnn9-headers-cuda-${CUDA_MAJOR} \
+libcudnn9-samples \
 ```
 
-### # [16. 딥러닝 패키지 설치](#목차)
+### # [14. 딥러닝 패키지 설치](#목차)
 #### ## JupyterHub는 마지막 설정이 동일하여 마지막에 같이 서술하였습니다.
 #### ## 마지막 설정에 사용되는 파일은 Git에 LAS 밑에 존재합니다.
 
@@ -345,21 +351,19 @@ apt-get -y install libcudnn8 libcudnn8-dev
 # JupyterHub에 작업 중 사용되는 파일들은 LISR에 존재하므로 git을 통해 Pull 하고 사용해야 합니다.
 
 ## R,R-studio install
-apt-get -y install r-base 
-apt-get -y install gdebi-core 
+apt get -y install r-base libcurl4-openssl-dev libxml2-dev
 
-wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.0g-2ubuntu4_amd64.deb
-dpkg -i libssl1.1_1.1.0g-2ubuntu4_amd64.deb
-
-wget https://download2.rstudio.org/server/bionic/amd64/rstudio-server-2022.07.1-554-amd64.deb
-yes | gdebi rstudio-server-2022.07.1-554-amd64.deb
+wget -O /tmp/rstudio-server-latest.deb https://download2.rstudio.org/server/jammy/amd64/rstudio-server-2025.05.1-513-amd64.deb
+apt -y install /tmp/rstudio-server-latest.deb
+rm -f /tmp/rstudio-server-latest.deb
 
 ## JupyterHub install
-pip3 install --upgrade jupyterhub jupyterlab notebook 
+python3 -m pip install --upgrade pip setuptools wheel
+python3 -m pip install jupyterhub jupyterlab notebook
 
 apt-get -y purge nodejs libnode72
 
-curl -fsSL https://deb.nodesource.com/setup_16.x | bash - 
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash - 
 apt-get -y install nodejs default-jre 
 npm install -g configurable-http-proxy 
 
@@ -370,34 +374,43 @@ snap install pycharm-community --classic
 
 ```bash
 ## JupyterHub 마무리 작업.
-mkdir /etc/jupyterhub
-jupyterhub --generate-config -f   /etc/jupyterhub/jupyterhub_config.py 
-echo "c.JupyterHub.port = 8000" >> /etc/jupyterhub/jupyterhub_config.py
-echo "c.JupyterHub.proxy_class = 'jupyterhub.proxy.ConfigurableHTTPProxy'" >> /etc/jupyterhub/jupyterhub_config.py
-echo "c.Authenticator.admin_users = {\"temp_id\"}" >> /etc/jupyterhub/jupyterhub_config.py
+
+mkdir -p /etc/jupyterhub
+
+jupyterhub --generate-config -f /etc/jupyterhub/jupyterhub_config.py
+
 echo "c.Spawner.default_url = '/lab'" >> /etc/jupyterhub/jupyterhub_config.py
-echo "c.LocalAuthenticator.create_system_users = True" >> /etc/jupyterhub/jupyterhub_config.py
-echo "c.Authenticator.add_user_cmd = ['adduser', '--force-badname', '-q', '--gecos', '\"\"', '--disabled-password']" >> /etc/jupyterhub/jupyterhub_config.py
-
-## jupyterhub service 설정 파일 복사를 위해 git 복사
-git clone https://github.com/dasandata/LAS
-mv /root/LAS/jupyterhub.service /lib/systemd/system/
-mv /root/LAS/jupyterhub         /etc/init.d/
-
-chmod 777 /lib/systemd/system/jupyterhub.service 
-chmod 755 /etc/init.d/jupyterhub 
-
-systemctl daemon-reload 
-systemctl enable jupyterhub.service 
-systemctl restart jupyterhub.service 
-
-R CMD BATCH /root/LAS/r_jupyterhub.R 
+echo "c.Authenticator.allow_all = True" >> /etc/jupyterhub/jupyterhub_config.py
 ```
 
-### ===== 서버 전용 설치 진행 순서 ===== 
+```bash
+## jupyterhub service 설정 파일 생성
+    cat <<EOF > /etc/systemd/system/jupyterhub.service
+[Unit]
+Description=JupyterHub
+After=network.target
 
-### # [17. 서버 전용 MSM 설치](#목차)
+
+[Service]
+User=root
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=$(command -v jupyterhub) -f /etc/jupyterhub/jupyterhub_config.py
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
+
+```bash
+systemctl daemon-reload
+systemctl enable jupyterhub.service
+systemctl start jupyterhub.service
+```
+
+### ===== Raid manager 설치 진행 순서 ===== 
 #### ## RAID DISK 관리 Tool인 Mega RAID Manager 를 설치 합니다. (RAID Card가 있을경우 사용 합니다.)
+
+### # [17-1. 서버 전용 MSM 설치](#목차)
 
 ```bash
 mkdir /tmp/raid_manager
@@ -413,8 +426,58 @@ dpkg --install megaraid-storage-manager_17.05.00-3_all.deb
 systemctl daemon-reload
 systemctl start vivaldiframeworkd.service
 systemctl enable vivaldiframeworkd.service
-/usr/local/MegaRAID\ Storage\ Manager/startupui.sh &
+
 cd
+```
+
+### # [17-2. 서버 전용 LSA 설치](#목차)
+
+```bash
+mkdir /tmp/raid_manager
+cd /tmp/raid_manager  
+wget https://docs.broadcom.com/docs-and-downloads/008.012.007.000_MR7.32_LSA_Linux.zip
+unzip -o 008.012.007.000_MR7.32_LSA_Linux.zip
+cd webgui_rel
+unzip -o LSA_Linux.zip
+ls -l
+
+cd gcc_8.3.x
+yes | ./install_deb.sh -s
+
+mkdir -p /etc/lsisash
+mv /etc/init.d/LsiSASH /etc/lsisash/LsiSASH
+chmod +x /etc/lsisash/LsiSASH
+```
+```bash
+    cat <<EOF > "$SYSTEMD_FILE"
+[Unit]
+Description=Start LsiSASH service at boot
+After=network.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/etc/lsisash/LsiSASH start
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
+
+```bash
+
+systemctl daemon-reload
+systemctl enable lsisash.service
+systemctl start lsisash.service
+systemctl status lsisash.service
+
+ufw allow http
+ufw allow 2463/tcp
+ufw reload
+
+cd
+rm -rf LSA
 ```
 
 ### ===== Dell 서버 전용 설치 순서 =====
@@ -424,12 +487,16 @@ cd
 
 ```bash
 ufw allow 1311/tcp
-echo 'deb http://linux.dell.com/repo/community/openmanage/10300/focal/ focal main'  > /etc/apt/sources.list.d/linux.dell.com.sources.list
+echo 'deb http://linux.dell.com/repo/community/openmanage/10300/focal focal main' \ > /etc/apt/sources.list.d/linux.dell.com.sources.list
 wget http://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc
 apt-key add 0x1285491434D8786F.asc
 apt-get -y update
+wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
 apt-get -y install srvadmin-all
 
+
+systemctl daemon-reload
 systemctl enable dsm_sa_datamgrd.service
 systemctl enable dsm_om_connsvc
 systemctl start dsm_sa_datamgrd.service
