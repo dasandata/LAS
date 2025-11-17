@@ -8,47 +8,47 @@
 
 ### ===== 기본 버전 설치 진행 순서 =====
 
-[1. 변수 선언](Ubuntu_22_Install_Guide.md#-1-변수-선언)  
+[1. 변수 선언](fasdfdsf#-1-변수-선언)  
 
-[2. rc.local 생성 및 변경](Ubuntu_22_Install_Guide.md#-2-rclocal-생성-및-변경)  
+[2. rc.local 생성 및 변경](fasdfdsf#-2-rclocal-생성-및-변경)  
 
-[3. nouveau 끄기 및 grub 설정](Ubuntu_22_Install_Guide.md#-3-nouveau-끄기-및-grub-설정)  
+[3. nouveau 끄기 및 grub 설정](fasdfdsf#-3-nouveau-끄기-및-grub-설정)  
 
-[4. 저장소 변경](Ubuntu_22_Install_Guide.md#-4-저장소-변경)  
+[4. 저장소 변경](fasdfdsf#-4-저장소-변경)  
 
-[5. 기본 패키지 설치](Ubuntu_22_Install_Guide.md#-5-기본-패키지-설치)  
+[5. 기본 패키지 설치](fasdfdsf#-5-기본-패키지-설치)  
 
-[6. 프로필 설정](Ubuntu_22_Install_Guide.md#-6-프로필-설정)  
+[6. 프로필 설정](fasdfdsf#-6-프로필-설정)  
 
-[7. 서버 시간 동기화](Ubuntu_22_Install_Guide.md#-7-서버-시간-동기화)  
+[7. 서버 시간 동기화](fasdfdsf#-7-서버-시간-동기화)  
 
-[8. 파이썬 설치](Ubuntu_22_Install_Guide.md#-8-파이썬-설치)  
+[8. 파이썬 설치](fasdfdsf#-8-파이썬-설치)  
 
-[9. 파이썬 패키지 설치](Ubuntu_22_Install_Guide.md#-9-파이썬-패키지-설치)  
+[9. 파이썬 패키지 설치](fasdfdsf#-9-파이썬-패키지-설치)  
 
-[10. 방화벽 설정](Ubuntu_22_Install_Guide.md#-10-방화벽-설정)  
+[10. 방화벽 설정](fasdfdsf#-10-방화벽-설정)  
 
-[11. 사용자 생성 테스트](Ubuntu_22_Install_Guide.md#-11-사용자-생성-테스트)  
+[11. 사용자 생성 테스트](fasdfdsf#-11-사용자-생성-테스트)  
 
-[12. H/W 사양 체크](Ubuntu_22_Install_Guide.md#-12-HW-사양-체크)  
+[12. H/W 사양 체크](fasdfdsf#-12-HW-사양-체크)  
 
 ### ===== GPU 버전 설치 진행 순서 ===== 
 
-[13. CUDA,CUDNN Repo 설치](Ubuntu_22_Install_Guide.md#-13-CUDACUDNN-Repo-설치)
+[13. CUDA,CUDNN Repo 설치](fasdfdsf#-13-CUDACUDNN-Repo-설치)
 
-[14. CUDA 설치 및 PATH 설정](Ubuntu_22_Install_Guide.md#-14-CUDA-설치-및-PATH-설정)
+[14. CUDA 설치 및 PATH 설정](fasdfdsf#-14-CUDA-설치-및-PATH-설정)
 
-[15. CUDNN 설치 및 PATH 설정](Ubuntu_22_Install_Guide.md#-15-CUDNN-설치-및-PATH-설정)
+[15. CUDNN 설치 및 PATH 설정](fasdfdsf#-15-CUDNN-설치-및-PATH-설정)
 
-[16. 딥러닝 패키지 설치](Ubuntu_22_Install_Guide.md#-16-딥러닝-패키지-설치)
+[16. 딥러닝 패키지 설치](fasdfdsf#-16-딥러닝-패키지-설치)
 
 ### ===== 서버 전용 설치 진행 순서 ===== 
 
-[17. 서버 전용 MSM 설치](Ubuntu_22_Install_Guide.md#-17-서버-전용-MSM-설치)
+[17. 서버 전용 MSM 설치](fasdfdsf#-17-서버-전용-MSM-설치)
 
 ### ===== Dell 서버 전용 설치 순서 =====
 
-[18. Dell 전용 OMSA설치](Ubuntu_22_Install_Guide.md#-18-Dell-전용-OMSA설치)
+[18. Dell 전용 OMSA설치](fasdfdsf#-18-Dell-전용-OMSA설치)
 
 ***
 ## # 범례(변수).
@@ -110,18 +110,7 @@ OS_FULL_ID="${OS_ID}${OS_VERSION_MAJOR}"
 select CUDAV in 11-8 12-5 12-6 12-8 12-9 13-0 No-GPU ; do echo "Select CUDA Version : $CUDAV" ; break; done
 ```
 
-### # [2. rc.local 생성 및 변경](#목차) 
-#### ## 여기서는 사용하지 않습니다.
-
-```bash
-# rc.local에 파일명을 입력하여 재부팅 후에도 다시 실행될 수 있게 변경 합니다.
-chmod +x /etc/rc.local
-systemctl restart rc-local.service
-systemctl status rc-local.service
-sed -i '1a bash /root/LAS/Linux_Auto_Script.sh' /etc/rc.local
-```
-
-### # [3. nouveau 끄기 및 grub 설정](#목차)
+### # [2. nouveau 끄기 및 grub 설정](#목차)
 #### ## 부팅시 화면에 부팅 기록 출력, IPv6 비활성화, nouveau 비활성화를 위해 진행 합니다.
 
 ```bash
@@ -135,7 +124,7 @@ update-initramfs -u && update-grub
 
 ```
 
-### # [4. 시스템 설정 (SELinux, Repository) ](#목차)
+### # [3. 시스템 설정 (SELinux, Repository) ](#목차)
 #### ## Ubuntu는 기존 저장소 속도 최적화를 위해 변경 합니다.
 
 ```bash
@@ -145,7 +134,7 @@ perl -pi -e 's/security.ubuntu.com/mirror.kakao.com/g'   /etc/apt/sources.list.d
 cat /etc/apt/sources.list.d/ubuntu.sources | grep -v "#\|^$"
 ```
 
-### # [5. 기본 패키지 설치](#목차)
+### # [4. 기본 패키지 설치](#목차)
 #### ## 서버 기본 설정에 필요한 패키지를 설치 합니다.
 #### ## 필요없는 서비스를 disable 합니다 (장비에 따라 존재하지 않는 서비스도 있습니다.)
 
@@ -163,7 +152,7 @@ systemctl set-default multi-user.target
 systemctl mask network-online.target
 ```
 
-### # [6. 프로필 설정](#목차)
+### # [5. 프로필 설정](#목차)
 #### ## 사용자 편의를 위한 설정을 진행 합니다.
 #### ## alias, prompt-color, History Size, History date
 
@@ -192,12 +181,10 @@ source  /root/.bashrc
 echo $HISTSIZE
 ```
 
-### # [7. 서버 시간 동기화](#목차)
+### # [6. 서버 시간 동기화](#목차)
 #### ## 서버 및 HW 시간을 동기화 합니다.
 
 ```bash
-
-
 apt-get -y install chrony
 
 sed -i 's|^pool .* iburst|pool kr.pool.ntp.org iburst|' /etc/chrony/chrony.conf
@@ -214,7 +201,7 @@ date
 hwclock
 ```
 
-### # [8. 파이썬 설치](#목차)
+### # [7. 파이썬 설치](#목차)
 
 ```bash
 # Python pip 설치
@@ -223,7 +210,7 @@ apt-get -y install python3 python3-pip
 python3 -m pip install --upgrade pip
 ```
 
-### # [9. 방화벽 설정](#목차)
+### # [8. 방화벽 설정](#목차)
 
 ```bash
 systemctl start ufw
@@ -245,7 +232,7 @@ systemctl restart sshd
 ```
 
 
-### # [10. H/W 사양 체크](#목차)
+### # [9. H/W 사양 체크](#목차)
 
 ```bash
 # 기본적인 시스템 사양 체크를 진행합니다.
@@ -279,9 +266,9 @@ reboot
 ***
 
 ### ===== GPU 버전 설치 진행 순서 ===== 
-#### ### 아래 11 ~ 16 항목의 경우 Nvidia-GPU가 존재할 경우 진행 합니다.
+#### ### 아래 10 ~ 12 항목의 경우 Nvidia-GPU가 존재할 경우 진행 합니다.
 
-### # [11. CUDA,CUDNN Repo 설치](#목차)
+### # [10. CUDA,CUDNN Repo 설치](#목차)
 
 ```bash
 # 사용할 CUDA 버전을 선택합니다. (22.04는 11.7만 지원됨)
@@ -302,7 +289,7 @@ sh -c 'echo "deb https://developer.download.nvidia.com/compute/cuda/repos/'${OS_
 apt-get update
 ```
 
-### # [12. CUDA 설치 및 PATH 설정](#목차)
+### # [11. CUDA 설치 및 PATH 설정](#목차)
 
 ```bash
 # CUDA 설치
@@ -329,7 +316,7 @@ source /etc/profile
 source /root/.bashrc
 ```
 
-### # [13. CUDNN 설치](#목차)
+### # [12. CUDNN 설치](#목차)
 
 ```bash
 
@@ -342,7 +329,7 @@ libcudnn9-headers-cuda-${CUDA_MAJOR} \
 libcudnn9-samples \
 ```
 
-### # [14. 딥러닝 패키지 설치](#목차)
+### # [13. 딥러닝 패키지 설치](#목차)
 #### ## JupyterHub는 마지막 설정이 동일하여 마지막에 같이 서술하였습니다.
 #### ## 마지막 설정에 사용되는 파일은 Git에 LAS 밑에 존재합니다.
 
@@ -410,7 +397,7 @@ systemctl start jupyterhub.service
 ### ===== Raid manager 설치 진행 순서 ===== 
 #### ## RAID DISK 관리 Tool인 Mega RAID Manager 를 설치 합니다. (RAID Card가 있을경우 사용 합니다.)
 
-### # [17-1. 서버 전용 MSM 설치](#목차)
+### # [14-1. 서버 전용 MSM 설치](#목차)
 
 ```bash
 mkdir /tmp/raid_manager
@@ -430,7 +417,7 @@ systemctl enable vivaldiframeworkd.service
 cd
 ```
 
-### # [17-2. 서버 전용 LSA 설치](#목차)
+### # [14-2. 서버 전용 LSA 설치](#목차)
 
 ```bash
 mkdir /tmp/raid_manager
@@ -482,7 +469,7 @@ rm -rf LSA
 
 ### ===== Dell 서버 전용 설치 순서 =====
 
-### # [18. Dell 전용 OMSA설치](#목차)
+### # [15. Dell 전용 OMSA설치](#목차)
 #### ## Dell 서버의 경우 원격 제어를 위한 OMSA (OpenManage Server Administrator) 를 설치 합니다.
 
 ```bash
