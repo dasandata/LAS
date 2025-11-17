@@ -32,7 +32,7 @@
 
 [11. CUDA 설치 및 PATH 설정](Ubuntu_22_Install_Guide.md#-11-CUDA-설치-및-PATH-설정)
 
-[12. CUDNN 설치](Ubuntu_22_Install_Guide.md#-12-CUDNN-설치-및-PATH-설정)
+[12. CUDNN 설치](Ubuntu_22_Install_Guide.md#-12-CUDNN-설치)
 
 [13. 딥러닝 패키지 설치](Ubuntu_22_Install_Guide.md#-13-딥러닝-패키지-설치)
 
