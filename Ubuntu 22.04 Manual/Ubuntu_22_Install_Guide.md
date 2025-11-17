@@ -12,7 +12,7 @@
 
 [2. nouveau 끄기 및 grub 설정](Ubuntu_22_Install_Guide.md#-2-nouveau-끄기-및-grub-설정)  
 
-[3. 시스팀 설정](Ubuntu_22_Install_Guide.md#-3-시스템-설정)  
+[3. 시스템 설정](Ubuntu_22_Install_Guide.md#-3-시스템-설정)  
 
 [4. 기본 패키지 설치](Ubuntu_22_Install_Guide.md#-4-기본-패키지-설치)  
 
