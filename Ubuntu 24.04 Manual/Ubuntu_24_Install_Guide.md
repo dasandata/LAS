@@ -216,6 +216,7 @@ ufw allow 8787/tcp
 ufw allow 8000/tcp
 
 sed -i 's/#Port 22/Port 7777/g' /etc/ssh/sshd_config
+sed -i 's/PermitRootLogin yes/PermitRootLogin no/g' /etc/ssh/sshd_config
 echo "AddressFamily inet" >> /etc/ssh/sshd_config
 systemctl restart sshd
 ```
@@ -315,7 +316,7 @@ apt-get -y install \
 libcudnn9-cuda-${CUDA_MAJOR} \
 libcudnn9-dev-cuda-${CUDA_MAJOR} \
 libcudnn9-headers-cuda-${CUDA_MAJOR} \
-libcudnn9-samples \
+libcudnn9-samples
 ```
 
 ### # [13. 딥러닝 패키지 설치](#목차)
@@ -403,7 +404,8 @@ systemctl daemon-reload
 systemctl start vivaldiframeworkd.service
 systemctl enable vivaldiframeworkd.service
 
-cd
+cd /root
+rm -rf /tmp/raid_manager
 ```
 
 ### # [14-2. LSA 설치](#목차)
@@ -425,7 +427,7 @@ mv /etc/init.d/LsiSASH /etc/lsisash/LsiSASH
 chmod +x /etc/lsisash/LsiSASH
 ```
 ```bash
-    cat <<EOF > "$SYSTEMD_FILE"
+    cat <<EOF > /etc/systemd/system/lsisash.service
 [Unit]
 Description=Start LsiSASH service at boot
 After=network.target

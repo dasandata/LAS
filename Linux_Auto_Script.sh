@@ -380,6 +380,7 @@ case "$OS_ID" in
             ufw allow 8000/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # JupyterHub
             ufw allow 8787/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG" # RStudio Server
             sed -i 's/#Port 22/Port 7777/g' /etc/ssh/sshd_config
+            sed -i 's/PermitRootLogin yes/PermitRootLogin no/g' /etc/ssh/sshd_config
             echo "AddressFamily inet" >> /etc/ssh/sshd_config
             
             systemctl restart sshd
@@ -885,7 +886,7 @@ echo "OMSA 설치를 시작합니다." | tee -a "$INSTALL_LOG"
 
 if ! systemctl is-active --quiet dsm_om_connsvc; then
     case "$OS_FULL_ID" in
-        rocky8|almalinux8|rocky9|almalinux9|rocky10|almalinux10)
+        rocky8|rocky9|rocky10|)
             echo "RHEL 계열 OMSA 설치" | tee -a "$INSTALL_LOG"
             firewall-cmd --permanent --add-port=1311/tcp
             firewall-cmd --reload
@@ -902,7 +903,7 @@ if ! systemctl is-active --quiet dsm_om_connsvc; then
             systemctl enable dsm_sa_datamgrd.service
             ;;
 
-            almalinux8|almalinux9|almalinux10)
+        almalinux8|almalinux9|almalinux10)
             echo "RHEL 계열 OMSA 설치" | tee -a "$INSTALL_LOG"
             firewall-cmd --permanent --add-port=1311/tcp
             firewall-cmd --reload
