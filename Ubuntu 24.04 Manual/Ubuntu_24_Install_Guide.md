@@ -433,10 +433,10 @@ Description=Start LsiSASH service at boot
 After=network.target
 
 [Service]
-Type=oneshot
-RemainAfterExit=yes
+Type=forking
 ExecStart=/etc/lsisash/LsiSASH start
 ExecStop=/etc/lsisash/LsiSASH stop
+Restart=on-failure
 TimeoutStopSec=30s
 Restart=no
 
