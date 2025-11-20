@@ -437,13 +437,16 @@ Description=Start LsiSASH service at boot
 After=network.target
 
 [Service]
-Type=simple
-User=root
+Type=oneshot
+RemainAfterExit=yes
 ExecStart=/etc/lsisash/LsiSASH start
-Restart=on-failure
+ExecStop=/etc/lsisash/LsiSASH stop
+TimeoutStopSec=30s
+Restart=no
 
 [Install]
 WantedBy=multi-user.target
+
 EOF
 ```
 
