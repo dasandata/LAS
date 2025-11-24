@@ -138,7 +138,7 @@ apt-get update
 apt-get -y install build-essential snapd firefox vim nfs-common rdate xauth curl git wget figlet net-tools htop
 apt-get -y install util-linux-extra smartmontools tmux xfsprogs aptitude lvm2 dstat npm ntfs-3g 
 apt-get -y install gnome-tweaks dconf-editor gnome-settings-daemon metacity nautilus gnome-terminal
-apt-get -y install install ipmitool python3-pip python3-dev
+apt-get -y install ntfs-3g ipmitool python3-pip python3-dev
 
 apt-get -y install ubuntu-desktop
 systemctl set-default multi-user.target

@@ -239,7 +239,7 @@ case "$OS_FULL_ID" in
         apt-get -y install build-essential snapd firefox vim nfs-common rdate xauth curl git wget figlet net-tools htop >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         apt-get -y install util-linux-extra smartmontools tmux xfsprogs aptitude lvm2 dstat npm ntfs-3g >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         apt-get -y install gnome-tweaks ubuntu-desktop dconf-editor gnome-settings-daemon metacity nautilus gnome-terminal >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        apt-get -y install ipmitool python3-pip python3-dev >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        apt-get -y install ntfs-3g ipmitool python3-pip python3-dev >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         ;;
     rocky8|rocky9|almalinux9)
         dnf -y install epel-release >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
@@ -248,7 +248,7 @@ case "$OS_FULL_ID" in
         dnf -y install ethtool pciutils openssh mlocate nfs-utils xauth firefox nautilus wget bind-utils >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         dnf -y install tcsh tree lshw tmux kernel-headers kernel-devel gcc make gcc-c++ yum-utils >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         dnf -y install cmake dstat perl perl-CPAN perl-core net-tools openssl-devel git-lfs vim  >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-        dnf -y install git bash-completion smartmontools ipmitool tar chrony htop >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+        dnf -y install git bash-completion smartmontools ipmitool tar chrony htop ntfs-3g >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
         ;;
 esac
 echo "기본 패키지 설치 완료." | tee -a "$INSTALL_LOG"

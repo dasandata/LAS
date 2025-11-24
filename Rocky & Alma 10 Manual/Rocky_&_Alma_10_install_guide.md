@@ -144,7 +144,7 @@ dnf -y install  epel-release
 dnf -y install ethtool pciutils openssh mlocate nfs-utils xauth firefox nautilus wget bind-utils
 dnf -y install tcsh tree lshw tmux kernel-headers kernel-devel gcc make gcc-c++ yum-utils
 dnf -y install cmake dstat perl perl-CPAN perl-core net-tools openssl-devel git-lfs vim
-dnf -y install git bash-completion smartmontools ipmitool tar chrony htop
+dnf -y install git bash-completion smartmontools ipmitool tar chrony htop ntfs-3g
 systemctl set-default multi-user.target
 ```
 
