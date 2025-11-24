@@ -1,5 +1,5 @@
 # 다산데이타 LISR 스크립트 설치 매뉴얼 2025-11
-다산데이타 장비 출고시 설치되는 Rocky_8 설치 표준안 입니다. 
+다산데이타 장비 출고시 설치되는 Rocky_10 설치 표준안 입니다. 
 별도의 요청사항이 없는 경우 기본적으로 아래 절차에 따라 자동 스크립트 설치가 진행 됩니다.  
 이 문서는 스크립트의 수동 설치 가이드 입니다.
 ***
@@ -8,43 +8,43 @@
 
 ### ===== 기본 버전 설치 진행 순서 =====
 
-[1. 변수 선언](Rocky_&_Alma_8_Install_Guide.md#-1-변수-선언)  
+[1. 변수 선언](Rocky_&_Alma_10_Install_Guide.md#-1-변수-선언)  
 
-[2. nouveau 끄기 및 grub 설정](Rocky_&_Alma_8_Install_Guide.md#-2-nouveau-끄기-및-grub-설정)  
+[2. nouveau 끄기 및 grub 설정](Rocky_&_Alma_10_Install_Guide.md#-2-nouveau-끄기-및-grub-설정)  
 
-[3. 시스템 설정](RRocky_&_Alma_8_Install_Guide.md#-3-시스템-설정)  
+[3. 시스템 설정](RRocky_&_Alma_10_Install_Guide.md#-3-시스템-설정)  
 
-[4. 기본 패키지 설치](Rocky_&_Alma_8_Install_Guide.md#-4-기본-패키지-설치)  
+[4. 기본 패키지 설치](Rocky_&_Alma_10_Install_Guide.md#-4-기본-패키지-설치)  
 
-[5. 프로필 설정](Rocky_&_Alma_8_Install_Guide.md#-5-프로필-설정)  
+[5. 프로필 설정](Rocky_&_Alma_10_Install_Guide.md#-5-프로필-설정)  
 
-[6. 서버 시간 동기화](Rocky_&_Alma_8_Install_Guide.md#-6-서버-시간-동기화)  
+[6. 서버 시간 동기화](Rocky_&_Alma_10_Install_Guide.md#-6-서버-시간-동기화)  
 
-[7. 파이썬 설치](Rocky_&_Alma_8_Install_Guide.md#-7-파이썬-설치)  
+[7. 파이썬 설치](Rocky_&_Alma_10_Install_Guide.md#-7-파이썬-설치)  
 
-[8. 방화벽 설정](Rocky_&_Alma_8_Install_Guide.md#-8-방화벽-설정)  
+[8. 방화벽 설정](Rocky_&_Alma_10_Install_Guide.md#-8-방화벽-설정)  
 
-[9. H/W 사양 체크](Rocky_&_Alma_8_Install_Guide.md#-9-HW-사양-체크)  
+[9. H/W 사양 체크](Rocky_&_Alma_10_Install_Guide.md#-9-HW-사양-체크)  
 
 ### ===== GPU 버전 설치 진행 순서 ===== 
 
-[10. CUDA,CUDNN Repo 설치](Rocky_&_Alma_8_Install_Guide.md#-10-CUDACUDNN-Repo-설치)
+[10. CUDA,CUDNN Repo 설치](Rocky_&_Alma_10_Install_Guide.md#-10-CUDACUDNN-Repo-설치)
 
-[11. CUDA 설치 및 PATH 설정](Rocky_&_Alma_8_Install_Guide.md#-11-CUDA-설치-및-PATH-설정)
+[11. CUDA 설치 및 PATH 설정](Rocky_&_Alma_10_Install_Guide.md#-11-CUDA-설치-및-PATH-설정)
 
-[12. CUDNN 설치](Rocky_&_Alma_8_Install_Guide.md#-12-CUDNN-설치)
+[12. CUDNN 설치](Rocky_&_Alma_10_Install_Guide.md#-12-CUDNN-설치)
 
-[13. 딥러닝 패키지 설치](Rocky_&_Alma_8_Install_Guide.md#-13-딥러닝-패키지-설치)
+[13. 딥러닝 패키지 설치](Rocky_&_Alma_10_Install_Guide.md#-13-딥러닝-패키지-설치)
 
 ### =====  Raid manager 설치 진행 순서 ===== 
 
-[14-1. Raid manager MSM 설치](Rocky_&_Alma_8_Install_Guide.md#-14-1-MSM-설치)
+[14-1. Raid manager MSM 설치](Rocky_&_Alma_10_Install_Guide.md#-14-1-MSM-설치)
 
-[14-2. Raid manager LSA 설치](Rocky_&_Alma_8_Install_Guide.md#-14-2-LSA-설치)
+[14-2. Raid manager LSA 설치](Rocky_&_Alma_10_Install_Guide.md#-14-2-LSA-설치)
 
 ### ===== Dell 서버 전용 설치 순서 =====
 
-[15. Dell 전용 OMSA설치](Rocky_&_Alma_8_Install_Guide.md#-15-Dell-전용-OMSA설치)
+[15. Dell 전용 OMSA설치](Rocky_&_Alma_10_Install_Guide.md#-15-Dell-전용-OMSA설치)
 
 ***
 ## # 범례(변수).
@@ -276,8 +276,7 @@ OS_FULL_ID="${OS_ID}${OS_VERSION_MAJOR}"
 
 
 # Nvidia 저장소 생성 (Cuda,cudnn 설치를 위해)
-dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64/cuda-rhel8.repo
-wget https://developer.download.nvidia.com/compute/machine-learning/repos/rhel8/x86_64/nvidia-machine-learning-repo-rhel8-1.0.0-1.x86_64.rpm
+dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel10/x86_64/cuda-rhel10.repo
 dnf -y install libXi-devel mesa-libGLU-devel libXmu-devel libX11-devel freeglut-devel libXm* openmotif*
 ```
 

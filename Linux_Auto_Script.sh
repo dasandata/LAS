@@ -510,7 +510,7 @@ if ! lspci | grep -iq nvidia; then
     echo "Complete basic setup" | tee -a "$INSTALL_LOG"
 
     case "$OS_FULL_ID" in
-        rocky8|rocky9|almalinux9)
+        rocky8|rocky9|rocky10|almalinux9|almalinux10)
             if ! dmidecode | grep -iq ipmi; then
                 echo "" | tee -a "$INSTALL_LOG"
                 echo "End of CPU version LAS" | tee -a "$INSTALL_LOG"
@@ -980,15 +980,16 @@ echo "모든 설치 완료. 최종 정리 작업을 수행합니다." | tee -a "
 
 # rc.local에서 메인 스크립트 자동 실행 항목 제거
 case "$OS_ID" in
-    ubuntu) RC_PATH="/etc/rc.local" ;;
-    rocky|almalinux) RC_PATH="/etc/rc.d/rc.local" ;;
+    ubuntu)
+        sed -i '\|bash /root/LAS/Linux_Auto_Script.sh|d' /etc/rc.local
+        echo "/etc/rc.local에서 메인 스크립트 자동 실행 항목을 제거했습니다." | tee -a "$INSTALL_LOG"
+        ;;
+    rocky|almalinux)
+        sed -i '\|bash /root/LAS/Linux_Auto_Script.sh|d' /etc/rc.d/rc.local
+        echo "/etc/rc.d/rc.local에서 메인 스크립트 자동 실행 항목을 제거했습니다." | tee -a "$INSTALL_LOG"
+        ;;
 esac
-# ...
-if [ -n "$RC_PATH" ] && [ -f "$RC_PATH" ]; then
-    # 정의되지 않은 변수 대신 실제 스크립트 경로를 명시합니다.
-    sed -i "\|bash /root/LAS/Linux_Auto_Script.sh|d" "$RC_PATH"    
-echo "$RC_PATH에서 메인 스크립트 자동 실행 항목을 제거했습니다." | tee -a "$INSTALL_LOG"
-    
+
     #  Check_List.sh를 다음 부팅 시 한 번만 실행하도록 등록
     if [ -f /root/LAS/Check_List.sh ]; then
         echo "bash /root/LAS/Check_List.sh" >> "$RC_PATH"
