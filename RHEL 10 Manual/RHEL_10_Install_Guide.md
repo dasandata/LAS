@@ -103,7 +103,7 @@ OS_VERSION_MAJOR=$(grep '^VERSION_ID=' /etc/os-release | cut -d'=' -f2 | tr -d '
 OS_FULL_ID="${OS_ID}${OS_VERSION_MAJOR}"
 
 # CUDA 설치 버전을 중 선택하여 CUDAV라는 변수로 사용합니다.
-select CUDAV in 12-6 12-8 12-9 13-0 No-GPU ; do echo "Select CUDA Version : $CUDAV" ; break; done
+select CUDAV in 12-9 13-0 No-GPU ; do echo "Select CUDA Version : $CUDAV" ; break; done
 ```
 
 ### # [2. nouveau 끄기 및 grub 설정](#목차)
@@ -118,11 +118,8 @@ echo "options nouveau modeset=0" >> /etc/modprobe.d/nouveau_disable.conf
 dracut -f
 
 # 변경된 내용으로 initramfs 및 grub 재설정
-update-initramfs -u && update-grub
 grub2-mkconfig -o /boot/grub2/grub.cfg
 
-# EFI 시스템이면 추가 GRUB 설정
-grub2-mkconfig -o /boot/efi/EFI/rocky/grub.cfg
 ```
 
 ### # [3. 시스템 설정 ](#목차)
@@ -317,8 +314,6 @@ cudnn9-samples
 ```
 
 ### # [13. 딥러닝 패키지 설치](#목차)
-#### ## JupyterHub는 마지막 설정이 동일하여 마지막에 같이 서술하였습니다.
-#### ## 마지막 설정에 사용되는 파일은 Git에 LAS 밑에 존재합니다.
 
 ```bash
 # 딥러닝 패키지 (R, R-Server, JupyterHub) 를 설치 합니다.
