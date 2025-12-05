@@ -120,6 +120,8 @@ dracut -f
 # 변경된 내용으로 initramfs 및 grub 재설정
 grub2-mkconfig -o /boot/grub2/grub.cfg
 
+```
+
 ### # [3. 시스템 설정 ](#목차)
 
 ```bash
