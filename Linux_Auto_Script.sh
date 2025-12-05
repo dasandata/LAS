@@ -530,6 +530,22 @@ if ! lspci | grep -iq nvidia; then
                 if [ ! -f $LOG_DIR/nvidia.txt ]; then
                     touch $LOG_DIR/nvidia.txt
                     reboot
+                else
+                    # === [수정된 부분] 2번째 부팅 시 여기서 정리하고 끝냅니다 ===
+                    echo "No-GPU 서버 설정을 마무리합니다." | tee -a "$INSTALL_LOG"
+                    
+                    # 1. 무한 반복 방지: rc.local에서 실행 명령어 삭제
+                    sed -i '\|bash /root/LAS/Linux_Auto_Script.sh|d' /etc/rc.d/rc.local
+                    
+                    # 2. 다음 부팅 시 Check_List.sh 실행 등록
+                    if ! grep -q "bash /root/LAS/Check_List.sh" /etc/rc.d/rc.local; then
+                        sed -i '13a bash /root/LAS/Check_List.sh' /etc/rc.d/rc.local
+                    fi
+                    
+                    # 3. 최종 재부팅
+                    echo "최종 재부팅합니다." | tee -a "$INSTALL_LOG"
+                    reboot
+                    # =====================================================
                 fi
             fi
             ;;
