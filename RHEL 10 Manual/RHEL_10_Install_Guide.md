@@ -471,10 +471,7 @@ dnf config-manager --set-enabled crb
 
 # **Almalinux OS only**
 dnf config-manager --set-enabled almalinux-crb
-```
 
-
-```bash
 dnf -y install --enablerepo=dell-system-update_dependent srvadmin-all openssl-devel srvadmin-idrac
 
 systemctl daemon-reload

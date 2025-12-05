@@ -118,12 +118,7 @@ echo "options nouveau modeset=0" >> /etc/modprobe.d/nouveau_disable.conf
 dracut -f
 
 # 변경된 내용으로 initramfs 및 grub 재설정
-update-initramfs -u && update-grub
 grub2-mkconfig -o /boot/grub2/grub.cfg
-
-# EFI 시스템이면 추가 GRUB 설정
-grub2-mkconfig -o /boot/efi/EFI/rocky/grub.cfg
-```
 
 ### # [3. 시스템 설정 ](#목차)
 
@@ -476,10 +471,7 @@ dnf config-manager --set-enabled crb
 
 # **Almalinux OS only**
 dnf config-manager --set-enabled almalinux-crb
-```
 
-
-```bash
 dnf -y install --enablerepo=dell-system-update_dependent srvadmin-all openssl-devel srvadmin-idrac
 
 systemctl daemon-reload
