@@ -218,7 +218,7 @@ ufw allow 8000/tcp
 sed -i 's/#Port 22/Port 7777/g' /etc/ssh/sshd_config
 sed -i 's/PermitRootLogin yes/PermitRootLogin no/g' /etc/ssh/sshd_config
 echo "AddressFamily inet" >> /etc/ssh/sshd_config
-systemctl restart sshd
+systemctl restart ssh
 ```
 
 
@@ -328,7 +328,7 @@ libcudnn9-samples
 # JupyterHub에 작업 중 사용되는 파일들은 LISR에 존재하므로 git을 통해 Pull 하고 사용해야 합니다.
 
 ## R,R-studio install
-apt get -y install r-base libcurl4-openssl-dev libxml2-dev
+apt-get -y install r-base libcurl4-openssl-dev libxml2-dev
 
 wget -O /tmp/rstudio-server-latest.deb https://download2.rstudio.org/server/jammy/amd64/rstudio-server-2025.05.1-513-amd64.deb
 apt -y install /tmp/rstudio-server-latest.deb

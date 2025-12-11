@@ -388,7 +388,6 @@ case "$OS_ID" in
             sed -i 's/PermitRootLogin yes/PermitRootLogin no/g' /etc/ssh/sshd_config
             echo "AddressFamily inet" >> /etc/ssh/sshd_config
             
-            systemctl restart sshd
         else
             echo "ERROR: ufw is not active. Skipping configuration." >> "$ERROR_LOG"
         fi
