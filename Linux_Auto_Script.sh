@@ -183,7 +183,6 @@ if lsmod | grep -q "^nouveau"; then
         rocky9|almalinux9|rocky10|almalinux10)
             dracut -f >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
             grub2-mkconfig -o /boot/grub2/grub.cfg >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
-            fi
             ;;
         rocky8|almalinux8)
             dracut -f >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
