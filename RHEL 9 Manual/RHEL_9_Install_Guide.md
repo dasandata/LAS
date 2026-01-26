@@ -322,10 +322,9 @@ cudnn9-samples
 # JupyterHub에 작업 중 사용되는 파일들은 LISR에 존재하므로 git을 통해 Pull 하고 사용해야 합니다.
 
 ## R,R-studio install
-dnf config-manager --set-enabled powertools
 dnf -y install R libcurl-devel libxml2-devel
 
-wget -O /tmp/rstudio-server-latest.rpm https://download2.rstudio.org/server/rhel8/x86_64/rstudio-server-rhel-2025.05.1-513-x86_64.rpm
+wget -O /tmp/rstudio-server-latest.rpm https://download1.rstudio.org/electron/rhel9/x86_64/rstudio-2026.01.0-392-x86_64.rpm
 dnf -y install /tmp/rstudio-server-latest.rpm
 
 rm -f /tmp/rstudio-server-latest.rpm
