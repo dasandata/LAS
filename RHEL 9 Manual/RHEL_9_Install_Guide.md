@@ -324,7 +324,7 @@ cudnn9-samples
 ## R,R-studio install
 dnf -y install R libcurl-devel libxml2-devel
 
-wget -O /tmp/rstudio-server-latest.rpm https://download1.rstudio.org/electron/rhel9/x86_64/rstudio-2026.01.0-392-x86_64.rpm
+wget -O /tmp/rstudio-server-latest.rpm https://download2.rstudio.org/server/rhel9/x86_64/rstudio-server-rhel-2026.01.0-392-x86_64.rpm
 dnf -y install /tmp/rstudio-server-latest.rpm
 
 rm -f /tmp/rstudio-server-latest.rpm
