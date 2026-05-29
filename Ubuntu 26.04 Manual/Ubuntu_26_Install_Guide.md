@@ -144,8 +144,8 @@ systemctl set-default multi-user.target
 systemctl mask network-online.target
 ```
 
-### 26-05-29 apt-get -y install ubuntu-desktop 실행 후,  dracut의 11systemd-networkd 모듈이 DHCP 프로파일을 생성하여 고정 IP 설정과 충돌하는 문제 발생
-##### apt-get -y install ubuntu-desktop 실행시, 아래 조치 진행
+#### 26-05-29 apt-get -y install ubuntu-desktop 실행 후,  dracut의 11systemd-networkd 모듈이 DHCP 프로파일을 생성하여 고정 IP 설정과 충돌하는 문제 발생
+#### apt-get -y install ubuntu-desktop 실행시, 아래 조치 진행해야 합니다.
 ```bash
 cat > /etc/dracut.conf.d/no-network.conf << 'EOF'
 omit_dracutmodules+=" network 11systemd-networkd "
