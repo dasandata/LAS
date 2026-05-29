@@ -18,6 +18,7 @@
       - [Ubuntu 20.04](https://github.com/dasandata/LAS/blob/master/Ubuntu%2020.04%20Manual/Ubuntu_20_Install_Guide.md)
       - [Ubuntu 22.04](https://github.com/dasandata/LAS/blob/master/Ubuntu%2022.04%20Manual/Ubuntu_22_Install_Guide.md)
       - [Ubuntu 24.04](https://github.com/dasandata/LAS/blob/master/Ubuntu%2024.04%20Manual/Ubuntu_24_Install_Guide.md)
+      - [Ubuntu 26.04](https://github.com/dasandata/LAS/blob/master/Ubuntu%2026.04%20Manual/Ubuntu_26_Install_Guide.md)
 
 - [2. 자동 스크립트](https://github.com/dasandata/LAS/blob/master/Linux_Auto_Script.sh)
 
