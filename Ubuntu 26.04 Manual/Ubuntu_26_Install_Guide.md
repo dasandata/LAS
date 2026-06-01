@@ -345,13 +345,12 @@ libcudnn9-samples
 ## R,R-studio install
 apt-get -y install r-base libcurl4-openssl-dev libxml2-dev
 
-wget -O /tmp/rstudio-server-latest.deb https://download2.rstudio.org/server/jammy/amd64/rstudio-server-2025.05.1-513-amd64.deb
+wget -O /tmp/rstudio-server-latest.deb https://download2.rstudio.org/server/jammy/amd64/rstudio-server-2026.05.0-218-amd64.deb
 apt -y install /tmp/rstudio-server-latest.deb
 rm -f /tmp/rstudio-server-latest.deb
 
 ## JupyterHub install
-python3 -m pip install --upgrade pip setuptools wheel
-python3 -m pip install jupyterhub jupyterlab notebook
+pip install --break-system-packages jupyterhub jupyterlab notebook
 
 apt-get -y purge nodejs libnode72
 
