@@ -327,7 +327,6 @@ source /root/.bashrc
 
 wget https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-9.23.0.39_cuda13-archive.tar.xz
 
-
 cd cudnn-linux-x86_64-9.23.0.39_cuda13-archive/
 
 cp lib/libcudnn* /usr/local/cuda-$CUDAV_U/lib64/
