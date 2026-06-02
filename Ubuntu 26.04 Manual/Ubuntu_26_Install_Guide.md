@@ -277,7 +277,7 @@ reboot
 
 ```bash
 # 사용할 CUDA 버전을 선택합니다. (22.04는 11.7만 지원됨)
-select CUDAV in 13-3 No-GPU ; do echo "Select CUDA Version : $CUDAV" ; break; done
+select CUDAV in 13-1 13-3 No-GPU ; do echo "Select CUDA Version : $CUDAV" ; break; done
 
 # 자세한 Ubuntu 버전을 변수로 선언합니다.
 OS_ID=$(grep '^ID=' /etc/os-release | cut -d'=' -f2 | tr -d '"' | tr '[A-Z]' '[a-z]')
@@ -301,7 +301,7 @@ apt-get update
 apt-get -y install cuda-$CUDAV
 
 # Driver 설치
-ubuntu-drivers autoinstall
+ubuntu-drivers install
 
 # profile에 PATH 설정시에는 cuda-11-7의 형식이 아닌 cuda-11.7 같은 형식으로 변경되어야 합니다.
 CUDAV_U="${CUDAV/-/.}"
@@ -322,6 +322,7 @@ source /root/.bashrc
 ```
 
 ### # [12. CUDNN 설치](#목차)
+#### ### 26-06-02 현재 cuda repo에 ubuntu26의 cudnn이 존재하지 않습니다. 
 
 ```bash
 
@@ -483,7 +484,8 @@ rm -rf LSA
 ufw allow 1311/tcp
 echo 'deb http://linux.dell.com/repo/community/openmanage/10300/focal focal main' \ > /etc/apt/sources.list.d/linux.dell.com.sources.list
 wget http://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc
-apt-key add 0x1285491434D8786F.asc
+cat 0x1285491434D8786F.asc | gpg --dearmor -o /usr/share/keyrings/dell-openmanage.gpg
+echo 'deb [signed-by=/usr/share/keyrings/dell-openmanage.gpg] http://linux.dell.com/repo/community/openmanage/10300/focal focal main' > /etc/apt/sources.list.d/linux.dell.com.sources.list
 apt-get -y update
 wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
 dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
