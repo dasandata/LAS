@@ -322,17 +322,23 @@ source /root/.bashrc
 ```
 
 ### # [12. CUDNN 설치](#목차)
-#### ### 26-06-02 현재 cuda repo에 ubuntu26의 cudnn이 존재하지 않습니다. 
+#### ### 26-06-02 현재 cuda repo에 ubuntu26는 cuda13-1과 13-3만 존재하며 ubuntu26 repo에 cuda13에 대한 cudnn이 존재하지 않습니다. 직접 다운받아야 합니다.
 
 ```bash
 
-CUDA_MAJOR=${CUDAV%%-*}
+wget https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-9.23.0.39_cuda13-archive.tar.xz
 
-apt-get -y install \
-libcudnn9-cuda-${CUDA_MAJOR} \
-libcudnn9-dev-cuda-${CUDA_MAJOR} \
-libcudnn9-headers-cuda-${CUDA_MAJOR} \
-libcudnn9-samples
+
+cd cudnn-linux-x86_64-9.23.0.39_cuda13-archive/
+
+cp lib/libcudnn* /usr/local/cuda-$CUDAV_U/lib64/
+cp include/cudnn*.h /usr/local/cuda-$CUDAV_U/include/
+
+chmod a+r /usr/local/cuda/include/cudnn*.h
+chmod a+r /usr/local/cuda/lib64/libcudnn*
+
+ldconfig
+ldconfig -p | grep cudnn
 ```
 
 ### # [13. 딥러닝 패키지 설치](#목차)
