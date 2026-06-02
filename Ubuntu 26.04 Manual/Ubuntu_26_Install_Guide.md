@@ -102,7 +102,7 @@ OS_VERSION_MAJOR=$(grep '^VERSION_ID=' /etc/os-release | cut -d'=' -f2 | tr -d '
 OS_FULL_ID="${OS_ID}${OS_VERSION_MAJOR}"
 
 # CUDA 설치 버전을 중 선택하여 CUDAV라는 변수로 사용합니다.
-select CUDAV in 11-8 12-5 12-6 12-8 12-9 13-0 No-GPU ; do echo "Select CUDA Version : $CUDAV" ; break; done
+select CUDAV in 13-1 13-3 No-GPU ; do echo "Select CUDA Version : $CUDAV" ; break; done
 ```
 
 ### # [2. nouveau 끄기 및 grub 설정](#목차)
