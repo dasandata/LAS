@@ -276,7 +276,7 @@ reboot
 ### # [10. CUDA,CUDNN Repo 설치](#목차)
 
 ```bash
-# 사용할 CUDA 버전을 선택합니다. (22.04는 11.7만 지원됨)
+# 사용할 CUDA 버전을 선택합니다. (26.04은 13만 지원됨)
 select CUDAV in 13-1 13-3 No-GPU ; do echo "Select CUDA Version : $CUDAV" ; break; done
 
 # 자세한 Ubuntu 버전을 변수로 선언합니다.
@@ -288,7 +288,6 @@ OS_FULL_ID="${OS_ID}${OS_VERSION_MAJOR}"
 # Nvidia 저장소 생성 (Cuda,cudnn 설치를 위해)
 apt-get -y install sudo gnupg
 wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2604/x86_64/cuda-keyring_1.1-1_all.deb
-
 dpkg -i cuda-keyring_1.1-1_all.deb
 
 apt-get update
