@@ -117,7 +117,7 @@ echo "options nouveau modeset=0" >> /etc/modprobe.d/nouveau_disable.conf
 update-initramfs -u && update-grub
 ```
 
-### # [3. 시스템 설정 ](#목차) ### 2026-05-29 - 포함된 패키지가 카카오 미러보다 최신이라 한동안 설정하지 않습니다.
+### # [3. 시스템 설정 ](#목차) ### 2026-05-29 - 기존 아카이브에 포함된 패키지가 카카오 미러보다 최신이라 한동안 설정하지 않습니다.
 #### ## Ubuntu는 기존 저장소 속도 최적화를 위해 변경 합니다.
 
 ```bash
