@@ -4,7 +4,7 @@
 # http://www.dasandata.co.kr
 #
 # Modernized Version: 2025-12-23
-# Target OS: Ubuntu 22.04/24.04, Rocky Linux 8/9, AlmaLinux 8/9
+# Target OS: Ubuntu 22.04/24.04/26.04 Rocky Linux 8/9, AlmaLinux 8/9
 # OPTIMIZED: RAID/OMSA before GPU installation
 #
 
@@ -74,6 +74,9 @@ case "$CURRENT_STATE" in
         echo "CUDA 버전 선택을 시작합니다." | tee -a "$INSTALL_LOG"
         CUDA_OPTIONS=""
         case "$OS_FULL_ID" in
+            ubuntu26)
+                CUDA_OPTIONS="13-1 13-3 No-GPU"
+                ;;
             ubuntu24)
                 CUDA_OPTIONS="12-8 12-9 13-0 No-GPU"
                 ;;
