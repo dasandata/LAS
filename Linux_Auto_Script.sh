@@ -444,7 +444,7 @@ EOF
         cd webgui_rel
         unzip -o LSA_Linux.zip >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
 
-        cd gcc_8.3.x
+        cd gcc_11.2.x
         case "$OS_ID" in
             rocky|almalinux)
                 if [ -f install.sh ]; then
@@ -468,9 +468,7 @@ EOF
         esac
 
         cd /root
-        mkdir -p /etc/lsisash
-        mv /etc/init.d/LsiSASH /etc/lsisash/LsiSASH 2>/dev/null
-        chmod +x /etc/lsisash/LsiSASH 2>/dev/null
+        chmod +x /etc/init.d/LsiSASH 2>/dev/null
 
         case "$OS_FULL_ID" in
             rocky8|rocky9|almalinux8|almalinux9)
@@ -492,9 +490,10 @@ Description=Start LsiSASH service at boot
 After=network.target
 
 [Service]
-Type=forking
-ExecStart=/etc/lsisash/LsiSASH start
-ExecStop=/etc/lsisash/LsiSASH stop
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/etc/init.d/LsiSASH start
+ExecStop=/etc/init.d/LsiSASH stop
 Restart=on-failure
 TimeoutStopSec=30s
 

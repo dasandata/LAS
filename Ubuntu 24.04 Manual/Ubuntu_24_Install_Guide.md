@@ -419,12 +419,11 @@ cd webgui_rel
 unzip -o LSA_Linux.zip
 ls -l
 
-cd gcc_8.3.x
+cd gcc_11.2.x
 yes | ./install_deb.sh -s
 
-mkdir -p /etc/lsisash
-mv /etc/init.d/LsiSASH /etc/lsisash/LsiSASH
-chmod +x /etc/lsisash/LsiSASH
+chmod +x /etc/init.d/LsiSASH
+
 ```
 ```bash
     cat <<EOF > /etc/systemd/system/lsisash.service
@@ -433,9 +432,10 @@ Description=Start LsiSASH service at boot
 After=network.target
 
 [Service]
-Type=forking
-ExecStart=/etc/lsisash/LsiSASH start
-ExecStop=/etc/lsisash/LsiSASH stop
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/etc/init.d/LsiSASH start
+ExecStop=/etc/init.d/LsiSASH stop
 Restart=on-failure
 TimeoutStopSec=30s
 Restart=no
