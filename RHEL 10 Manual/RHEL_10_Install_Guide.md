@@ -415,6 +415,8 @@ unzip -o LSA_Linux.zip
 ls -l
 
 cd gcc_11.2.x
+
+ln -s /usr/lib64/libldap.so.2 /usr/lib64/libldap-2.4.so.2
 yes | ./install.sh -s
 
 chmod +x /etc/init.d/LsiSASH

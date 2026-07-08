@@ -83,7 +83,7 @@ case "$CURRENT_STATE" in
             ubuntu22)
                 CUDA_OPTIONS="11-8 12-5 12-6 12-8 12-9 13-0 No-GPU"
                 ;;
-            rocky8|rocky9|almalinux8|almalinux9)
+            rocky8|rocky9|rocky10|almalinux8|almalinux9|almalinux10)
                 CUDA_OPTIONS="12-8 12-9 13-0 No-GPU"
                 ;;
             *)
@@ -244,7 +244,7 @@ EOF
             apt-get -y install ntfs-3g ipmitool python3-pip python3-dev >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
             apt-get -y install npm >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
             ;;
-        rocky8|rocky9|almalinux8|almalinux9)
+        rocky8|rocky9|almalinux8|almalinux9|rocky10|almalinux10)
             dnf -y install epel-release >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
             dnf -y groupinstall "Server with GUI" "Development Tools" >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
             dnf -y install ethtool pciutils openssh mlocate nfs-utils xauth firefox nautilus wget bind-utils >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
@@ -288,7 +288,7 @@ EOF
     TIME_ERR="$LOG_DIR/Time_Setting_log_err.txt"
 
     case "$OS_FULL_ID" in
-        rocky8|rocky9|almalinux8|almalinux9)
+        rocky8|rocky9|rocky10|almalinux8|almalinux9|almalinux10)
             dnf -y install chrony >> "$TIME_LOG" 2>> "$TIME_ERR"
             sed -i 's|^server .*iburst|server kr.pool.ntp.org iburst|' /etc/chrony.conf
             systemctl enable --now chronyd >> "$TIME_LOG" 2>> "$TIME_ERR"
@@ -312,7 +312,7 @@ EOF
     echo "Python 3 및 pip 설치를 시작합니다." | tee -a "$INSTALL_LOG"
     if ! command -v pip3 &>/dev/null; then
         case "$OS_FULL_ID" in
-            rocky8|rocky9|almalinux8|almalinux9)
+            rocky8|rocky9|rocky10|almalinux8|almalinux9|almalinux10)
                 dnf -y install python3 python3-pip >> "$LOG_DIR/Python_install.log" 2>> "$LOG_DIR/Python_install_log_err.txt"
                 ;;
             ubuntu20|ubuntu22|ubuntu24)
@@ -445,8 +445,8 @@ EOF
         unzip -o LSA_Linux.zip >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
 
         cd gcc_11.2.x
-        case "$OS_ID" in
-            rocky|almalinux)
+        case "$OS_FULL_ID" in
+            rocky8|rocky9|almalinux8|almalinux9)
                 if [ -f install.sh ]; then
                     yes | ./install.sh -s >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
                     echo "Rocky/AlmaLinux: install.sh 실행 완료" | tee -a "$INSTALL_LOG"
@@ -454,7 +454,16 @@ EOF
                     echo "[WARN] install.sh 파일이 없습니다." | tee -a "$INSTALL_LOG"
                 fi
                 ;;
-            ubuntu)
+            rocky10|almalinux10)
+                if [ -f install.sh ]; then
+                    ln -s /usr/lib64/libldap.so.2 /usr/lib64/libldap-2.4.so.2
+                    yes | ./install.sh -s >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
+                    echo "Rocky/AlmaLinux: install.sh 실행 완료" | tee -a "$INSTALL_LOG"
+                else
+                    echo "[WARN] install.sh 파일이 없습니다." | tee -a "$INSTALL_LOG"
+                fi
+                ;;
+            ubuntu20|ubuntu22|ubuntu24)
                 if [ -f install_deb.sh ]; then
                     yes | ./install_deb.sh -s >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
                     echo "Ubuntu: install_deb.sh 실행 완료" | tee -a "$INSTALL_LOG"
@@ -471,7 +480,7 @@ EOF
         chmod +x /etc/init.d/LsiSASH 2>/dev/null
 
         case "$OS_FULL_ID" in
-            rocky8|rocky9|almalinux8|almalinux9)
+            rocky8|rocky9|rocky10|almalinux8|almalinux9|almalinux10)
                 firewall-cmd --zone=public --add-service=http --permanent >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
                 firewall-cmd --zone=public --add-port=2463/tcp --permanent >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
                 firewall-cmd --reload >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
@@ -550,7 +559,7 @@ EOF
 
     if ! systemctl is-active --quiet dsm_om_connsvc; then
         case "$OS_FULL_ID" in
-            rocky8|rocky9|almalinux8|almalinux9)
+            rocky8|rocky9|rocky10|almalinux8|almalinux9|almalinux10)
                 echo "RHEL 계열 OMSA 설치" | tee -a "$INSTALL_LOG"
                 firewall-cmd --permanent --add-port=1311/tcp >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
                 firewall-cmd --reload >> "$INSTALL_LOG" 2>> "$ERROR_LOG"
@@ -649,7 +658,7 @@ EOF
                     dnf -y install libXi-devel mesa-libGLU-devel libXmu-devel libX11-devel freeglut-devel libXm* openmotif* \
                         >> $LOG_DIR/GPU_repo_log.txt 2>> $LOG_DIR/GPU_repo_log_err.txt
                     ;;
-                rocky9|almalinux8|almalinux9)
+                rocky9|almalinux8|almalinux9|rocky10|almalinux10)
                     dnf config-manager --add-repo \
                         https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64/cuda-rhel9.repo \
                         >> $LOG_DIR/GPU_repo_log.txt 2>> $LOG_DIR/GPU_repo_log_err.txt
@@ -679,7 +688,7 @@ EOF
         if [ $? != 0 ]; then
             CUDAV_U="${CUDAV/-/.}"
             case $OS_FULL_ID in
-                rocky8|rocky9|almalinux8|almalinux9)
+                rocky8|rocky9|rocky10|almalinux8|almalinux9|almalinux10)
                     if ! grep -q "ADD Cuda" /etc/profile; then
                         echo "" >> /etc/profile
                         echo "### ADD Cuda $CUDAV_U PATH" >> /etc/profile
@@ -723,7 +732,7 @@ EOF
         fi
 
         case "$OS_FULL_ID" in
-            rocky8|rocky9|almalinux8|almalinux9)
+            rocky8|rocky9|rocky10|almalinux8|almalinux9|almalinux10)
                 dnf -y install \
                     cudnn9-cuda-"${CUDA_MAJOR}" \
                     libcudnn9-devel-cuda-"${CUDA_MAJOR}" \
