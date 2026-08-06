@@ -455,45 +455,6 @@ cd
 rm -rf LSA
 ```
 
-### # [14-3. StorCli 설치](#목차)
-
-```bash
-mkdir /tmp/raid_manager
-cd /tmp/raid_manager  
-wget https://docs.broadcom.com/docs-and-downloads/008.012.007.000_MR7.32_LSA_Linux.zip
-unzip -o 008.012.007.000_MR7.32_LSA_Linux.zip
-cd webgui_rel
-unzip -o LSA_Linux.zip
-ls -l
-
-cd gcc_11.2.x
-
-ln -s /usr/lib64/libldap.so.2 /usr/lib64/libldap-2.4.so.2
-yes | ./install.sh -s
-
-chmod +x /etc/init.d/LsiSASH
-```
-```bash
-    cat <<EOF > /etc/systemd/system/lsisash.service
-[Unit]
-Description=Start LsiSASH service at boot
-After=network.target
-
-[Service]
-Type=oneshot
-RemainAfterExit=yes
-ExecStart=/etc/init.d/LsiSASH start
-ExecStop=/etc/init.d/LsiSASH stop
-Restart=on-failure
-TimeoutStopSec=30s
-Restart=no
-
-[Install]
-WantedBy=multi-user.target
-EOF
-```
-
-
 ### ===== Dell 서버 전용 설치 순서 =====
 
 ### # [15. Dell 전용 OMSA설치](#목차)
