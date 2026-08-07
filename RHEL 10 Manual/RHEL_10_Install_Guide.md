@@ -463,7 +463,7 @@ rm -rf LSA
 ```bash
 firewall-cmd --permanent --add-port=1311/tcp
 firewall-cmd --reload
-wget http://linux.dell.com/repo/hardware/dsu/bootstrap.cgi -O ./dellomsainstall.sh
+wget https://linux.dell.com/repo/hardware/dsu/bootstrap.cgi -O ./dellomsainstall.sh
 sed -i -e "s/enabled=1/enabled=0/g" ./dellomsainstall.sh
 yes | bash ./dellomsainstall.sh
 
