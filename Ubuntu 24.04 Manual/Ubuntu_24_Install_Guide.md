@@ -467,11 +467,11 @@ rm -rf LSA
 
 ```bash
 ufw allow 1311/tcp
-echo 'deb http://linux.dell.com/repo/community/openmanage/10300/focal focal main' \ > /etc/apt/sources.list.d/linux.dell.com.sources.list
-wget http://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc
+echo 'deb https://linux.dell.com/repo/community/openmanage/10300/focal focal main' \ > /etc/apt/sources.list.d/linux.dell.com.sources.list
+wget https://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc
 apt-key add 0x1285491434D8786F.asc
 apt-get -y update
-wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+wget https://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
 dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
 apt-get -y install srvadmin-all
 

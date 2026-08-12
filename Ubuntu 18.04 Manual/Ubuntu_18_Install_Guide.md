@@ -439,8 +439,8 @@ cd
 
 ```bash
 ufw allow 1311/tcp 
-echo 'deb http://linux.dell.com/repo/community/openmanage/940/bionic bionic main'  > /etc/apt/sources.list.d/linux.dell.com.sources.list
-wget http://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc
+echo 'deb https://linux.dell.com/repo/community/openmanage/940/bionic bionic main'  > /etc/apt/sources.list.d/linux.dell.com.sources.list
+wget https://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc
 apt-key add 0x1285491434D8786F.asc 
 apt-get -y update 
 apt-get -y install srvadmin-all 
