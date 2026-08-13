@@ -472,11 +472,6 @@ dnf config-manager --set-enabled crb
 
 dnf -y install --enablerepo=dell-system-update_dependent openssl-devel srvadmin-idrac
 
-systemctl daemon-reload
-systemctl enable dsm_sa_datamgrd.service
-systemctl enable dsm_om_connsvc
-systemctl start dsm_sa_datamgrd.service
-systemctl start dsm_om_connsvc
 ```
 
 ***
