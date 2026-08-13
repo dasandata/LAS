@@ -474,12 +474,6 @@ apt-get -y update
 wget https://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
 dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
 apt-get -y install srvadmin-all
-
-systemctl daemon-reload
-systemctl enable dsm_sa_datamgrd.service
-systemctl enable dsm_om_connsvc
-systemctl start dsm_sa_datamgrd.service
-systemctl start dsm_om_connsvc
 ```
 
 ***
